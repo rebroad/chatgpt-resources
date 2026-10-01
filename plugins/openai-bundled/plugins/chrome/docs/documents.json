@@ -166,6 +166,16 @@
     }
   },
   {
+    "description": "read when the user asks to inspect chrome://gpu or an internal GPU report tab cannot be claimed",
+    "mode": "lookup",
+    "name": "chrome-gpu-tab-support",
+    "when": {
+      "browserTypes": [
+        "extension"
+      ]
+    }
+  },
+  {
     "description": "read when the user asks for screenshots",
     "mode": "lookup",
     "name": "screenshots"
