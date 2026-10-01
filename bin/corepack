@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+set -eu
+
+# Template for the Unix `npm`, `npx`, and `corepack` wrappers in the runtime archive.
+#
+# Official Unix `node` archives ship these as symlinks into `lib/node_modules`:
+#   bin/npm      -> ../lib/node_modules/npm/bin/npm-cli.js
+#   bin/npx      -> ../lib/node_modules/npm/bin/npx-cli.js
+#   bin/corepack -> ../lib/node_modules/corepack/dist/corepack.js
+#
+# Those scripts use `#!/usr/bin/env node`, which selects `node` from `PATH`.
+# This wrapper always uses `<extract_dir>/bin/node`, even when the runtime's `bin`
+# directory is not on `PATH`. It forwards caller arguments, including flags such
+# as `--global` that control `npm`'s install mode.
+#
+# Windows keeps the upstream `npm.cmd`, `npx.cmd`, and `corepack.cmd` launchers,
+# which already invoke the colocated `%~dp0\node.exe`.
+runtime_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+exec "$runtime_root/bin/node" "$runtime_root/lib/node_modules/corepack/dist/corepack.js" "$@"
