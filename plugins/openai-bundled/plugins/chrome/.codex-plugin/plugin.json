@@ -52,7 +52,7 @@
       ]
     }
   },
-  "version": "26.928.31416",
+  "version": "26.930.21537",
   "description": "Chrome automation for tasks that depend on the user's existing Chrome state: tabs, logged-in sessions, cookies, extensions, and ChatGPT Chrome Extension setup. Prefer purpose-built connectors, APIs, or CLIs. If one fails due to missing or expired authentication, ask the user to reauthenticate or explicitly approve Chrome as a fallback.",
   "author": {
     "name": "OpenAI"

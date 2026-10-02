@@ -32763,6 +32763,13 @@ var chatGptComposerActionMetadataSchema, chatGptComposerItemSchema, init_ambient
       connector_filler_hover_enabled: external_exports.boolean().optional().catch(void 0),
       prompt: external_exports.string().optional().catch(void 0),
       system_hints: external_exports.array(external_exports.string()).optional().catch(void 0),
+      quick_actions: external_exports.array(
+        external_exports.object({
+          label: external_exports.string().trim().min(1).max(20).regex(/^\S+(?:\s+\S+){0,2}$/),
+          prompt: external_exports.string().trim().min(1),
+          source_index: external_exports.number().int().min(0).max(1).optional().catch(void 0)
+        }).optional().catch(void 0)
+      ).max(2).transform((actions) => actions.filter((action) => action !== void 0)).optional().catch(void 0),
       title_links: external_exports.array(
         external_exports.object({
           text: external_exports.string(),
@@ -32777,6 +32784,7 @@ var chatGptComposerActionMetadataSchema, chatGptComposerItemSchema, init_ambient
       producer: external_exports.string().min(1),
       item_type: external_exports.enum([
         "chat_home_curated",
+        "chat_home",
         "file_action_suggestion",
         "task_suggestion",
         "proactive_suggestion",
@@ -32813,7 +32821,8 @@ var chatGptComposerActionMetadataSchema, chatGptComposerItemSchema, init_ambient
           type: external_exports.literal("connector"),
           connector_id: external_exports.string(),
           plugin_id: external_exports.string().nullable().optional()
-        })
+        }),
+        external_exports.object({ type: external_exports.literal("url") })
       ]).nullable().optional()
     });
   }
@@ -32958,7 +32967,7 @@ var artifactSessionExternalUpdateSchema, MAX_ARTIFACT_SESSION_EXTERNAL_IMAGE_BYT
 var MAX_PAGE_REALTIME_FRAME_BYTES, init_pages_realtime_service = __esm({
   "../../codex/codex-apps/protocol/src/rpc/pages-realtime-service.ts"() {
     "use strict";
-    MAX_PAGE_REALTIME_FRAME_BYTES = 4 * Math.ceil(2.7962026666666665e6) + 4 * Math.ceil(699050.6666666666) + 1048576;
+    MAX_PAGE_REALTIME_FRAME_BYTES = 4 * Math.ceil(31457280 / 3) + 4 * Math.ceil(2 * 1024 * 1024 / 3) + 1024 * 1024;
   }
 });
 
@@ -39081,7 +39090,7 @@ async function githubPrMetadata(request, host3, signal) {
     let result = await readPullRequestResource(
       request,
       host3,
-      "query($owner:String!,$repo:String!,$number:Int!){viewer{login} repository(owner:$owner,name:$repo){viewerPermission mergeCommitAllowed squashMergeAllowed pullRequest(number:$number){additions deletions changedFiles headRefOid baseRefOid state isDraft mergeable mergeStateStatus viewerCanUpdate author{login avatarUrl} createdAt autoMergeRequest{enabledAt}}}}",
+      "query($owner:String!,$repo:String!,$number:Int!){viewer{login} repository(owner:$owner,name:$repo){viewerPermission mergeCommitAllowed squashMergeAllowed pullRequest(number:$number){additions deletions changedFiles headRefOid viewerCanUpdate author{login avatarUrl} createdAt autoMergeRequest{enabledAt}}}}",
       metadataSchema2,
       signal
     );
@@ -39090,15 +39099,6 @@ async function githubPrMetadata(request, host3, signal) {
     let repository = result.data.repository, pr = repository?.pullRequest;
     return pr == null || repository == null ? { status: "not-found" } : {
       status: "success",
-      mergeability: {
-        headRevision: pr.headRefOid,
-        baseRevision: pr.baseRefOid,
-        canMerge: canMergePullRequest({
-          ...pr,
-          hasOpenPr: pr.state === "OPEN"
-        }),
-        mergeBlocker: getPullRequestMergeBlocker(pr)
-      },
       viewerCanUpdate: pr.viewerCanUpdate,
       hasWritePermission: repository.viewerPermission != null && ["WRITE", "MAINTAIN", "ADMIN"].includes(repository.viewerPermission),
       canManageReviewers: repository.viewerPermission != null && ["TRIAGE", "WRITE", "MAINTAIN", "ADMIN"].includes(
@@ -39212,7 +39212,7 @@ async function readPullRequestResource(request, host3, query, schema2, signal, v
     throw new Error("Pull request resource unavailable");
   return parseGitHubJson(result.stdout, schema2);
 }
-var metadataSchema2, reviewsSchema, init_pull_request_resource_reads = __esm({
+var metadataSchema2, mergeabilitySchema, reviewsSchema, init_pull_request_resource_reads = __esm({
   "../../codex/codex-apps/shared-node/src/github/pull-request-resource-reads.ts"() {
     init_zod();
     init_gh_pr_list_schema();
@@ -39230,12 +39230,21 @@ var metadataSchema2, reviewsSchema, init_pull_request_resource_reads = __esm({
           pullRequest: GhPrViewSchema.extend({
             changedFiles: external_exports.number().int().nonnegative().nullish(),
             headRefOid: external_exports.string().min(1),
+            viewerCanUpdate: external_exports.boolean()
+          }).nullable()
+        }).nullable()
+      })
+    }), mergeabilitySchema = external_exports.object({
+      data: external_exports.object({
+        viewer: external_exports.object({ login: external_exports.string() }),
+        repository: external_exports.object({
+          pullRequest: external_exports.object({
+            headRefOid: external_exports.string().min(1),
             baseRefOid: external_exports.string().min(1),
             state: external_exports.enum(["OPEN", "CLOSED", "MERGED"]),
             isDraft: external_exports.boolean(),
             mergeable: external_exports.string(),
-            mergeStateStatus: external_exports.string(),
-            viewerCanUpdate: external_exports.boolean()
+            mergeStateStatus: external_exports.string()
           }).nullable()
         }).nullable()
       })
@@ -39779,16 +39788,14 @@ function githubPrSummary(request, host3, signal) {
   let accountKey2 = JSON.stringify([
     host3.id,
     request.account.hostname.toLowerCase(),
-    request.account.login.toLowerCase(),
-    request.mergeabilityEnabled === !0
+    request.account.login.toLowerCase()
   ]), batch = batchesByAccount.get(accountKey2);
   return batch == null && (batch = new PullRequestSummaryBatch(
     request.account,
-    request.mergeabilityEnabled === !0,
     () => batchesByAccount.delete(accountKey2)
   ), batchesByAccount.set(accountKey2, batch)), batch.read(request.pullRequest, host3, signal);
 }
-async function fetchSummaries(account, mergeabilityEnabled, host3, pullRequests, isNeeded) {
+async function fetchSummaries(account, host3, pullRequests, isNeeded) {
   let results = pullRequests.map(() => ({
     status: "unavailable"
   })), remaining = pullRequests.map((pullRequest, index) => ({
@@ -39799,7 +39806,7 @@ async function fetchSummaries(account, mergeabilityEnabled, host3, pullRequests,
     checks: Array()
   }));
   for (let page = 0; remaining.length > 0 && page < MAX_CHECK_PAGES && isNeeded(); page++) {
-    let query = `query { viewer { login } ${remaining.map(({ pullRequest, index, cursor }) => `p${index}: repository(owner:${JSON.stringify(pullRequest.owner)},name:${JSON.stringify(pullRequest.repository)}) { pullRequest(number:${pullRequest.number}) { number url title baseRefName headRefName state isDraft isInMergeQueue ${mergeabilityEnabled ? "mergeable mergeStateStatus " : ""}baseRefOid headRefOid headRepository { url } commits(last:1) { nodes { commit { oid statusCheckRollup { contexts(first:100,after:${JSON.stringify(cursor)}) { nodes { __typename ... on CheckRun { name status conclusion startedAt completedAt detailsUrl checkSuite { workflowRun { event workflow { name } } } } ... on StatusContext { context state createdAt description targetUrl } } pageInfo { hasNextPage endCursor } } } } } } } }`).join(" ")} }`, response = await runGh(
+    let query = `query { viewer { login } ${remaining.map(({ pullRequest, index, cursor }) => `p${index}: repository(owner:${JSON.stringify(pullRequest.owner)},name:${JSON.stringify(pullRequest.repository)}) { pullRequest(number:${pullRequest.number}) { number url title baseRefName headRefName state isDraft isInMergeQueue baseRefOid headRefOid headRepository { url } commits(last:1) { nodes { commit { oid statusCheckRollup { contexts(first:100,after:${JSON.stringify(cursor)}) { nodes { __typename ... on CheckRun { name status conclusion startedAt completedAt detailsUrl checkSuite { workflowRun { event workflow { name } } } } ... on StatusContext { context state createdAt description targetUrl } } pageInfo { hasNextPage endCursor } } } } } } } }`).join(" ")} }`, response = await runGh(
       [
         "api",
         "graphql",
@@ -39847,15 +39854,11 @@ async function fetchSummaries(account, mergeabilityEnabled, host3, pullRequests,
       }
       let hasOpenPr = pr.state === "OPEN", ci = getCiSummary(
         hasOpenPr ? getChecksFromGraphqlStatusCheckRollup(checks) : []
-      ), mergeStatus = {
-        mergeable: pr.mergeable ?? "UNKNOWN",
-        mergeStateStatus: pr.mergeStateStatus
-      };
+      );
       results[entry.index] = {
         status: "success",
         baseBranch: pr.baseRefName,
         baseRevision: pr.baseRefOid,
-        canMerge: canMergePullRequest({ ...pr, ...mergeStatus, hasOpenPr }),
         checks: ci.checks,
         checksComplete: !0,
         ciStatus: ci.ciStatus,
@@ -39866,8 +39869,6 @@ async function fetchSummaries(account, mergeabilityEnabled, host3, pullRequests,
         headRevision: pr.headRefOid,
         isDraft: pr.isDraft,
         isInMergeQueue: pr.isInMergeQueue,
-        mergeBlocker: hasOpenPr ? getPullRequestMergeBlocker(mergeStatus) : null,
-        mergeabilityIncluded: mergeabilityEnabled,
         state: { OPEN: "open", MERGED: "merged", CLOSED: "closed" }[pr.state],
         title: pr.title,
         url: pr.url
@@ -39897,8 +39898,6 @@ var MAX_BATCH_SIZE, MAX_CHECK_PAGES, logger2, batchesByAccount, pullRequestSchem
       state: external_exports.enum(["OPEN", "CLOSED", "MERGED"]),
       isDraft: external_exports.boolean(),
       isInMergeQueue: external_exports.boolean(),
-      mergeable: external_exports.string().optional(),
-      mergeStateStatus: external_exports.string().optional(),
       baseRefOid: external_exports.string(),
       headRefOid: external_exports.string(),
       headRepository: external_exports.object({ url: external_exports.string() }).nullable(),
@@ -39929,9 +39928,8 @@ var MAX_BATCH_SIZE, MAX_CHECK_PAGES, logger2, batchesByAccount, pullRequestSchem
       ).optional()
     }), viewerSchema = external_exports.object({ login: external_exports.string() }), repositorySchema = external_exports.object({ pullRequest: pullRequestSchema2.nullable() }).nullable();
     PullRequestSummaryBatch = class {
-      constructor(account, mergeabilityEnabled, onIdle) {
+      constructor(account, onIdle) {
         this.account = account;
-        this.mergeabilityEnabled = mergeabilityEnabled;
         this.onIdle = onIdle;
       }
       pending = /* @__PURE__ */ new Map();
@@ -39967,7 +39965,6 @@ var MAX_BATCH_SIZE, MAX_CHECK_PAGES, logger2, batchesByAccount, pullRequestSchem
           try {
             host3 != null && (results = await fetchSummaries(
               this.account,
-              this.mergeabilityEnabled,
               host3,
               live.map(([, entry]) => entry.pullRequest),
               () => live.some(

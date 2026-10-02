@@ -1,6 +1,6 @@
 {
   "name": "visualize",
-  "version": "1.0.45",
+  "version": "1.0.46",
   "description": "Create interactive charts, maps, diagrams, simulations, 3D models, data explorers, and UI previews directly in Codex.",
   "author": {
     "name": "OpenAI"

@@ -175,6 +175,7 @@ Choose the smallest composition that fits.
 - Keep browser or utility focus styles; never override them.
 - On coarse pointers, provide non-overlapping effective targets about 44px by 44px without breaking 320px layouts; visible icons and marks may stay small. Keep fine-pointer controls compact, and let shared utilities own touch sizing and at least 16px editable-field text.
 - Keep essential content and actions available without hover.
+- Try to keep 90×50px clear for host controls (top-right in LTR hosts, top-left in RTL hosts).
 
 ## Design system
 
