@@ -595,8 +595,10 @@
       "pressKey": {
         "declarations": [
           {
-            "text": "pressKey(elementIndex: null | number, key: string): Promise<void>; // If elementIndex is specified, attempt to focus the element prior to key entry.",
-            "references": []
+            "text": "pressKey(elementIndex: null | number, key: string, options?: AXPressKeyOptions): Promise<void>; // If elementIndex is specified, attempt to focus the element prior to key entry.",
+            "references": [
+              "AXPressKeyOptions"
+            ]
           }
         ],
         "unsupportedByDefaultIn": [
@@ -1825,7 +1827,7 @@
       "references": []
     },
     "AXClickOptions": {
-      "text": "type AXClickOptions = {\n  clickCount?: number;\n  mouseButton?: AXMouseButton;\n};",
+      "text": "type AXClickOptions = {\n  clickCount?: number;\n  duration?: number; // Seconds to hold each mouse press, from 0 through 30.\n  key?: string; // Hold one key combination throughout the click sequence, for example \"super\" or \"shift+a\".\n  mouseButton?: AXMouseButton;\n};",
       "references": [
         "AXMouseButton"
       ]
@@ -1836,6 +1838,10 @@
     },
     "AXPasteOptions": {
       "text": "type AXPasteOptions = {\n  format?: \"text\" | \"md\" | \"html\";\n};",
+      "references": []
+    },
+    "AXPressKeyOptions": {
+      "text": "type AXPressKeyOptions = {\n  duration?: number; // Seconds to hold the key combination before releasing it, from 0 through 30.\n};",
       "references": []
     },
     "AXDirection": {

@@ -27352,248 +27352,74 @@ var require_Stack = __commonJS({
   }
 });
 
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_setCacheAdd.js
-var require_setCacheAdd = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_setCacheAdd.js"(exports, module) {
-    var HASH_UNDEFINED = "__lodash_hash_undefined__";
-    function setCacheAdd(value) {
-      return this.__data__.set(value, HASH_UNDEFINED), this;
-    }
-    module.exports = setCacheAdd;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_setCacheHas.js
-var require_setCacheHas = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_setCacheHas.js"(exports, module) {
-    function setCacheHas(value) {
-      return this.__data__.has(value);
-    }
-    module.exports = setCacheHas;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_SetCache.js
-var require_SetCache = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_SetCache.js"(exports, module) {
-    var MapCache = require_MapCache(), setCacheAdd = require_setCacheAdd(), setCacheHas = require_setCacheHas();
-    function SetCache(values) {
-      var index = -1, length = values == null ? 0 : values.length;
-      for (this.__data__ = new MapCache(); ++index < length; )
-        this.add(values[index]);
-    }
-    SetCache.prototype.add = SetCache.prototype.push = setCacheAdd;
-    SetCache.prototype.has = setCacheHas;
-    module.exports = SetCache;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_arraySome.js
-var require_arraySome = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_arraySome.js"(exports, module) {
-    function arraySome(array2, predicate) {
-      for (var index = -1, length = array2 == null ? 0 : array2.length; ++index < length; )
-        if (predicate(array2[index], index, array2))
-          return !0;
-      return !1;
-    }
-    module.exports = arraySome;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cacheHas.js
-var require_cacheHas = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cacheHas.js"(exports, module) {
-    function cacheHas(cache, key) {
-      return cache.has(key);
-    }
-    module.exports = cacheHas;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_equalArrays.js
-var require_equalArrays = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_equalArrays.js"(exports, module) {
-    var SetCache = require_SetCache(), arraySome = require_arraySome(), cacheHas = require_cacheHas(), COMPARE_PARTIAL_FLAG = 1, COMPARE_UNORDERED_FLAG = 2;
-    function equalArrays(array2, other, bitmask, customizer, equalFunc, stack) {
-      var isPartial = bitmask & COMPARE_PARTIAL_FLAG, arrLength = array2.length, othLength = other.length;
-      if (arrLength != othLength && !(isPartial && othLength > arrLength))
-        return !1;
-      var arrStacked = stack.get(array2), othStacked = stack.get(other);
-      if (arrStacked && othStacked)
-        return arrStacked == other && othStacked == array2;
-      var index = -1, result = !0, seen = bitmask & COMPARE_UNORDERED_FLAG ? new SetCache() : void 0;
-      for (stack.set(array2, other), stack.set(other, array2); ++index < arrLength; ) {
-        var arrValue = array2[index], othValue = other[index];
-        if (customizer)
-          var compared = isPartial ? customizer(othValue, arrValue, index, other, array2, stack) : customizer(arrValue, othValue, index, array2, other, stack);
-        if (compared !== void 0) {
-          if (compared)
-            continue;
-          result = !1;
-          break;
-        }
-        if (seen) {
-          if (!arraySome(other, function(othValue2, othIndex) {
-            if (!cacheHas(seen, othIndex) && (arrValue === othValue2 || equalFunc(arrValue, othValue2, bitmask, customizer, stack)))
-              return seen.push(othIndex);
-          })) {
-            result = !1;
-            break;
-          }
-        } else if (!(arrValue === othValue || equalFunc(arrValue, othValue, bitmask, customizer, stack))) {
-          result = !1;
-          break;
-        }
-      }
-      return stack.delete(array2), stack.delete(other), result;
-    }
-    module.exports = equalArrays;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_Uint8Array.js
-var require_Uint8Array = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_Uint8Array.js"(exports, module) {
-    var root = require_root(), Uint8Array2 = root.Uint8Array;
-    module.exports = Uint8Array2;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_mapToArray.js
-var require_mapToArray = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_mapToArray.js"(exports, module) {
-    function mapToArray(map2) {
-      var index = -1, result = Array(map2.size);
-      return map2.forEach(function(value, key) {
-        result[++index] = [key, value];
-      }), result;
-    }
-    module.exports = mapToArray;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_setToArray.js
-var require_setToArray = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_setToArray.js"(exports, module) {
-    function setToArray(set3) {
-      var index = -1, result = Array(set3.size);
-      return set3.forEach(function(value) {
-        result[++index] = value;
-      }), result;
-    }
-    module.exports = setToArray;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_equalByTag.js
-var require_equalByTag = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_equalByTag.js"(exports, module) {
-    var Symbol2 = require_Symbol(), Uint8Array2 = require_Uint8Array(), eq = require_eq(), equalArrays = require_equalArrays(), mapToArray = require_mapToArray(), setToArray = require_setToArray(), COMPARE_PARTIAL_FLAG = 1, COMPARE_UNORDERED_FLAG = 2, boolTag = "[object Boolean]", dateTag = "[object Date]", errorTag = "[object Error]", mapTag = "[object Map]", numberTag = "[object Number]", regexpTag = "[object RegExp]", setTag = "[object Set]", stringTag = "[object String]", symbolTag = "[object Symbol]", arrayBufferTag = "[object ArrayBuffer]", dataViewTag = "[object DataView]", symbolProto = Symbol2 ? Symbol2.prototype : void 0, symbolValueOf = symbolProto ? symbolProto.valueOf : void 0;
-    function equalByTag(object3, other, tag, bitmask, customizer, equalFunc, stack) {
-      switch (tag) {
-        case dataViewTag:
-          if (object3.byteLength != other.byteLength || object3.byteOffset != other.byteOffset)
-            return !1;
-          object3 = object3.buffer, other = other.buffer;
-        case arrayBufferTag:
-          return !(object3.byteLength != other.byteLength || !equalFunc(new Uint8Array2(object3), new Uint8Array2(other)));
-        case boolTag:
-        case dateTag:
-        case numberTag:
-          return eq(+object3, +other);
-        case errorTag:
-          return object3.name == other.name && object3.message == other.message;
-        case regexpTag:
-        case stringTag:
-          return object3 == other + "";
-        case mapTag:
-          var convert = mapToArray;
-        case setTag:
-          var isPartial = bitmask & COMPARE_PARTIAL_FLAG;
-          if (convert || (convert = setToArray), object3.size != other.size && !isPartial)
-            return !1;
-          var stacked = stack.get(object3);
-          if (stacked)
-            return stacked == other;
-          bitmask |= COMPARE_UNORDERED_FLAG, stack.set(object3, other);
-          var result = equalArrays(convert(object3), convert(other), bitmask, customizer, equalFunc, stack);
-          return stack.delete(object3), result;
-        case symbolTag:
-          if (symbolValueOf)
-            return symbolValueOf.call(object3) == symbolValueOf.call(other);
-      }
-      return !1;
-    }
-    module.exports = equalByTag;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_arrayPush.js
-var require_arrayPush = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_arrayPush.js"(exports, module) {
-    function arrayPush(array2, values) {
-      for (var index = -1, length = values.length, offset = array2.length; ++index < length; )
-        array2[offset + index] = values[index];
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_arrayEach.js
+var require_arrayEach = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_arrayEach.js"(exports, module) {
+    function arrayEach(array2, iteratee) {
+      for (var index = -1, length = array2 == null ? 0 : array2.length; ++index < length && iteratee(array2[index], index, array2) !== !1; )
+        ;
       return array2;
     }
-    module.exports = arrayPush;
+    module.exports = arrayEach;
   }
 });
 
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/isArray.js
-var require_isArray = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/isArray.js"(exports, module) {
-    var isArray = Array.isArray;
-    module.exports = isArray;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseGetAllKeys.js
-var require_baseGetAllKeys = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseGetAllKeys.js"(exports, module) {
-    var arrayPush = require_arrayPush(), isArray = require_isArray();
-    function baseGetAllKeys(object3, keysFunc, symbolsFunc) {
-      var result = keysFunc(object3);
-      return isArray(object3) ? result : arrayPush(result, symbolsFunc(object3));
-    }
-    module.exports = baseGetAllKeys;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_arrayFilter.js
-var require_arrayFilter = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_arrayFilter.js"(exports, module) {
-    function arrayFilter(array2, predicate) {
-      for (var index = -1, length = array2 == null ? 0 : array2.length, resIndex = 0, result = []; ++index < length; ) {
-        var value = array2[index];
-        predicate(value, index, array2) && (result[resIndex++] = value);
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_defineProperty.js
+var require_defineProperty = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_defineProperty.js"(exports, module) {
+    var getNative = require_getNative(), defineProperty = (function() {
+      try {
+        var func = getNative(Object, "defineProperty");
+        return func({}, "", {}), func;
+      } catch {
       }
-      return result;
-    }
-    module.exports = arrayFilter;
+    })();
+    module.exports = defineProperty;
   }
 });
 
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/stubArray.js
-var require_stubArray = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/stubArray.js"(exports, module) {
-    function stubArray() {
-      return [];
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseAssignValue.js
+var require_baseAssignValue = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseAssignValue.js"(exports, module) {
+    var defineProperty = require_defineProperty();
+    function baseAssignValue(object3, key, value) {
+      key == "__proto__" && defineProperty ? defineProperty(object3, key, {
+        configurable: !0,
+        enumerable: !0,
+        value,
+        writable: !0
+      }) : object3[key] = value;
     }
-    module.exports = stubArray;
+    module.exports = baseAssignValue;
   }
 });
 
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getSymbols.js
-var require_getSymbols = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getSymbols.js"(exports, module) {
-    var arrayFilter = require_arrayFilter(), stubArray = require_stubArray(), objectProto = Object.prototype, propertyIsEnumerable = objectProto.propertyIsEnumerable, nativeGetSymbols = Object.getOwnPropertySymbols, getSymbols = nativeGetSymbols ? function(object3) {
-      return object3 == null ? [] : (object3 = Object(object3), arrayFilter(nativeGetSymbols(object3), function(symbol2) {
-        return propertyIsEnumerable.call(object3, symbol2);
-      }));
-    } : stubArray;
-    module.exports = getSymbols;
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_assignValue.js
+var require_assignValue = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_assignValue.js"(exports, module) {
+    var baseAssignValue = require_baseAssignValue(), eq = require_eq(), objectProto = Object.prototype, hasOwnProperty = objectProto.hasOwnProperty;
+    function assignValue(object3, key, value) {
+      var objValue = object3[key];
+      (!(hasOwnProperty.call(object3, key) && eq(objValue, value)) || value === void 0 && !(key in object3)) && baseAssignValue(object3, key, value);
+    }
+    module.exports = assignValue;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_copyObject.js
+var require_copyObject = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_copyObject.js"(exports, module) {
+    var assignValue = require_assignValue(), baseAssignValue = require_baseAssignValue();
+    function copyObject(source, props, object3, customizer) {
+      var isNew = !object3;
+      object3 || (object3 = {});
+      for (var index = -1, length = props.length; ++index < length; ) {
+        var key = props[index], newValue = customizer ? customizer(object3[key], source[key], key, object3, source) : void 0;
+        newValue === void 0 && (newValue = source[key]), isNew ? baseAssignValue(object3, key, newValue) : assignValue(object3, key, newValue);
+      }
+      return object3;
+    }
+    module.exports = copyObject;
   }
 });
 
@@ -27639,6 +27465,14 @@ var require_isArguments = __commonJS({
       return isObjectLike(value) && hasOwnProperty.call(value, "callee") && !propertyIsEnumerable.call(value, "callee");
     };
     module.exports = isArguments;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/isArray.js
+var require_isArray = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/isArray.js"(exports, module) {
+    var isArray = Array.isArray;
+    module.exports = isArray;
   }
 });
 
@@ -27818,6 +27652,198 @@ var require_keys = __commonJS({
   }
 });
 
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseAssign.js
+var require_baseAssign = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseAssign.js"(exports, module) {
+    var copyObject = require_copyObject(), keys = require_keys();
+    function baseAssign(object3, source) {
+      return object3 && copyObject(source, keys(source), object3);
+    }
+    module.exports = baseAssign;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_nativeKeysIn.js
+var require_nativeKeysIn = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_nativeKeysIn.js"(exports, module) {
+    function nativeKeysIn(object3) {
+      var result = [];
+      if (object3 != null)
+        for (var key in Object(object3))
+          result.push(key);
+      return result;
+    }
+    module.exports = nativeKeysIn;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseKeysIn.js
+var require_baseKeysIn = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseKeysIn.js"(exports, module) {
+    var isObject2 = require_isObject(), isPrototype = require_isPrototype(), nativeKeysIn = require_nativeKeysIn(), objectProto = Object.prototype, hasOwnProperty = objectProto.hasOwnProperty;
+    function baseKeysIn(object3) {
+      if (!isObject2(object3))
+        return nativeKeysIn(object3);
+      var isProto = isPrototype(object3), result = [];
+      for (var key in object3)
+        key == "constructor" && (isProto || !hasOwnProperty.call(object3, key)) || result.push(key);
+      return result;
+    }
+    module.exports = baseKeysIn;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/keysIn.js
+var require_keysIn = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/keysIn.js"(exports, module) {
+    var arrayLikeKeys = require_arrayLikeKeys(), baseKeysIn = require_baseKeysIn(), isArrayLike = require_isArrayLike();
+    function keysIn(object3) {
+      return isArrayLike(object3) ? arrayLikeKeys(object3, !0) : baseKeysIn(object3);
+    }
+    module.exports = keysIn;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseAssignIn.js
+var require_baseAssignIn = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseAssignIn.js"(exports, module) {
+    var copyObject = require_copyObject(), keysIn = require_keysIn();
+    function baseAssignIn(object3, source) {
+      return object3 && copyObject(source, keysIn(source), object3);
+    }
+    module.exports = baseAssignIn;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneBuffer.js
+var require_cloneBuffer = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneBuffer.js"(exports, module) {
+    var root = require_root(), freeExports = typeof exports == "object" && exports && !exports.nodeType && exports, freeModule = freeExports && typeof module == "object" && module && !module.nodeType && module, moduleExports = freeModule && freeModule.exports === freeExports, Buffer2 = moduleExports ? root.Buffer : void 0, allocUnsafe = Buffer2 ? Buffer2.allocUnsafe : void 0;
+    function cloneBuffer(buffer, isDeep) {
+      if (isDeep)
+        return buffer.slice();
+      var length = buffer.length, result = allocUnsafe ? allocUnsafe(length) : new buffer.constructor(length);
+      return buffer.copy(result), result;
+    }
+    module.exports = cloneBuffer;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_copyArray.js
+var require_copyArray = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_copyArray.js"(exports, module) {
+    function copyArray(source, array2) {
+      var index = -1, length = source.length;
+      for (array2 || (array2 = Array(length)); ++index < length; )
+        array2[index] = source[index];
+      return array2;
+    }
+    module.exports = copyArray;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_arrayFilter.js
+var require_arrayFilter = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_arrayFilter.js"(exports, module) {
+    function arrayFilter(array2, predicate) {
+      for (var index = -1, length = array2 == null ? 0 : array2.length, resIndex = 0, result = []; ++index < length; ) {
+        var value = array2[index];
+        predicate(value, index, array2) && (result[resIndex++] = value);
+      }
+      return result;
+    }
+    module.exports = arrayFilter;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/stubArray.js
+var require_stubArray = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/stubArray.js"(exports, module) {
+    function stubArray() {
+      return [];
+    }
+    module.exports = stubArray;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getSymbols.js
+var require_getSymbols = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getSymbols.js"(exports, module) {
+    var arrayFilter = require_arrayFilter(), stubArray = require_stubArray(), objectProto = Object.prototype, propertyIsEnumerable = objectProto.propertyIsEnumerable, nativeGetSymbols = Object.getOwnPropertySymbols, getSymbols = nativeGetSymbols ? function(object3) {
+      return object3 == null ? [] : (object3 = Object(object3), arrayFilter(nativeGetSymbols(object3), function(symbol2) {
+        return propertyIsEnumerable.call(object3, symbol2);
+      }));
+    } : stubArray;
+    module.exports = getSymbols;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_copySymbols.js
+var require_copySymbols = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_copySymbols.js"(exports, module) {
+    var copyObject = require_copyObject(), getSymbols = require_getSymbols();
+    function copySymbols(source, object3) {
+      return copyObject(source, getSymbols(source), object3);
+    }
+    module.exports = copySymbols;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_arrayPush.js
+var require_arrayPush = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_arrayPush.js"(exports, module) {
+    function arrayPush(array2, values) {
+      for (var index = -1, length = values.length, offset = array2.length; ++index < length; )
+        array2[offset + index] = values[index];
+      return array2;
+    }
+    module.exports = arrayPush;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getPrototype.js
+var require_getPrototype = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getPrototype.js"(exports, module) {
+    var overArg = require_overArg(), getPrototype = overArg(Object.getPrototypeOf, Object);
+    module.exports = getPrototype;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getSymbolsIn.js
+var require_getSymbolsIn = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getSymbolsIn.js"(exports, module) {
+    var arrayPush = require_arrayPush(), getPrototype = require_getPrototype(), getSymbols = require_getSymbols(), stubArray = require_stubArray(), nativeGetSymbols = Object.getOwnPropertySymbols, getSymbolsIn = nativeGetSymbols ? function(object3) {
+      for (var result = []; object3; )
+        arrayPush(result, getSymbols(object3)), object3 = getPrototype(object3);
+      return result;
+    } : stubArray;
+    module.exports = getSymbolsIn;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_copySymbolsIn.js
+var require_copySymbolsIn = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_copySymbolsIn.js"(exports, module) {
+    var copyObject = require_copyObject(), getSymbolsIn = require_getSymbolsIn();
+    function copySymbolsIn(source, object3) {
+      return copyObject(source, getSymbolsIn(source), object3);
+    }
+    module.exports = copySymbolsIn;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseGetAllKeys.js
+var require_baseGetAllKeys = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseGetAllKeys.js"(exports, module) {
+    var arrayPush = require_arrayPush(), isArray = require_isArray();
+    function baseGetAllKeys(object3, keysFunc, symbolsFunc) {
+      var result = keysFunc(object3);
+      return isArray(object3) ? result : arrayPush(result, symbolsFunc(object3));
+    }
+    module.exports = baseGetAllKeys;
+  }
+});
+
 // ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getAllKeys.js
 var require_getAllKeys = __commonJS({
   "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getAllKeys.js"(exports, module) {
@@ -27829,42 +27855,14 @@ var require_getAllKeys = __commonJS({
   }
 });
 
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_equalObjects.js
-var require_equalObjects = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_equalObjects.js"(exports, module) {
-    var getAllKeys = require_getAllKeys(), COMPARE_PARTIAL_FLAG = 1, objectProto = Object.prototype, hasOwnProperty = objectProto.hasOwnProperty;
-    function equalObjects(object3, other, bitmask, customizer, equalFunc, stack) {
-      var isPartial = bitmask & COMPARE_PARTIAL_FLAG, objProps = getAllKeys(object3), objLength = objProps.length, othProps = getAllKeys(other), othLength = othProps.length;
-      if (objLength != othLength && !isPartial)
-        return !1;
-      for (var index = objLength; index--; ) {
-        var key = objProps[index];
-        if (!(isPartial ? key in other : hasOwnProperty.call(other, key)))
-          return !1;
-      }
-      var objStacked = stack.get(object3), othStacked = stack.get(other);
-      if (objStacked && othStacked)
-        return objStacked == other && othStacked == object3;
-      var result = !0;
-      stack.set(object3, other), stack.set(other, object3);
-      for (var skipCtor = isPartial; ++index < objLength; ) {
-        key = objProps[index];
-        var objValue = object3[key], othValue = other[key];
-        if (customizer)
-          var compared = isPartial ? customizer(othValue, objValue, key, other, object3, stack) : customizer(objValue, othValue, key, object3, other, stack);
-        if (!(compared === void 0 ? objValue === othValue || equalFunc(objValue, othValue, bitmask, customizer, stack) : compared)) {
-          result = !1;
-          break;
-        }
-        skipCtor || (skipCtor = key == "constructor");
-      }
-      if (result && !skipCtor) {
-        var objCtor = object3.constructor, othCtor = other.constructor;
-        objCtor != othCtor && "constructor" in object3 && "constructor" in other && !(typeof objCtor == "function" && objCtor instanceof objCtor && typeof othCtor == "function" && othCtor instanceof othCtor) && (result = !1);
-      }
-      return stack.delete(object3), stack.delete(other), result;
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getAllKeysIn.js
+var require_getAllKeysIn = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getAllKeysIn.js"(exports, module) {
+    var baseGetAllKeys = require_baseGetAllKeys(), getSymbolsIn = require_getSymbolsIn(), keysIn = require_keysIn();
+    function getAllKeysIn(object3) {
+      return baseGetAllKeys(object3, keysIn, getSymbolsIn);
     }
-    module.exports = equalObjects;
+    module.exports = getAllKeysIn;
   }
 });
 
@@ -27925,6 +27923,461 @@ var require_getTag = __commonJS({
   }
 });
 
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_initCloneArray.js
+var require_initCloneArray = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_initCloneArray.js"(exports, module) {
+    var objectProto = Object.prototype, hasOwnProperty = objectProto.hasOwnProperty;
+    function initCloneArray(array2) {
+      var length = array2.length, result = new array2.constructor(length);
+      return length && typeof array2[0] == "string" && hasOwnProperty.call(array2, "index") && (result.index = array2.index, result.input = array2.input), result;
+    }
+    module.exports = initCloneArray;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_Uint8Array.js
+var require_Uint8Array = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_Uint8Array.js"(exports, module) {
+    var root = require_root(), Uint8Array2 = root.Uint8Array;
+    module.exports = Uint8Array2;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneArrayBuffer.js
+var require_cloneArrayBuffer = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneArrayBuffer.js"(exports, module) {
+    var Uint8Array2 = require_Uint8Array();
+    function cloneArrayBuffer(arrayBuffer) {
+      var result = new arrayBuffer.constructor(arrayBuffer.byteLength);
+      return new Uint8Array2(result).set(new Uint8Array2(arrayBuffer)), result;
+    }
+    module.exports = cloneArrayBuffer;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneDataView.js
+var require_cloneDataView = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneDataView.js"(exports, module) {
+    var cloneArrayBuffer = require_cloneArrayBuffer();
+    function cloneDataView(dataView, isDeep) {
+      var buffer = isDeep ? cloneArrayBuffer(dataView.buffer) : dataView.buffer;
+      return new dataView.constructor(buffer, dataView.byteOffset, dataView.byteLength);
+    }
+    module.exports = cloneDataView;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneRegExp.js
+var require_cloneRegExp = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneRegExp.js"(exports, module) {
+    var reFlags = /\w*$/;
+    function cloneRegExp(regexp) {
+      var result = new regexp.constructor(regexp.source, reFlags.exec(regexp));
+      return result.lastIndex = regexp.lastIndex, result;
+    }
+    module.exports = cloneRegExp;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneSymbol.js
+var require_cloneSymbol = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneSymbol.js"(exports, module) {
+    var Symbol2 = require_Symbol(), symbolProto = Symbol2 ? Symbol2.prototype : void 0, symbolValueOf = symbolProto ? symbolProto.valueOf : void 0;
+    function cloneSymbol(symbol2) {
+      return symbolValueOf ? Object(symbolValueOf.call(symbol2)) : {};
+    }
+    module.exports = cloneSymbol;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneTypedArray.js
+var require_cloneTypedArray = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneTypedArray.js"(exports, module) {
+    var cloneArrayBuffer = require_cloneArrayBuffer();
+    function cloneTypedArray(typedArray, isDeep) {
+      var buffer = isDeep ? cloneArrayBuffer(typedArray.buffer) : typedArray.buffer;
+      return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
+    }
+    module.exports = cloneTypedArray;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_initCloneByTag.js
+var require_initCloneByTag = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_initCloneByTag.js"(exports, module) {
+    var cloneArrayBuffer = require_cloneArrayBuffer(), cloneDataView = require_cloneDataView(), cloneRegExp = require_cloneRegExp(), cloneSymbol = require_cloneSymbol(), cloneTypedArray = require_cloneTypedArray(), boolTag = "[object Boolean]", dateTag = "[object Date]", mapTag = "[object Map]", numberTag = "[object Number]", regexpTag = "[object RegExp]", setTag = "[object Set]", stringTag = "[object String]", symbolTag = "[object Symbol]", arrayBufferTag = "[object ArrayBuffer]", dataViewTag = "[object DataView]", float32Tag = "[object Float32Array]", float64Tag = "[object Float64Array]", int8Tag = "[object Int8Array]", int16Tag = "[object Int16Array]", int32Tag = "[object Int32Array]", uint8Tag = "[object Uint8Array]", uint8ClampedTag = "[object Uint8ClampedArray]", uint16Tag = "[object Uint16Array]", uint32Tag = "[object Uint32Array]";
+    function initCloneByTag(object3, tag, isDeep) {
+      var Ctor = object3.constructor;
+      switch (tag) {
+        case arrayBufferTag:
+          return cloneArrayBuffer(object3);
+        case boolTag:
+        case dateTag:
+          return new Ctor(+object3);
+        case dataViewTag:
+          return cloneDataView(object3, isDeep);
+        case float32Tag:
+        case float64Tag:
+        case int8Tag:
+        case int16Tag:
+        case int32Tag:
+        case uint8Tag:
+        case uint8ClampedTag:
+        case uint16Tag:
+        case uint32Tag:
+          return cloneTypedArray(object3, isDeep);
+        case mapTag:
+          return new Ctor();
+        case numberTag:
+        case stringTag:
+          return new Ctor(object3);
+        case regexpTag:
+          return cloneRegExp(object3);
+        case setTag:
+          return new Ctor();
+        case symbolTag:
+          return cloneSymbol(object3);
+      }
+    }
+    module.exports = initCloneByTag;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseCreate.js
+var require_baseCreate = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseCreate.js"(exports, module) {
+    var isObject2 = require_isObject(), objectCreate = Object.create, baseCreate = /* @__PURE__ */ (function() {
+      function object3() {
+      }
+      return function(proto) {
+        if (!isObject2(proto))
+          return {};
+        if (objectCreate)
+          return objectCreate(proto);
+        object3.prototype = proto;
+        var result = new object3();
+        return object3.prototype = void 0, result;
+      };
+    })();
+    module.exports = baseCreate;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_initCloneObject.js
+var require_initCloneObject = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_initCloneObject.js"(exports, module) {
+    var baseCreate = require_baseCreate(), getPrototype = require_getPrototype(), isPrototype = require_isPrototype();
+    function initCloneObject(object3) {
+      return typeof object3.constructor == "function" && !isPrototype(object3) ? baseCreate(getPrototype(object3)) : {};
+    }
+    module.exports = initCloneObject;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseIsMap.js
+var require_baseIsMap = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseIsMap.js"(exports, module) {
+    var getTag = require_getTag(), isObjectLike = require_isObjectLike(), mapTag = "[object Map]";
+    function baseIsMap(value) {
+      return isObjectLike(value) && getTag(value) == mapTag;
+    }
+    module.exports = baseIsMap;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/isMap.js
+var require_isMap = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/isMap.js"(exports, module) {
+    var baseIsMap = require_baseIsMap(), baseUnary = require_baseUnary(), nodeUtil = require_nodeUtil(), nodeIsMap = nodeUtil && nodeUtil.isMap, isMap = nodeIsMap ? baseUnary(nodeIsMap) : baseIsMap;
+    module.exports = isMap;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseIsSet.js
+var require_baseIsSet = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseIsSet.js"(exports, module) {
+    var getTag = require_getTag(), isObjectLike = require_isObjectLike(), setTag = "[object Set]";
+    function baseIsSet(value) {
+      return isObjectLike(value) && getTag(value) == setTag;
+    }
+    module.exports = baseIsSet;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/isSet.js
+var require_isSet = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/isSet.js"(exports, module) {
+    var baseIsSet = require_baseIsSet(), baseUnary = require_baseUnary(), nodeUtil = require_nodeUtil(), nodeIsSet = nodeUtil && nodeUtil.isSet, isSet = nodeIsSet ? baseUnary(nodeIsSet) : baseIsSet;
+    module.exports = isSet;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseClone.js
+var require_baseClone = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseClone.js"(exports, module) {
+    var Stack = require_Stack(), arrayEach = require_arrayEach(), assignValue = require_assignValue(), baseAssign = require_baseAssign(), baseAssignIn = require_baseAssignIn(), cloneBuffer = require_cloneBuffer(), copyArray = require_copyArray(), copySymbols = require_copySymbols(), copySymbolsIn = require_copySymbolsIn(), getAllKeys = require_getAllKeys(), getAllKeysIn = require_getAllKeysIn(), getTag = require_getTag(), initCloneArray = require_initCloneArray(), initCloneByTag = require_initCloneByTag(), initCloneObject = require_initCloneObject(), isArray = require_isArray(), isBuffer = require_isBuffer(), isMap = require_isMap(), isObject2 = require_isObject(), isSet = require_isSet(), keys = require_keys(), keysIn = require_keysIn(), CLONE_DEEP_FLAG = 1, CLONE_FLAT_FLAG = 2, CLONE_SYMBOLS_FLAG = 4, argsTag = "[object Arguments]", arrayTag = "[object Array]", boolTag = "[object Boolean]", dateTag = "[object Date]", errorTag = "[object Error]", funcTag = "[object Function]", genTag = "[object GeneratorFunction]", mapTag = "[object Map]", numberTag = "[object Number]", objectTag = "[object Object]", regexpTag = "[object RegExp]", setTag = "[object Set]", stringTag = "[object String]", symbolTag = "[object Symbol]", weakMapTag = "[object WeakMap]", arrayBufferTag = "[object ArrayBuffer]", dataViewTag = "[object DataView]", float32Tag = "[object Float32Array]", float64Tag = "[object Float64Array]", int8Tag = "[object Int8Array]", int16Tag = "[object Int16Array]", int32Tag = "[object Int32Array]", uint8Tag = "[object Uint8Array]", uint8ClampedTag = "[object Uint8ClampedArray]", uint16Tag = "[object Uint16Array]", uint32Tag = "[object Uint32Array]", cloneableTags = {};
+    cloneableTags[argsTag] = cloneableTags[arrayTag] = cloneableTags[arrayBufferTag] = cloneableTags[dataViewTag] = cloneableTags[boolTag] = cloneableTags[dateTag] = cloneableTags[float32Tag] = cloneableTags[float64Tag] = cloneableTags[int8Tag] = cloneableTags[int16Tag] = cloneableTags[int32Tag] = cloneableTags[mapTag] = cloneableTags[numberTag] = cloneableTags[objectTag] = cloneableTags[regexpTag] = cloneableTags[setTag] = cloneableTags[stringTag] = cloneableTags[symbolTag] = cloneableTags[uint8Tag] = cloneableTags[uint8ClampedTag] = cloneableTags[uint16Tag] = cloneableTags[uint32Tag] = !0;
+    cloneableTags[errorTag] = cloneableTags[funcTag] = cloneableTags[weakMapTag] = !1;
+    function baseClone(value, bitmask, customizer, key, object3, stack) {
+      var result, isDeep = bitmask & CLONE_DEEP_FLAG, isFlat = bitmask & CLONE_FLAT_FLAG, isFull = bitmask & CLONE_SYMBOLS_FLAG;
+      if (customizer && (result = object3 ? customizer(value, key, object3, stack) : customizer(value)), result !== void 0)
+        return result;
+      if (!isObject2(value))
+        return value;
+      var isArr = isArray(value);
+      if (isArr) {
+        if (result = initCloneArray(value), !isDeep)
+          return copyArray(value, result);
+      } else {
+        var tag = getTag(value), isFunc = tag == funcTag || tag == genTag;
+        if (isBuffer(value))
+          return cloneBuffer(value, isDeep);
+        if (tag == objectTag || tag == argsTag || isFunc && !object3) {
+          if (result = isFlat || isFunc ? {} : initCloneObject(value), !isDeep)
+            return isFlat ? copySymbolsIn(value, baseAssignIn(result, value)) : copySymbols(value, baseAssign(result, value));
+        } else {
+          if (!cloneableTags[tag])
+            return object3 ? value : {};
+          result = initCloneByTag(value, tag, isDeep);
+        }
+      }
+      stack || (stack = new Stack());
+      var stacked = stack.get(value);
+      if (stacked)
+        return stacked;
+      stack.set(value, result), isSet(value) ? value.forEach(function(subValue) {
+        result.add(baseClone(subValue, bitmask, customizer, subValue, value, stack));
+      }) : isMap(value) && value.forEach(function(subValue, key2) {
+        result.set(key2, baseClone(subValue, bitmask, customizer, key2, value, stack));
+      });
+      var keysFunc = isFull ? isFlat ? getAllKeysIn : getAllKeys : isFlat ? keysIn : keys, props = isArr ? void 0 : keysFunc(value);
+      return arrayEach(props || value, function(subValue, key2) {
+        props && (key2 = subValue, subValue = value[key2]), assignValue(result, key2, baseClone(subValue, bitmask, customizer, key2, value, stack));
+      }), result;
+    }
+    module.exports = baseClone;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/cloneDeep.js
+var require_cloneDeep = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/cloneDeep.js"(exports, module) {
+    var baseClone = require_baseClone(), CLONE_DEEP_FLAG = 1, CLONE_SYMBOLS_FLAG = 4;
+    function cloneDeep2(value) {
+      return baseClone(value, CLONE_DEEP_FLAG | CLONE_SYMBOLS_FLAG);
+    }
+    module.exports = cloneDeep2;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_setCacheAdd.js
+var require_setCacheAdd = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_setCacheAdd.js"(exports, module) {
+    var HASH_UNDEFINED = "__lodash_hash_undefined__";
+    function setCacheAdd(value) {
+      return this.__data__.set(value, HASH_UNDEFINED), this;
+    }
+    module.exports = setCacheAdd;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_setCacheHas.js
+var require_setCacheHas = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_setCacheHas.js"(exports, module) {
+    function setCacheHas(value) {
+      return this.__data__.has(value);
+    }
+    module.exports = setCacheHas;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_SetCache.js
+var require_SetCache = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_SetCache.js"(exports, module) {
+    var MapCache = require_MapCache(), setCacheAdd = require_setCacheAdd(), setCacheHas = require_setCacheHas();
+    function SetCache(values) {
+      var index = -1, length = values == null ? 0 : values.length;
+      for (this.__data__ = new MapCache(); ++index < length; )
+        this.add(values[index]);
+    }
+    SetCache.prototype.add = SetCache.prototype.push = setCacheAdd;
+    SetCache.prototype.has = setCacheHas;
+    module.exports = SetCache;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_arraySome.js
+var require_arraySome = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_arraySome.js"(exports, module) {
+    function arraySome(array2, predicate) {
+      for (var index = -1, length = array2 == null ? 0 : array2.length; ++index < length; )
+        if (predicate(array2[index], index, array2))
+          return !0;
+      return !1;
+    }
+    module.exports = arraySome;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cacheHas.js
+var require_cacheHas = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cacheHas.js"(exports, module) {
+    function cacheHas(cache, key) {
+      return cache.has(key);
+    }
+    module.exports = cacheHas;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_equalArrays.js
+var require_equalArrays = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_equalArrays.js"(exports, module) {
+    var SetCache = require_SetCache(), arraySome = require_arraySome(), cacheHas = require_cacheHas(), COMPARE_PARTIAL_FLAG = 1, COMPARE_UNORDERED_FLAG = 2;
+    function equalArrays(array2, other, bitmask, customizer, equalFunc, stack) {
+      var isPartial = bitmask & COMPARE_PARTIAL_FLAG, arrLength = array2.length, othLength = other.length;
+      if (arrLength != othLength && !(isPartial && othLength > arrLength))
+        return !1;
+      var arrStacked = stack.get(array2), othStacked = stack.get(other);
+      if (arrStacked && othStacked)
+        return arrStacked == other && othStacked == array2;
+      var index = -1, result = !0, seen = bitmask & COMPARE_UNORDERED_FLAG ? new SetCache() : void 0;
+      for (stack.set(array2, other), stack.set(other, array2); ++index < arrLength; ) {
+        var arrValue = array2[index], othValue = other[index];
+        if (customizer)
+          var compared = isPartial ? customizer(othValue, arrValue, index, other, array2, stack) : customizer(arrValue, othValue, index, array2, other, stack);
+        if (compared !== void 0) {
+          if (compared)
+            continue;
+          result = !1;
+          break;
+        }
+        if (seen) {
+          if (!arraySome(other, function(othValue2, othIndex) {
+            if (!cacheHas(seen, othIndex) && (arrValue === othValue2 || equalFunc(arrValue, othValue2, bitmask, customizer, stack)))
+              return seen.push(othIndex);
+          })) {
+            result = !1;
+            break;
+          }
+        } else if (!(arrValue === othValue || equalFunc(arrValue, othValue, bitmask, customizer, stack))) {
+          result = !1;
+          break;
+        }
+      }
+      return stack.delete(array2), stack.delete(other), result;
+    }
+    module.exports = equalArrays;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_mapToArray.js
+var require_mapToArray = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_mapToArray.js"(exports, module) {
+    function mapToArray(map2) {
+      var index = -1, result = Array(map2.size);
+      return map2.forEach(function(value, key) {
+        result[++index] = [key, value];
+      }), result;
+    }
+    module.exports = mapToArray;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_setToArray.js
+var require_setToArray = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_setToArray.js"(exports, module) {
+    function setToArray(set3) {
+      var index = -1, result = Array(set3.size);
+      return set3.forEach(function(value) {
+        result[++index] = value;
+      }), result;
+    }
+    module.exports = setToArray;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_equalByTag.js
+var require_equalByTag = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_equalByTag.js"(exports, module) {
+    var Symbol2 = require_Symbol(), Uint8Array2 = require_Uint8Array(), eq = require_eq(), equalArrays = require_equalArrays(), mapToArray = require_mapToArray(), setToArray = require_setToArray(), COMPARE_PARTIAL_FLAG = 1, COMPARE_UNORDERED_FLAG = 2, boolTag = "[object Boolean]", dateTag = "[object Date]", errorTag = "[object Error]", mapTag = "[object Map]", numberTag = "[object Number]", regexpTag = "[object RegExp]", setTag = "[object Set]", stringTag = "[object String]", symbolTag = "[object Symbol]", arrayBufferTag = "[object ArrayBuffer]", dataViewTag = "[object DataView]", symbolProto = Symbol2 ? Symbol2.prototype : void 0, symbolValueOf = symbolProto ? symbolProto.valueOf : void 0;
+    function equalByTag(object3, other, tag, bitmask, customizer, equalFunc, stack) {
+      switch (tag) {
+        case dataViewTag:
+          if (object3.byteLength != other.byteLength || object3.byteOffset != other.byteOffset)
+            return !1;
+          object3 = object3.buffer, other = other.buffer;
+        case arrayBufferTag:
+          return !(object3.byteLength != other.byteLength || !equalFunc(new Uint8Array2(object3), new Uint8Array2(other)));
+        case boolTag:
+        case dateTag:
+        case numberTag:
+          return eq(+object3, +other);
+        case errorTag:
+          return object3.name == other.name && object3.message == other.message;
+        case regexpTag:
+        case stringTag:
+          return object3 == other + "";
+        case mapTag:
+          var convert = mapToArray;
+        case setTag:
+          var isPartial = bitmask & COMPARE_PARTIAL_FLAG;
+          if (convert || (convert = setToArray), object3.size != other.size && !isPartial)
+            return !1;
+          var stacked = stack.get(object3);
+          if (stacked)
+            return stacked == other;
+          bitmask |= COMPARE_UNORDERED_FLAG, stack.set(object3, other);
+          var result = equalArrays(convert(object3), convert(other), bitmask, customizer, equalFunc, stack);
+          return stack.delete(object3), result;
+        case symbolTag:
+          if (symbolValueOf)
+            return symbolValueOf.call(object3) == symbolValueOf.call(other);
+      }
+      return !1;
+    }
+    module.exports = equalByTag;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_equalObjects.js
+var require_equalObjects = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_equalObjects.js"(exports, module) {
+    var getAllKeys = require_getAllKeys(), COMPARE_PARTIAL_FLAG = 1, objectProto = Object.prototype, hasOwnProperty = objectProto.hasOwnProperty;
+    function equalObjects(object3, other, bitmask, customizer, equalFunc, stack) {
+      var isPartial = bitmask & COMPARE_PARTIAL_FLAG, objProps = getAllKeys(object3), objLength = objProps.length, othProps = getAllKeys(other), othLength = othProps.length;
+      if (objLength != othLength && !isPartial)
+        return !1;
+      for (var index = objLength; index--; ) {
+        var key = objProps[index];
+        if (!(isPartial ? key in other : hasOwnProperty.call(other, key)))
+          return !1;
+      }
+      var objStacked = stack.get(object3), othStacked = stack.get(other);
+      if (objStacked && othStacked)
+        return objStacked == other && othStacked == object3;
+      var result = !0;
+      stack.set(object3, other), stack.set(other, object3);
+      for (var skipCtor = isPartial; ++index < objLength; ) {
+        key = objProps[index];
+        var objValue = object3[key], othValue = other[key];
+        if (customizer)
+          var compared = isPartial ? customizer(othValue, objValue, key, other, object3, stack) : customizer(objValue, othValue, key, object3, other, stack);
+        if (!(compared === void 0 ? objValue === othValue || equalFunc(objValue, othValue, bitmask, customizer, stack) : compared)) {
+          result = !1;
+          break;
+        }
+        skipCtor || (skipCtor = key == "constructor");
+      }
+      if (result && !skipCtor) {
+        var objCtor = object3.constructor, othCtor = other.constructor;
+        objCtor != othCtor && "constructor" in object3 && "constructor" in other && !(typeof objCtor == "function" && objCtor instanceof objCtor && typeof othCtor == "function" && othCtor instanceof othCtor) && (result = !1);
+      }
+      return stack.delete(object3), stack.delete(other), result;
+    }
+    module.exports = equalObjects;
+  }
+});
+
 // ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseIsEqualDeep.js
 var require_baseIsEqualDeep = __commonJS({
   "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseIsEqualDeep.js"(exports, module) {
@@ -27976,10 +28429,10 @@ var require_isEqual = __commonJS({
 });
 
 // ../../codex/codex-apps/protocol/src/permissions-config.ts
-var import_isEqual, AGENT_MODE_LIST, init_permissions_config = __esm({
+var import_cloneDeep, import_isEqual, AGENT_MODE_LIST, init_permissions_config = __esm({
   "../../codex/codex-apps/protocol/src/permissions-config.ts"() {
     "use strict";
-    import_isEqual = __toESM(require_isEqual()), AGENT_MODE_LIST = [
+    import_cloneDeep = __toESM(require_cloneDeep()), import_isEqual = __toESM(require_isEqual()), AGENT_MODE_LIST = [
       "read-only",
       "auto",
       "granular",
@@ -28167,48 +28620,6 @@ var AppBrand, appBrandSchema, dockIconPreferenceSchema, init_app_brand = __esm({
       (value) => value === "codex-light" || value === "codex-dark" ? "codex-system" : value,
       external_exports.enum(["app-default", "codex-system", "space-system"])
     );
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_defineProperty.js
-var require_defineProperty = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_defineProperty.js"(exports, module) {
-    var getNative = require_getNative(), defineProperty = (function() {
-      try {
-        var func = getNative(Object, "defineProperty");
-        return func({}, "", {}), func;
-      } catch {
-      }
-    })();
-    module.exports = defineProperty;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseAssignValue.js
-var require_baseAssignValue = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseAssignValue.js"(exports, module) {
-    var defineProperty = require_defineProperty();
-    function baseAssignValue(object3, key, value) {
-      key == "__proto__" && defineProperty ? defineProperty(object3, key, {
-        configurable: !0,
-        enumerable: !0,
-        value,
-        writable: !0
-      }) : object3[key] = value;
-    }
-    module.exports = baseAssignValue;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_assignValue.js
-var require_assignValue = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_assignValue.js"(exports, module) {
-    var baseAssignValue = require_baseAssignValue(), eq = require_eq(), objectProto = Object.prototype, hasOwnProperty = objectProto.hasOwnProperty;
-    function assignValue(object3, key, value) {
-      var objValue = object3[key];
-      (!(hasOwnProperty.call(object3, key) && eq(objValue, value)) || value === void 0 && !(key in object3)) && baseAssignValue(object3, key, value);
-    }
-    module.exports = assignValue;
   }
 });
 
@@ -28526,12 +28937,44 @@ var SEMVER_PATTERN, init_semantic_version = __esm({
   }
 });
 
+// ../../codex/codex-apps/protocol/src/orbit/aeon-tool-contracts.ts
+var sendAsyncMessageArgumentsSchema, init_aeon_tool_contracts = __esm({
+  "../../codex/codex-apps/protocol/src/orbit/aeon-tool-contracts.ts"() {
+    "use strict";
+    init_zod();
+    sendAsyncMessageArgumentsSchema = external_exports.strictObject({
+      message: external_exports.string().trim().min(1).describe("The concise question or update to send to the user.")
+    });
+  }
+});
+
+// ../../codex/codex-apps/protocol/src/thread-source-kinds.ts
+var ALL_THREAD_SOURCE_KINDS, init_thread_source_kinds = __esm({
+  "../../codex/codex-apps/protocol/src/thread-source-kinds.ts"() {
+    "use strict";
+    init_aeon_tool_contracts();
+    ALL_THREAD_SOURCE_KINDS = Object.values({
+      cli: "cli",
+      vscode: "vscode",
+      exec: "exec",
+      appServer: "appServer",
+      subAgent: "subAgent",
+      subAgentReview: "subAgentReview",
+      subAgentCompact: "subAgentCompact",
+      subAgentThreadSpawn: "subAgentThreadSpawn",
+      subAgentOther: "subAgentOther",
+      unknown: "unknown"
+    });
+  }
+});
+
 // ../../codex/codex-apps/protocol/src/app-server-pinned-threads.ts
 var init_app_server_pinned_threads = __esm({
   "../../codex/codex-apps/protocol/src/app-server-pinned-threads.ts"() {
     "use strict";
     init_app_server_thread_lookup();
     init_semantic_version();
+    init_thread_source_kinds();
   }
 });
 
@@ -29776,96 +30219,6 @@ var require_baseFor = __commonJS({
   }
 });
 
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneBuffer.js
-var require_cloneBuffer = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneBuffer.js"(exports, module) {
-    var root = require_root(), freeExports = typeof exports == "object" && exports && !exports.nodeType && exports, freeModule = freeExports && typeof module == "object" && module && !module.nodeType && module, moduleExports = freeModule && freeModule.exports === freeExports, Buffer2 = moduleExports ? root.Buffer : void 0, allocUnsafe = Buffer2 ? Buffer2.allocUnsafe : void 0;
-    function cloneBuffer(buffer, isDeep) {
-      if (isDeep)
-        return buffer.slice();
-      var length = buffer.length, result = allocUnsafe ? allocUnsafe(length) : new buffer.constructor(length);
-      return buffer.copy(result), result;
-    }
-    module.exports = cloneBuffer;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneArrayBuffer.js
-var require_cloneArrayBuffer = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneArrayBuffer.js"(exports, module) {
-    var Uint8Array2 = require_Uint8Array();
-    function cloneArrayBuffer(arrayBuffer) {
-      var result = new arrayBuffer.constructor(arrayBuffer.byteLength);
-      return new Uint8Array2(result).set(new Uint8Array2(arrayBuffer)), result;
-    }
-    module.exports = cloneArrayBuffer;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneTypedArray.js
-var require_cloneTypedArray = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneTypedArray.js"(exports, module) {
-    var cloneArrayBuffer = require_cloneArrayBuffer();
-    function cloneTypedArray(typedArray, isDeep) {
-      var buffer = isDeep ? cloneArrayBuffer(typedArray.buffer) : typedArray.buffer;
-      return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
-    }
-    module.exports = cloneTypedArray;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_copyArray.js
-var require_copyArray = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_copyArray.js"(exports, module) {
-    function copyArray(source, array2) {
-      var index = -1, length = source.length;
-      for (array2 || (array2 = Array(length)); ++index < length; )
-        array2[index] = source[index];
-      return array2;
-    }
-    module.exports = copyArray;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseCreate.js
-var require_baseCreate = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseCreate.js"(exports, module) {
-    var isObject2 = require_isObject(), objectCreate = Object.create, baseCreate = /* @__PURE__ */ (function() {
-      function object3() {
-      }
-      return function(proto) {
-        if (!isObject2(proto))
-          return {};
-        if (objectCreate)
-          return objectCreate(proto);
-        object3.prototype = proto;
-        var result = new object3();
-        return object3.prototype = void 0, result;
-      };
-    })();
-    module.exports = baseCreate;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getPrototype.js
-var require_getPrototype = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getPrototype.js"(exports, module) {
-    var overArg = require_overArg(), getPrototype = overArg(Object.getPrototypeOf, Object);
-    module.exports = getPrototype;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_initCloneObject.js
-var require_initCloneObject = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_initCloneObject.js"(exports, module) {
-    var baseCreate = require_baseCreate(), getPrototype = require_getPrototype(), isPrototype = require_isPrototype();
-    function initCloneObject(object3) {
-      return typeof object3.constructor == "function" && !isPrototype(object3) ? baseCreate(getPrototype(object3)) : {};
-    }
-    module.exports = initCloneObject;
-  }
-});
-
 // ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/isArrayLikeObject.js
 var require_isArrayLikeObject = __commonJS({
   "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/isArrayLikeObject.js"(exports, module) {
@@ -29902,64 +30255,6 @@ var require_safeGet = __commonJS({
         return object3[key];
     }
     module.exports = safeGet;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_copyObject.js
-var require_copyObject = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_copyObject.js"(exports, module) {
-    var assignValue = require_assignValue(), baseAssignValue = require_baseAssignValue();
-    function copyObject(source, props, object3, customizer) {
-      var isNew = !object3;
-      object3 || (object3 = {});
-      for (var index = -1, length = props.length; ++index < length; ) {
-        var key = props[index], newValue = customizer ? customizer(object3[key], source[key], key, object3, source) : void 0;
-        newValue === void 0 && (newValue = source[key]), isNew ? baseAssignValue(object3, key, newValue) : assignValue(object3, key, newValue);
-      }
-      return object3;
-    }
-    module.exports = copyObject;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_nativeKeysIn.js
-var require_nativeKeysIn = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_nativeKeysIn.js"(exports, module) {
-    function nativeKeysIn(object3) {
-      var result = [];
-      if (object3 != null)
-        for (var key in Object(object3))
-          result.push(key);
-      return result;
-    }
-    module.exports = nativeKeysIn;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseKeysIn.js
-var require_baseKeysIn = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseKeysIn.js"(exports, module) {
-    var isObject2 = require_isObject(), isPrototype = require_isPrototype(), nativeKeysIn = require_nativeKeysIn(), objectProto = Object.prototype, hasOwnProperty = objectProto.hasOwnProperty;
-    function baseKeysIn(object3) {
-      if (!isObject2(object3))
-        return nativeKeysIn(object3);
-      var isProto = isPrototype(object3), result = [];
-      for (var key in object3)
-        key == "constructor" && (isProto || !hasOwnProperty.call(object3, key)) || result.push(key);
-      return result;
-    }
-    module.exports = baseKeysIn;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/keysIn.js
-var require_keysIn = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/keysIn.js"(exports, module) {
-    var arrayLikeKeys = require_arrayLikeKeys(), baseKeysIn = require_baseKeysIn(), isArrayLike = require_isArrayLike();
-    function keysIn(object3) {
-      return isArrayLike(object3) ? arrayLikeKeys(object3, !0) : baseKeysIn(object3);
-    }
-    module.exports = keysIn;
   }
 });
 
@@ -31046,16 +31341,19 @@ var LOCAL_ENVIRONMENT_ACTION_ICONS, LOCAL_ENVIRONMENT_PLATFORMS, localActionSche
 });
 
 // ../../codex/codex-apps/protocol/src/mcp.ts
-var APP_SERVER_NOTIFICATION_OPT_IN, CONNECTION_INTERNAL_NOTIFICATION_METHODS, APP_SERVER_NOTIFICATION_METHODS_TO_OPT_OUT, mcpMethodNotFoundErrorSchema, init_mcp2 = __esm({
+var appServerHttpErrorInfoSchema, APP_SERVER_NOTIFICATION_OPT_IN, CONNECTION_INTERNAL_NOTIFICATION_METHODS, APP_SERVER_NOTIFICATION_METHODS_TO_OPT_OUT, mcpMethodNotFoundErrorSchema, init_mcp2 = __esm({
   "../../codex/codex-apps/protocol/src/mcp.ts"() {
     "use strict";
     init_zod();
-    APP_SERVER_NOTIFICATION_OPT_IN = {
+    appServerHttpErrorInfoSchema = external_exports.object({
+      httpStatusCode: external_exports.number().nullable()
+    }), APP_SERVER_NOTIFICATION_OPT_IN = {
       error: !0,
       "thread/started": !0,
       "thread/name/updated": !0,
       "thread/attachment/updated": !0,
       "thread/project/updated": !1,
+      "thread/prediction/updated": !1,
       "thread/queue/changed": !0,
       "thread/environment/connected": !0,
       "thread/environment/disconnected": !0,
@@ -32293,258 +32591,6 @@ var init_app_icon = __esm({
   }
 });
 
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_arrayEach.js
-var require_arrayEach = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_arrayEach.js"(exports, module) {
-    function arrayEach(array2, iteratee) {
-      for (var index = -1, length = array2 == null ? 0 : array2.length; ++index < length && iteratee(array2[index], index, array2) !== !1; )
-        ;
-      return array2;
-    }
-    module.exports = arrayEach;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseAssign.js
-var require_baseAssign = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseAssign.js"(exports, module) {
-    var copyObject = require_copyObject(), keys = require_keys();
-    function baseAssign(object3, source) {
-      return object3 && copyObject(source, keys(source), object3);
-    }
-    module.exports = baseAssign;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseAssignIn.js
-var require_baseAssignIn = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseAssignIn.js"(exports, module) {
-    var copyObject = require_copyObject(), keysIn = require_keysIn();
-    function baseAssignIn(object3, source) {
-      return object3 && copyObject(source, keysIn(source), object3);
-    }
-    module.exports = baseAssignIn;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_copySymbols.js
-var require_copySymbols = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_copySymbols.js"(exports, module) {
-    var copyObject = require_copyObject(), getSymbols = require_getSymbols();
-    function copySymbols(source, object3) {
-      return copyObject(source, getSymbols(source), object3);
-    }
-    module.exports = copySymbols;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getSymbolsIn.js
-var require_getSymbolsIn = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getSymbolsIn.js"(exports, module) {
-    var arrayPush = require_arrayPush(), getPrototype = require_getPrototype(), getSymbols = require_getSymbols(), stubArray = require_stubArray(), nativeGetSymbols = Object.getOwnPropertySymbols, getSymbolsIn = nativeGetSymbols ? function(object3) {
-      for (var result = []; object3; )
-        arrayPush(result, getSymbols(object3)), object3 = getPrototype(object3);
-      return result;
-    } : stubArray;
-    module.exports = getSymbolsIn;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_copySymbolsIn.js
-var require_copySymbolsIn = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_copySymbolsIn.js"(exports, module) {
-    var copyObject = require_copyObject(), getSymbolsIn = require_getSymbolsIn();
-    function copySymbolsIn(source, object3) {
-      return copyObject(source, getSymbolsIn(source), object3);
-    }
-    module.exports = copySymbolsIn;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getAllKeysIn.js
-var require_getAllKeysIn = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_getAllKeysIn.js"(exports, module) {
-    var baseGetAllKeys = require_baseGetAllKeys(), getSymbolsIn = require_getSymbolsIn(), keysIn = require_keysIn();
-    function getAllKeysIn(object3) {
-      return baseGetAllKeys(object3, keysIn, getSymbolsIn);
-    }
-    module.exports = getAllKeysIn;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_initCloneArray.js
-var require_initCloneArray = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_initCloneArray.js"(exports, module) {
-    var objectProto = Object.prototype, hasOwnProperty = objectProto.hasOwnProperty;
-    function initCloneArray(array2) {
-      var length = array2.length, result = new array2.constructor(length);
-      return length && typeof array2[0] == "string" && hasOwnProperty.call(array2, "index") && (result.index = array2.index, result.input = array2.input), result;
-    }
-    module.exports = initCloneArray;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneDataView.js
-var require_cloneDataView = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneDataView.js"(exports, module) {
-    var cloneArrayBuffer = require_cloneArrayBuffer();
-    function cloneDataView(dataView, isDeep) {
-      var buffer = isDeep ? cloneArrayBuffer(dataView.buffer) : dataView.buffer;
-      return new dataView.constructor(buffer, dataView.byteOffset, dataView.byteLength);
-    }
-    module.exports = cloneDataView;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneRegExp.js
-var require_cloneRegExp = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneRegExp.js"(exports, module) {
-    var reFlags = /\w*$/;
-    function cloneRegExp(regexp) {
-      var result = new regexp.constructor(regexp.source, reFlags.exec(regexp));
-      return result.lastIndex = regexp.lastIndex, result;
-    }
-    module.exports = cloneRegExp;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneSymbol.js
-var require_cloneSymbol = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneSymbol.js"(exports, module) {
-    var Symbol2 = require_Symbol(), symbolProto = Symbol2 ? Symbol2.prototype : void 0, symbolValueOf = symbolProto ? symbolProto.valueOf : void 0;
-    function cloneSymbol(symbol2) {
-      return symbolValueOf ? Object(symbolValueOf.call(symbol2)) : {};
-    }
-    module.exports = cloneSymbol;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_initCloneByTag.js
-var require_initCloneByTag = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_initCloneByTag.js"(exports, module) {
-    var cloneArrayBuffer = require_cloneArrayBuffer(), cloneDataView = require_cloneDataView(), cloneRegExp = require_cloneRegExp(), cloneSymbol = require_cloneSymbol(), cloneTypedArray = require_cloneTypedArray(), boolTag = "[object Boolean]", dateTag = "[object Date]", mapTag = "[object Map]", numberTag = "[object Number]", regexpTag = "[object RegExp]", setTag = "[object Set]", stringTag = "[object String]", symbolTag = "[object Symbol]", arrayBufferTag = "[object ArrayBuffer]", dataViewTag = "[object DataView]", float32Tag = "[object Float32Array]", float64Tag = "[object Float64Array]", int8Tag = "[object Int8Array]", int16Tag = "[object Int16Array]", int32Tag = "[object Int32Array]", uint8Tag = "[object Uint8Array]", uint8ClampedTag = "[object Uint8ClampedArray]", uint16Tag = "[object Uint16Array]", uint32Tag = "[object Uint32Array]";
-    function initCloneByTag(object3, tag, isDeep) {
-      var Ctor = object3.constructor;
-      switch (tag) {
-        case arrayBufferTag:
-          return cloneArrayBuffer(object3);
-        case boolTag:
-        case dateTag:
-          return new Ctor(+object3);
-        case dataViewTag:
-          return cloneDataView(object3, isDeep);
-        case float32Tag:
-        case float64Tag:
-        case int8Tag:
-        case int16Tag:
-        case int32Tag:
-        case uint8Tag:
-        case uint8ClampedTag:
-        case uint16Tag:
-        case uint32Tag:
-          return cloneTypedArray(object3, isDeep);
-        case mapTag:
-          return new Ctor();
-        case numberTag:
-        case stringTag:
-          return new Ctor(object3);
-        case regexpTag:
-          return cloneRegExp(object3);
-        case setTag:
-          return new Ctor();
-        case symbolTag:
-          return cloneSymbol(object3);
-      }
-    }
-    module.exports = initCloneByTag;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseIsMap.js
-var require_baseIsMap = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseIsMap.js"(exports, module) {
-    var getTag = require_getTag(), isObjectLike = require_isObjectLike(), mapTag = "[object Map]";
-    function baseIsMap(value) {
-      return isObjectLike(value) && getTag(value) == mapTag;
-    }
-    module.exports = baseIsMap;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/isMap.js
-var require_isMap = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/isMap.js"(exports, module) {
-    var baseIsMap = require_baseIsMap(), baseUnary = require_baseUnary(), nodeUtil = require_nodeUtil(), nodeIsMap = nodeUtil && nodeUtil.isMap, isMap = nodeIsMap ? baseUnary(nodeIsMap) : baseIsMap;
-    module.exports = isMap;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseIsSet.js
-var require_baseIsSet = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseIsSet.js"(exports, module) {
-    var getTag = require_getTag(), isObjectLike = require_isObjectLike(), setTag = "[object Set]";
-    function baseIsSet(value) {
-      return isObjectLike(value) && getTag(value) == setTag;
-    }
-    module.exports = baseIsSet;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/isSet.js
-var require_isSet = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/isSet.js"(exports, module) {
-    var baseIsSet = require_baseIsSet(), baseUnary = require_baseUnary(), nodeUtil = require_nodeUtil(), nodeIsSet = nodeUtil && nodeUtil.isSet, isSet = nodeIsSet ? baseUnary(nodeIsSet) : baseIsSet;
-    module.exports = isSet;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseClone.js
-var require_baseClone = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_baseClone.js"(exports, module) {
-    var Stack = require_Stack(), arrayEach = require_arrayEach(), assignValue = require_assignValue(), baseAssign = require_baseAssign(), baseAssignIn = require_baseAssignIn(), cloneBuffer = require_cloneBuffer(), copyArray = require_copyArray(), copySymbols = require_copySymbols(), copySymbolsIn = require_copySymbolsIn(), getAllKeys = require_getAllKeys(), getAllKeysIn = require_getAllKeysIn(), getTag = require_getTag(), initCloneArray = require_initCloneArray(), initCloneByTag = require_initCloneByTag(), initCloneObject = require_initCloneObject(), isArray = require_isArray(), isBuffer = require_isBuffer(), isMap = require_isMap(), isObject2 = require_isObject(), isSet = require_isSet(), keys = require_keys(), keysIn = require_keysIn(), CLONE_DEEP_FLAG = 1, CLONE_FLAT_FLAG = 2, CLONE_SYMBOLS_FLAG = 4, argsTag = "[object Arguments]", arrayTag = "[object Array]", boolTag = "[object Boolean]", dateTag = "[object Date]", errorTag = "[object Error]", funcTag = "[object Function]", genTag = "[object GeneratorFunction]", mapTag = "[object Map]", numberTag = "[object Number]", objectTag = "[object Object]", regexpTag = "[object RegExp]", setTag = "[object Set]", stringTag = "[object String]", symbolTag = "[object Symbol]", weakMapTag = "[object WeakMap]", arrayBufferTag = "[object ArrayBuffer]", dataViewTag = "[object DataView]", float32Tag = "[object Float32Array]", float64Tag = "[object Float64Array]", int8Tag = "[object Int8Array]", int16Tag = "[object Int16Array]", int32Tag = "[object Int32Array]", uint8Tag = "[object Uint8Array]", uint8ClampedTag = "[object Uint8ClampedArray]", uint16Tag = "[object Uint16Array]", uint32Tag = "[object Uint32Array]", cloneableTags = {};
-    cloneableTags[argsTag] = cloneableTags[arrayTag] = cloneableTags[arrayBufferTag] = cloneableTags[dataViewTag] = cloneableTags[boolTag] = cloneableTags[dateTag] = cloneableTags[float32Tag] = cloneableTags[float64Tag] = cloneableTags[int8Tag] = cloneableTags[int16Tag] = cloneableTags[int32Tag] = cloneableTags[mapTag] = cloneableTags[numberTag] = cloneableTags[objectTag] = cloneableTags[regexpTag] = cloneableTags[setTag] = cloneableTags[stringTag] = cloneableTags[symbolTag] = cloneableTags[uint8Tag] = cloneableTags[uint8ClampedTag] = cloneableTags[uint16Tag] = cloneableTags[uint32Tag] = !0;
-    cloneableTags[errorTag] = cloneableTags[funcTag] = cloneableTags[weakMapTag] = !1;
-    function baseClone(value, bitmask, customizer, key, object3, stack) {
-      var result, isDeep = bitmask & CLONE_DEEP_FLAG, isFlat = bitmask & CLONE_FLAT_FLAG, isFull = bitmask & CLONE_SYMBOLS_FLAG;
-      if (customizer && (result = object3 ? customizer(value, key, object3, stack) : customizer(value)), result !== void 0)
-        return result;
-      if (!isObject2(value))
-        return value;
-      var isArr = isArray(value);
-      if (isArr) {
-        if (result = initCloneArray(value), !isDeep)
-          return copyArray(value, result);
-      } else {
-        var tag = getTag(value), isFunc = tag == funcTag || tag == genTag;
-        if (isBuffer(value))
-          return cloneBuffer(value, isDeep);
-        if (tag == objectTag || tag == argsTag || isFunc && !object3) {
-          if (result = isFlat || isFunc ? {} : initCloneObject(value), !isDeep)
-            return isFlat ? copySymbolsIn(value, baseAssignIn(result, value)) : copySymbols(value, baseAssign(result, value));
-        } else {
-          if (!cloneableTags[tag])
-            return object3 ? value : {};
-          result = initCloneByTag(value, tag, isDeep);
-        }
-      }
-      stack || (stack = new Stack());
-      var stacked = stack.get(value);
-      if (stacked)
-        return stacked;
-      stack.set(value, result), isSet(value) ? value.forEach(function(subValue) {
-        result.add(baseClone(subValue, bitmask, customizer, subValue, value, stack));
-      }) : isMap(value) && value.forEach(function(subValue, key2) {
-        result.set(key2, baseClone(subValue, bitmask, customizer, key2, value, stack));
-      });
-      var keysFunc = isFull ? isFlat ? getAllKeysIn : getAllKeys : isFlat ? keysIn : keys, props = isArr ? void 0 : keysFunc(value);
-      return arrayEach(props || value, function(subValue, key2) {
-        props && (key2 = subValue, subValue = value[key2]), assignValue(result, key2, baseClone(subValue, bitmask, customizer, key2, value, stack));
-      }), result;
-    }
-    module.exports = baseClone;
-  }
-});
-
 // ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_customOmitClone.js
 var require_customOmitClone = __commonJS({
   "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_customOmitClone.js"(exports, module) {
@@ -32774,6 +32820,7 @@ var chatGptComposerActionMetadataSchema, chatGptComposerItemSchema, init_ambient
         external_exports.object({
           text: external_exports.string(),
           url: external_exports.string(),
+          summary: external_exports.string().trim().min(1).optional().catch(void 0),
           app_name: external_exports.string().optional().catch(void 0),
           icon_paths: external_exports.record(external_exports.string(), external_exports.string()).optional().catch(void 0)
         })
@@ -32785,6 +32832,11 @@ var chatGptComposerActionMetadataSchema, chatGptComposerItemSchema, init_ambient
       item_type: external_exports.enum([
         "chat_home_curated",
         "chat_home",
+        "chat_home_evergreen",
+        "chat_home_evergreen_demo",
+        "chat_home_trending",
+        "chat_home_task_suggestions",
+        "chat_home_paas_task_suggestions",
         "file_action_suggestion",
         "task_suggestion",
         "proactive_suggestion",
@@ -33341,16 +33393,11 @@ function getCodeReviewSettings() {
     }),
     githubLinkTarget: definePersistedAtomSetting({
       agentAccess: "hidden",
-      default: "code-review-tab",
+      default: "github",
       description: "Where pull request and merge request links open",
       key: "code-review-github-link-target",
-      // Retain the old Browser value until the user chooses an explicit destination.
-      schema: external_exports.enum([
-        "code-review-tab",
-        "github",
-        "in-app-browser",
-        "external-browser"
-      ])
+      // Follow the browser preference until the user chooses a review destination.
+      schema: external_exports.enum(["code-review-tab", "github"])
     }),
     localReviewInstructions: definePersistedAtomSetting({
       agentAccess: "read-only",
@@ -33484,6 +33531,26 @@ var import_mapValues, browserFamilyMentionEnabledSettings, computerUseSettings, 
   }
 });
 
+// ../../codex/codex-apps/protocol/src/settings/definitions/cumberbatch-settings.ts
+function getCumberbatchSettings() {
+  return {
+    enabled: definePersistedAtomSetting({
+      agentAccess: "hidden",
+      default: !0,
+      description: "Whether the composer predicts the user's next message",
+      key: "composer-predictions-enabled",
+      schema: booleanSettingSchema
+    })
+  };
+}
+var init_cumberbatch_settings = __esm({
+  "../../codex/codex-apps/protocol/src/settings/definitions/cumberbatch-settings.ts"() {
+    "use strict";
+    init_schemas4();
+    init_setting_definition();
+  }
+});
+
 // ../../codex/codex-apps/commands/src/web-link-shortcuts.ts
 var EXTERNAL_BROWSER_LINK_SHORTCUT_OPTIONS, init_web_link_shortcuts = __esm({
   "../../codex/codex-apps/commands/src/web-link-shortcuts.ts"() {
@@ -33591,7 +33658,7 @@ var customFileHandlerConfigSchema, customFileHandlersConfigSchema, desktopSettin
       }),
       externalBrowserLinkShortcut: defineConfigurationSetting({
         agentAccess: "read-write",
-        default: "unassigned",
+        default: "primary",
         description: "Modifier-click shortcut for opening web links in the default browser",
         key: "external-browser-link-shortcut",
         schema: external_exports.enum(EXTERNAL_BROWSER_LINK_SHORTCUT_OPTIONS)
@@ -34216,6 +34283,7 @@ var allSettingDefinitions, init_settings_manifest = __esm({
     init_code_review_settings();
     init_codex_micro_settings();
     init_computer_use_settings();
+    init_cumberbatch_settings();
     init_desktop_settings();
     init_external_agent_import_settings();
     init_file_viewer_settings();
@@ -34232,7 +34300,7 @@ var allSettingDefinitions, init_settings_manifest = __esm({
     init_your_dot_recents();
     init_personalization_settings();
     init_work_preferences();
-    allSettingDefinitions = [...Object.values(ambientSuggestionsSettings), ...Object.values(appearanceSettings), ...Object.values(appshotsSettings), ...Object.values(browserSettings), ...Object.values(codexMicroSettings), ...Object.values(computerUseSettings), ...Object.values(getCodeReviewSettings()), ...Object.values(desktopSettings), ...Object.values(externalAgentImportSettings), ...Object.values(fileViewerSettings), ...Object.values(generalSettings), ...Object.values(gitSettings), ...Object.values(modelFeaturesSettings), ...Object.values(notificationsSettings), ...Object.values(personalizationSettings), ...Object.values(realtimeVoiceSettings), getYourDotRecentsSetting(), getPagesSettings().fontSize, getPagesSettings().fullWidth, getPagesSettings().smartPunctuationEnabled, ...Object.values(toysSettings), ...Object.values(workModeSettings), ...Object.values(worktreeSettings)];
+    allSettingDefinitions = [...Object.values(ambientSuggestionsSettings), ...Object.values(appearanceSettings), ...Object.values(appshotsSettings), ...Object.values(browserSettings), ...Object.values(codexMicroSettings), ...Object.values(computerUseSettings), ...Object.values(getCodeReviewSettings()), ...Object.values(getCumberbatchSettings()), ...Object.values(desktopSettings), ...Object.values(externalAgentImportSettings), ...Object.values(fileViewerSettings), ...Object.values(generalSettings), ...Object.values(gitSettings), ...Object.values(modelFeaturesSettings), ...Object.values(notificationsSettings), ...Object.values(personalizationSettings), ...Object.values(realtimeVoiceSettings), getYourDotRecentsSetting(), getPagesSettings().fontSize, getPagesSettings().fullWidth, getPagesSettings().smartPunctuationEnabled, ...Object.values(toysSettings), ...Object.values(workModeSettings), ...Object.values(worktreeSettings)];
   }
 });
 
@@ -34403,37 +34471,6 @@ var init_startup_phases = __esm({
 var init_thread_archive = __esm({
   "../../codex/codex-apps/protocol/src/thread-archive.ts"() {
     "use strict";
-  }
-});
-
-// ../../codex/codex-apps/protocol/src/orbit/aeon-tool-contracts.ts
-var sendAsyncMessageArgumentsSchema, init_aeon_tool_contracts = __esm({
-  "../../codex/codex-apps/protocol/src/orbit/aeon-tool-contracts.ts"() {
-    "use strict";
-    init_zod();
-    sendAsyncMessageArgumentsSchema = external_exports.strictObject({
-      message: external_exports.string().trim().min(1).describe("The concise question or update to send to the user.")
-    });
-  }
-});
-
-// ../../codex/codex-apps/protocol/src/thread-source-kinds.ts
-var ALL_THREAD_SOURCE_KINDS, init_thread_source_kinds = __esm({
-  "../../codex/codex-apps/protocol/src/thread-source-kinds.ts"() {
-    "use strict";
-    init_aeon_tool_contracts();
-    ALL_THREAD_SOURCE_KINDS = Object.values({
-      cli: "cli",
-      vscode: "vscode",
-      exec: "exec",
-      appServer: "appServer",
-      subAgent: "subAgent",
-      subAgentReview: "subAgentReview",
-      subAgentCompact: "subAgentCompact",
-      subAgentThreadSpawn: "subAgentThreadSpawn",
-      subAgentOther: "subAgentOther",
-      unknown: "unknown"
-    });
   }
 });
 
@@ -35295,6 +35332,21 @@ var init_wsl_paths = __esm({
   }
 });
 
+// ../../codex/codex-apps/protocol/src/rpc/workspace-search-service.ts
+var singleLinePattern, workspaceSearchOptionsSchema, init_workspace_search_service = __esm({
+  "../../codex/codex-apps/protocol/src/rpc/workspace-search-service.ts"() {
+    "use strict";
+    init_zod();
+    singleLinePattern = /^[^\r\n\0]*$/, workspaceSearchOptionsSchema = external_exports.object({
+      hostId: external_exports.string(),
+      roots: external_exports.array(external_exports.string().min(1)).min(1).max(20),
+      priorityFolders: external_exports.array(external_exports.string().min(1).max(4096).regex(singleLinePattern)).max(20).optional(),
+      query: external_exports.string().min(1).max(256).regex(singleLinePattern),
+      fileMask: external_exports.string().max(256).regex(singleLinePattern)
+    });
+  }
+});
+
 // ../../codex/codex-apps/protocol/src/index.ts
 var init_src2 = __esm({
   "../../codex/codex-apps/protocol/src/index.ts"() {
@@ -35493,6 +35545,7 @@ var init_src2 = __esm({
     init_workspace_root_label();
     init_worktree();
     init_wsl_paths();
+    init_workspace_search_service();
   }
 });
 
@@ -40598,7 +40651,7 @@ var init_update_pull_request_with_gh = __esm({
 // assets/icon-nav-dark.svg?raw
 var icon_nav_dark_default, init_icon_nav_dark = __esm({
   "assets/icon-nav-dark.svg?raw"() {
-    icon_nav_dark_default = `<svg width="256" height="256" viewBox="32 32 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+    icon_nav_dark_default = `<svg width="256" height="256" viewBox="24 24 208 208" fill="none" xmlns="http://www.w3.org/2000/svg">
   <g transform="scale(0.5)">
     <path d="M157.434 93.8585C187.599 93.8585 212.055 118.314 212.055 148.48C212.055 173.69 194.954 194.834 171.735 201.126V310.851C194.956 317.141 212.055 338.307 212.055 363.519C212.055 393.684 187.599 418.141 157.434 418.141C127.268 418.141 102.812 393.684 102.812 363.519C102.812 338.307 119.911 317.141 143.132 310.851V201.126C119.913 194.834 102.812 173.69 102.812 148.48C102.812 118.314 127.268 93.8585 157.434 93.8585ZM157.434 337.501C143.063 337.501 131.415 349.15 131.415 363.519C131.415 377.89 143.063 389.539 157.434 389.539C171.804 389.539 183.452 377.89 183.452 363.519C183.452 349.15 171.804 337.501 157.434 337.501ZM157.434 122.461C143.063 122.461 131.415 134.109 131.415 148.48C131.415 162.85 143.063 174.499 157.434 174.499C171.804 174.499 183.452 162.85 183.452 148.48C183.452 134.109 171.804 122.461 157.434 122.461Z" fill="white"/>
     <path d="M354.562 308.898C384.723 308.905 409.184 333.357 409.184 363.519C409.184 393.682 384.723 418.134 354.562 418.141C324.396 418.141 299.941 393.684 299.941 363.519C299.941 333.353 324.396 308.898 354.562 308.898ZM354.562 337.501C340.193 337.501 328.544 349.15 328.544 363.519C328.544 377.89 340.193 389.538 354.562 389.538C368.929 389.532 380.582 377.885 380.582 363.519C380.582 349.152 368.929 337.505 354.562 337.501Z" fill="white"/>
@@ -40612,7 +40665,7 @@ var icon_nav_dark_default, init_icon_nav_dark = __esm({
 // assets/icon-nav.svg?raw
 var icon_nav_default, init_icon_nav = __esm({
   "assets/icon-nav.svg?raw"() {
-    icon_nav_default = `<svg width="256" height="256" viewBox="32 32 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+    icon_nav_default = `<svg width="256" height="256" viewBox="24 24 208 208" fill="none" xmlns="http://www.w3.org/2000/svg">
   <g transform="scale(0.5)">
     <path d="M157.434 93.8585C187.599 93.8585 212.055 118.314 212.055 148.48C212.055 173.69 194.954 194.834 171.735 201.126V310.851C194.956 317.141 212.055 338.307 212.055 363.519C212.055 393.684 187.599 418.141 157.434 418.141C127.268 418.141 102.812 393.684 102.812 363.519C102.812 338.307 119.911 317.141 143.132 310.851V201.126C119.913 194.834 102.812 173.69 102.812 148.48C102.812 118.314 127.268 93.8585 157.434 93.8585ZM157.434 337.501C143.063 337.501 131.415 349.15 131.415 363.519C131.415 377.89 143.063 389.539 157.434 389.539C171.804 389.539 183.452 377.89 183.452 363.519C183.452 349.15 171.804 337.501 157.434 337.501ZM157.434 122.461C143.063 122.461 131.415 134.109 131.415 148.48C131.415 162.85 143.063 174.499 157.434 174.499C171.804 174.499 183.452 162.85 183.452 148.48C183.452 134.109 171.804 122.461 157.434 122.461Z" fill="black"/>
     <path d="M354.562 308.898C384.723 308.905 409.184 333.357 409.184 363.519C409.184 393.682 384.723 418.134 354.562 418.141C324.396 418.141 299.941 393.684 299.941 363.519C299.941 333.353 324.396 308.898 354.562 308.898ZM354.562 337.501C340.193 337.501 328.544 349.15 328.544 363.519C328.544 377.89 340.193 389.538 354.562 389.538C368.929 389.532 380.582 377.885 380.582 363.519C380.582 349.152 368.929 337.505 354.562 337.501Z" fill="black"/>

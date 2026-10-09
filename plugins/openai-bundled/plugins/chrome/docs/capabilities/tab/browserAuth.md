@@ -100,8 +100,8 @@ request or infer that no input occurred from a failed or interrupted request.
    be blocking sign-in. When using Cloud Browser, share the Help Center article
    in its guidance.
 4. After every authentication transition, call
-   `nodeRepl.write(await tab.dom_cua.get_visible_dom())` to inspect the rendered
-   interactive structure across nested and cross-origin frames. Check for a
+   `await tab.getAXState()` to inspect the rendered
+   accessibility structure. Check for a
    CAPTCHA, error, next authentication step, or success. If the inspection
    appears incomplete, use a frame-aware inspection and interaction path; do not
    continue, assume success, or dismiss an overlay.
@@ -116,7 +116,7 @@ request or infer that no input occurred from a failed or interrupted request.
    ```js
    const verificationTab = await browser.tabs.new();
    await verificationTab.goto(targetOrigin);
-   nodeRepl.write(await verificationTab.dom_cua.get_visible_dom());
+   await verificationTab.getAXState();
    ```
 
    Inspect that fresh page. Authentication may already have succeeded and its
@@ -132,7 +132,7 @@ request or infer that no input occurred from a failed or interrupted request.
 ### Prepare A Credential Request
 1. Inspect the live sign-in form with the cheapest targeted browser-side check
    that identifies the currently visible credential fields and submit behavior,
-   such as visible-DOM inspection or narrowly scoped locator checks. Inspect
+   such as accessibility inspection or narrowly scoped locator checks. Inspect
    what has already rendered; do not wait for page-load completion or repeatedly
    request full DOM snapshots.
 2. Include only credential inputs that are visible and enabled on the current
@@ -143,7 +143,7 @@ request or infer that no input occurred from a failed or interrupted request.
    multi-step sign-in, inspect the new page and make a separate request after
    each navigation.
 3. Start with `tab.playwright.domSnapshot()` to identify iframe hierarchy and
-   owner attributes. `tab.dom_cua.get_visible_dom()` omits frame ownership.
+   owner attributes. `tab.getAXState()` omits frame ownership.
    If a field, option, or submit is inside an iframe, use its `frameLocator(...)`;
    use `frameLocator("iframe")` only when it resolves uniquely. Choose stable
    selectors that each resolve to exactly one field. Prefer semantic attributes
@@ -165,11 +165,12 @@ request or infer that no input occurred from a failed or interrupted request.
 5. Use only the current canonical origin, with scheme, host, and port but no
    path, query, or fragment.
 6. Omit `submit` when filling the credential fields causes the form to
-   auto-submit. Otherwise, use `click` only for a stable selector that resolves
-   to exactly one visible enabled submit control distinct from the credential
-   fields. If Enter on the final credential field submits the form, including
-   when the submit button is disabled until input is present, use `press_enter`
-   with that exact field selector instead of a broad or generic button selector.
+   auto-submit. Otherwise, prefer `click` on a stable selector that resolves
+   to exactly one visible submit control distinct from the credential fields.
+   The submit control may initially be disabled; after filling the fields,
+   `browserAuth` waits for it to become enabled before clicking.
+   If no suitable submit control exists and Enter on the final credential
+   field submits the form, use `press_enter` with that exact field selector.
 
 If a visible textbox may be inside a component or shadow root, inspect its
 `id`, `name`, and `type` attributes through a browser-side role locator, then

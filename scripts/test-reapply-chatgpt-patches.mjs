@@ -49,7 +49,7 @@ try {
   const driftRoot = fixture();
   cleanups.push(driftRoot);
   fs.writeFileSync(path.join(driftRoot, runtimePath), "function validateUrl(e){return true}");
-  assert.throws(() => patchRepository(driftRoot, { apply: true }), /Review upstream changes/);
+  assert.throws(() => patchRepository(driftRoot, { apply: true }), /Review the updated browser code/);
   assert.equal(fs.readFileSync(path.join(driftRoot, documentsPath), "utf8"), originalDocuments);
 
   process.stdout.write("patch fixtures passed\n");

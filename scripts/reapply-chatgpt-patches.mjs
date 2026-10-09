@@ -8,12 +8,10 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const defaultRoot = path.resolve(here, "..");
 const runtimePath = "cua_node/lib/node_modules/@oai/browser-desktop/scripts/browser-service.mjs";
 const documentsPath = "plugins/openai-bundled/plugins/chrome/docs/documents.json";
-const allowedProtocolsCheck =
-  'return Cg.includes(e.protocol)?{allowed:!0,reason:"allowed"}:{allowed:!1,reason:"unsupported_protocol"}';
 const gpuUrlCheck =
-  '(e.protocol==="chrome:"&&e.hostname.toLowerCase()==="gpu"&&e.port===""&&e.username===""&&e.password===""&&(e.pathname===""||e.pathname==="/")&&e.search===""&&e.hash==="")';
-const gpuProtocolsCheck =
-  `return ${gpuUrlCheck}||Cg.includes(e.protocol)?{allowed:!0,reason:"allowed"}:{allowed:!1,reason:"unsupported_protocol"}`;
+  '($URL.protocol==="chrome:"&&$URL.hostname.toLowerCase()==="gpu"&&$URL.port===""&&$URL.username===""&&$URL.password===""&&($URL.pathname===""||$URL.pathname==="/")&&$URL.search===""&&$URL.hash==="")';
+const protocolCheckPattern =
+  /([\w$]+)\.includes\(([\w$]+)\.protocol\)\?\{allowed:!0,reason:"allowed"\}:\{allowed:!1,reason:"unsupported_protocol"\}/g;
 const gpuDocument = {
   description:
     "read when the user asks to inspect chrome://gpu or an internal GPU report tab cannot be claimed",
@@ -32,23 +30,31 @@ function count(text, needle) {
 function planRuntime(root) {
   const fullPath = path.join(root, runtimePath);
   const source = fs.readFileSync(fullPath, "utf8");
-  const oldCount = count(source, allowedProtocolsCheck);
-  const patchedCount = count(source, gpuProtocolsCheck);
-
-  if (patchedCount === 1 && oldCount === 0) {
+  const checks = [...source.matchAll(protocolCheckPattern)];
+  const patchedMarkers = [...source.matchAll(/\(([\w$]+)\.protocol==="chrome:"&&\1\.hostname\.toLowerCase\(\)==="gpu"/g)];
+  if (
+    checks.length === 1 &&
+    patchedMarkers.length === 1 &&
+    checks[0][2] === patchedMarkers[0][1] &&
+    checks[0].index > patchedMarkers[0].index
+  ) {
     return { fullPath, relativePath: runtimePath, source, next: source, status: "already-applied" };
   }
-  if (oldCount === 1 && patchedCount === 0) {
+  if (checks.length === 1 && patchedMarkers.length === 0) {
+    const [match] = checks;
+    const original = match[0];
+    const urlVariable = match[2];
+    const patched = `${gpuUrlCheck.replaceAll("$URL", urlVariable)}||${match[0]}`;
     return {
       fullPath,
       relativePath: runtimePath,
       source,
-      next: source.replace(allowedProtocolsCheck, gpuProtocolsCheck),
+      next: source.replace(original, patched),
       status: "would-apply",
     };
   }
   throw new Error(
-    `${runtimePath}: expected one known HTTP/HTTPS check or one exact GPU exception; found ${oldCount} original and ${patchedCount} patched anchors. Review upstream changes.`,
+    `${runtimePath}: expected one recognizable URL-protocol check or one exact GPU exception; found ${checks.length} protocol checks and ${patchedMarkers.length} GPU markers. Review the updated browser code before committing.`,
   );
 }
 

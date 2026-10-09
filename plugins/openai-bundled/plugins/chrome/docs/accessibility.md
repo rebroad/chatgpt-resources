@@ -45,6 +45,8 @@ await tab.ax.write();
 * `tab.ax.performSecondaryAction()` invokes a secondary action exposed for that element in the accessibility text. Do not guess action names.
 * `tab.ax.selectText()` selects matching text in an editable element. Use `prefix` and `suffix` to disambiguate repeated matches, and `selectionType` to choose whether to select the text itself or place the cursor before or after it.
 * `tab.ax.pressKey()` presses a key or key combination, including modifier and navigation keys. It supports xdotool-style key syntax. Examples: `"a"`, `"Return"`, `"Tab"`, `"super+c"`, `"Up"`, and `"KP_0"` for numpad `0`.
+* `tab.ax.click(target, { key: "super", duration: 0.5 })` holds each mouse press for half a second and holds Command throughout the click sequence. `key` accepts modifiers alone or one ordinary key with modifiers. Held clicks require a visible, hittable target.
+* `tab.ax.pressKey(null, "a", { duration: 0.5 })` holds the key combination before releasing it, without repeating. Durations are seconds from `0` through `30`. Allow enough time in the Node REPL call's `timeout_ms` for all holds, including each press of a multiple-click sequence. Held clipboard shortcuts and held input on JavaScript dialog controls are unsupported.
 * `tab.ax.typeText`, `tab.ax.paste`, and `tab.ax.pressKey` take an optional element index as their first argument and focus that element before sending input. Pass `null` to use the currently focused element.
 * It is usually not necessary to pause or delay between performing an action and getting the updated page state. The runtime automatically waits an appropriate amount of time before capturing the new state.
 
