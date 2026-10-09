@@ -31,15 +31,14 @@ export function acceptUpdate(root = defaultRoot, message = defaultMessage) {
 
   let patchPlan;
   try {
-    patchPlan = patchRepository(root);
+    patchRepository(root); // Preflight all patches before changing the worktree.
+    patchPlan = patchRepository(root, { apply: true });
   } catch (error) {
     throw new Error(
-      `I could not safely reapply the local GPU report changes, so I did not stage or commit anything. ${error.message} Review the updated browser code and docs index; update this script only after confirming the new patch location is safe.`,
+      `I could not safely apply the local GPU report changes, so I did not stage or commit anything. ${error.message} Review the updated browser code and docs index; update this script only after confirming the new patch location is safe.`,
     );
   }
 
-  // Apply only after every patch has passed the preflight checks.
-  patchRepository(root, { apply: true });
   git(root, ["add", "--all"]);
   const staged = git(root, ["diff", "--cached", "--quiet"], { allowFailure: true });
   if (staged.status === 0) {
@@ -65,7 +64,8 @@ function main(args) {
 
   const result = acceptUpdate(root, message);
   for (const item of result.patchPlan) {
-    process.stdout.write(`${item.status}: ${item.relativePath}\n`);
+    const status = item.status === "would-apply" ? "applied" : item.status;
+    process.stdout.write(`${status}: ${item.relativePath}\n`);
   }
   process.stdout.write(
     result.committed
