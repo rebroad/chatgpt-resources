@@ -24755,6 +24755,10 @@ var StdioServerTransport = class {
   }
 };
 
+// ../protocol/src/host-config.ts
+var ENVIRONMENT_SCOPED_GIT_HOST_ID_PREFIX = "environment-git:";
+var HOSTED_GIT_HOST_ID_PREFIX = `${ENVIRONMENT_SCOPED_GIT_HOST_ID_PREFIX}hosted:`;
+
 // ../protocol/src/dynamic-app-tools.ts
 var CODEX_APP_TOOLS_DESCRIPTION = "Tools provided by the Codex app.";
 var dynamicToolCallResponseSchema = external_exports.object({
@@ -24826,7 +24830,7 @@ var server = new Server(
   },
   {
     capabilities: { tools: {} },
-    instructions: CODEX_APP_TOOLS_DESCRIPTION
+    instructions: process.env.CODEX_APP_TOOLS_DEFERRED === "1" ? "Manage the Codex desktop app: find, create, and update chats; organize projects, sidebar, and pinned items; schedule automations; manage worktrees; open app panels; and locate bundled libraries for documents, spreadsheets, slides, and PDFs." : CODEX_APP_TOOLS_DESCRIPTION
   }
 );
 server.setRequestHandler(ListToolsRequestSchema, async () => {

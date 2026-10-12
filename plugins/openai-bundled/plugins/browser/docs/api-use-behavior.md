@@ -1,6 +1,6 @@
 # API Use
 ## How to use the API
-* REPL state persists: use `const` for stable handles and `let` for changing values; reassign instead of redeclaring. Never use `globalThis` or reacquire handles unless they become stale.
+* REPL state persists: use `const` for stable handles and `let` for changing values; reassign instead of redeclaring. Never use `globalThis` or reacquire browser or tab handles unless they become stale.
 * Always make sure you understand what is on the screen before proceeding to your next action. After clicking, scrolling, typing, or other interactions, collect the cheapest state check that answers the next question. Prefer a fresh DOM snapshot when you need locator ground truth, prefer a screenshot when visual confirmation matters, and avoid requesting both by default.
 * If an interaction has no effect, do not blindly repeat it or immediately switch to lower-level coordinate actions. Inspect the visible state for a blocker or changed state, resolve it when appropriate, then retry the most direct semantic action or retarget the interaction.
 * Browser interactions may add a response content item with notifications about changes in browser state or page content. Read and act on non-empty notifications.

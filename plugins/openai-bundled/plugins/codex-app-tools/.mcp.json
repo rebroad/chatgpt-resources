@@ -26,6 +26,9 @@
         },
         "handoff_thread": {
           "approval_mode": "prompt"
+        },
+        "move_thread_to_project": {
+          "approval_mode": "prompt"
         }
       },
       "env_vars": [

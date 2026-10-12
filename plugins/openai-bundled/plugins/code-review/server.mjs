@@ -26571,7 +26571,7 @@ var MAX_REMOTE_FILE_DIRECT_TRANSFER_BYTES, CLIENT_NEW_THREAD_ID_PREFIX, init_pro
 });
 
 // ../../codex/codex-apps/protocol/src/routes.ts
-var HOTKEY_WINDOW_ROUTE_PREFIX, HOTKEY_WINDOW_NEW_THREAD_ROUTE, CHATGPT_QUICK_CHAT_WINDOW_ROUTE_PREFIX, CHATGPT_QUICK_CHAT_WINDOW_ROUTE_PATTERN, CHATGPT_SHARED_CONVERSATION_ROUTE_PREFIX, CHATGPT_SHARED_CONVERSATION_ROUTE_PATTERN, CHATGPT_WORKSPACE_SHARED_CONVERSATION_ROUTE_PATTERN, HOTKEY_WINDOW_THREAD_ROUTE_PREFIX, HOTKEY_WINDOW_THREAD_ROUTE_PATTERN, HOTKEY_WINDOW_REMOTE_ROUTE_PREFIX, HOTKEY_WINDOW_REMOTE_ROUTE_PATTERN, PLUGIN_DETAIL_ROUTE_PREFIX, PLUGIN_DETAIL_ROUTE_PATTERN, MCP_CAPABILITY_GLOBAL_VIEW_ROUTE_PREFIX, MCP_CAPABILITY_GLOBAL_VIEW_ROUTE_PATTERN, MCP_CAPABILITY_SETTINGS_VIEW_ROUTE_PREFIX, MCP_CAPABILITY_SETTINGS_VIEW_ROUTE_PATTERN, PLUGIN_MCP_APP_DEEP_LINK_ROUTE_PREFIX, PLUGIN_MCP_APP_DEEP_LINK_ROUTE_PATTERN, PLUGINS_MANAGE_ROUTE, MANAGE_PLUGIN_DETAIL_ROUTE_PREFIX, MANAGE_PLUGIN_DETAIL_ROUTE_PATTERN, LOCAL_CONVERSATION_ROUTE_PREFIX, LOCAL_CONVERSATION_ROUTE_PATTERN, UUID_PATTERN, localConversationReviewDiffFilterSchema, localConversationDeepLinkSchema, REMOTE_CONVERSATION_ROUTE_PREFIX, REMOTE_CONVERSATION_ROUTE_PATTERN, HOTKEY_WINDOW_THREAD_ROUTE_MATCHER, mcpAppNavigationTargetSchema, mcpAppDeepLinkNavigationStateSchema, codexAppModeSchema, codexAppModeNavigationStateSchema, init_routes = __esm({
+var HOTKEY_WINDOW_ROUTE_PREFIX, HOTKEY_WINDOW_NEW_THREAD_ROUTE, CHATGPT_SHARED_CONVERSATION_ROUTE_PREFIX, CHATGPT_SHARED_CONVERSATION_ROUTE_PATTERN, CHATGPT_WORKSPACE_SHARED_CONVERSATION_ROUTE_PATTERN, HOTKEY_WINDOW_THREAD_ROUTE_PREFIX, HOTKEY_WINDOW_THREAD_ROUTE_PATTERN, HOTKEY_WINDOW_REMOTE_ROUTE_PREFIX, HOTKEY_WINDOW_REMOTE_ROUTE_PATTERN, PLUGIN_DETAIL_ROUTE_PREFIX, PLUGIN_DETAIL_ROUTE_PATTERN, MCP_CAPABILITY_GLOBAL_VIEW_ROUTE_PREFIX, MCP_CAPABILITY_GLOBAL_VIEW_ROUTE_PATTERN, MCP_CAPABILITY_SETTINGS_VIEW_ROUTE_PREFIX, MCP_CAPABILITY_SETTINGS_VIEW_ROUTE_PATTERN, PLUGIN_MCP_APP_DEEP_LINK_ROUTE_PREFIX, PLUGIN_MCP_APP_DEEP_LINK_ROUTE_PATTERN, PLUGINS_MANAGE_ROUTE, MANAGE_PLUGIN_DETAIL_ROUTE_PREFIX, MANAGE_PLUGIN_DETAIL_ROUTE_PATTERN, LOCAL_CONVERSATION_ROUTE_PREFIX, LOCAL_CONVERSATION_ROUTE_PATTERN, UUID_PATTERN, localConversationReviewDiffFilterSchema, localConversationDeepLinkSchema, REMOTE_CONVERSATION_ROUTE_PREFIX, REMOTE_CONVERSATION_ROUTE_PATTERN, HOTKEY_WINDOW_THREAD_ROUTE_MATCHER, mcpAppNavigationTargetSchema, mcpAppDeepLinkNavigationStateSchema, codexAppModeSchema, codexAppModeNavigationStateSchema, init_routes = __esm({
   "../../codex/codex-apps/protocol/src/routes.ts"() {
     "use strict";
     init_zod();
@@ -26580,7 +26580,7 @@ var HOTKEY_WINDOW_ROUTE_PREFIX, HOTKEY_WINDOW_NEW_THREAD_ROUTE, CHATGPT_QUICK_CH
     init_page_id();
     init_protocol2();
     init_protocol2();
-    HOTKEY_WINDOW_ROUTE_PREFIX = "/hotkey-window", HOTKEY_WINDOW_NEW_THREAD_ROUTE = `${HOTKEY_WINDOW_ROUTE_PREFIX}/new-thread`, CHATGPT_QUICK_CHAT_WINDOW_ROUTE_PREFIX = "/chatgpt/quick-chat", CHATGPT_QUICK_CHAT_WINDOW_ROUTE_PATTERN = `${CHATGPT_QUICK_CHAT_WINDOW_ROUTE_PREFIX}/:conversationId`, CHATGPT_SHARED_CONVERSATION_ROUTE_PREFIX = "/share", CHATGPT_SHARED_CONVERSATION_ROUTE_PATTERN = `${CHATGPT_SHARED_CONVERSATION_ROUTE_PREFIX}/:sharedConversationId`, CHATGPT_WORKSPACE_SHARED_CONVERSATION_ROUTE_PATTERN = `${CHATGPT_SHARED_CONVERSATION_ROUTE_PREFIX}/e/:sharedConversationId`, HOTKEY_WINDOW_THREAD_ROUTE_PREFIX = `${HOTKEY_WINDOW_ROUTE_PREFIX}/thread`, HOTKEY_WINDOW_THREAD_ROUTE_PATTERN = `${HOTKEY_WINDOW_THREAD_ROUTE_PREFIX}/:conversationId`, HOTKEY_WINDOW_REMOTE_ROUTE_PREFIX = `${HOTKEY_WINDOW_ROUTE_PREFIX}/remote`, HOTKEY_WINDOW_REMOTE_ROUTE_PATTERN = `${HOTKEY_WINDOW_REMOTE_ROUTE_PREFIX}/:taskId`, PLUGIN_DETAIL_ROUTE_PREFIX = "/plugins", PLUGIN_DETAIL_ROUTE_PATTERN = `${PLUGIN_DETAIL_ROUTE_PREFIX}/:pluginId`, MCP_CAPABILITY_GLOBAL_VIEW_ROUTE_PREFIX = "/mcp-app", MCP_CAPABILITY_GLOBAL_VIEW_ROUTE_PATTERN = `${MCP_CAPABILITY_GLOBAL_VIEW_ROUTE_PREFIX}/:server/:toolName`, MCP_CAPABILITY_SETTINGS_VIEW_ROUTE_PREFIX = "/settings/plugins", MCP_CAPABILITY_SETTINGS_VIEW_ROUTE_PATTERN = `${MCP_CAPABILITY_SETTINGS_VIEW_ROUTE_PREFIX}/:server/:toolName`, PLUGIN_MCP_APP_DEEP_LINK_ROUTE_PREFIX = `${MCP_CAPABILITY_GLOBAL_VIEW_ROUTE_PREFIX}/plugins`, PLUGIN_MCP_APP_DEEP_LINK_ROUTE_PATTERN = `${PLUGIN_MCP_APP_DEEP_LINK_ROUTE_PREFIX}/:pluginId/:toolName`, PLUGINS_MANAGE_ROUTE = "/skills/manage", MANAGE_PLUGIN_DETAIL_ROUTE_PREFIX = `${PLUGINS_MANAGE_ROUTE}/plugins`, MANAGE_PLUGIN_DETAIL_ROUTE_PATTERN = `${MANAGE_PLUGIN_DETAIL_ROUTE_PREFIX}/:pluginId`, LOCAL_CONVERSATION_ROUTE_PREFIX = "/local", LOCAL_CONVERSATION_ROUTE_PATTERN = `${LOCAL_CONVERSATION_ROUTE_PREFIX}/:conversationId`, UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, localConversationReviewDiffFilterSchema = external_exports.enum(["branch", "last-turn"]), localConversationDeepLinkSchema = external_exports.object({
+    HOTKEY_WINDOW_ROUTE_PREFIX = "/hotkey-window", HOTKEY_WINDOW_NEW_THREAD_ROUTE = `${HOTKEY_WINDOW_ROUTE_PREFIX}/new-thread`, CHATGPT_SHARED_CONVERSATION_ROUTE_PREFIX = "/share", CHATGPT_SHARED_CONVERSATION_ROUTE_PATTERN = `${CHATGPT_SHARED_CONVERSATION_ROUTE_PREFIX}/:sharedConversationId`, CHATGPT_WORKSPACE_SHARED_CONVERSATION_ROUTE_PATTERN = `${CHATGPT_SHARED_CONVERSATION_ROUTE_PREFIX}/e/:sharedConversationId`, HOTKEY_WINDOW_THREAD_ROUTE_PREFIX = `${HOTKEY_WINDOW_ROUTE_PREFIX}/thread`, HOTKEY_WINDOW_THREAD_ROUTE_PATTERN = `${HOTKEY_WINDOW_THREAD_ROUTE_PREFIX}/:conversationId`, HOTKEY_WINDOW_REMOTE_ROUTE_PREFIX = `${HOTKEY_WINDOW_ROUTE_PREFIX}/remote`, HOTKEY_WINDOW_REMOTE_ROUTE_PATTERN = `${HOTKEY_WINDOW_REMOTE_ROUTE_PREFIX}/:taskId`, PLUGIN_DETAIL_ROUTE_PREFIX = "/plugins", PLUGIN_DETAIL_ROUTE_PATTERN = `${PLUGIN_DETAIL_ROUTE_PREFIX}/:pluginId`, MCP_CAPABILITY_GLOBAL_VIEW_ROUTE_PREFIX = "/mcp-app", MCP_CAPABILITY_GLOBAL_VIEW_ROUTE_PATTERN = `${MCP_CAPABILITY_GLOBAL_VIEW_ROUTE_PREFIX}/:server/:toolName`, MCP_CAPABILITY_SETTINGS_VIEW_ROUTE_PREFIX = "/settings/plugins", MCP_CAPABILITY_SETTINGS_VIEW_ROUTE_PATTERN = `${MCP_CAPABILITY_SETTINGS_VIEW_ROUTE_PREFIX}/:server/:toolName`, PLUGIN_MCP_APP_DEEP_LINK_ROUTE_PREFIX = `${MCP_CAPABILITY_GLOBAL_VIEW_ROUTE_PREFIX}/plugins`, PLUGIN_MCP_APP_DEEP_LINK_ROUTE_PATTERN = `${PLUGIN_MCP_APP_DEEP_LINK_ROUTE_PREFIX}/:pluginId/:toolName`, PLUGINS_MANAGE_ROUTE = "/skills/manage", MANAGE_PLUGIN_DETAIL_ROUTE_PREFIX = `${PLUGINS_MANAGE_ROUTE}/plugins`, MANAGE_PLUGIN_DETAIL_ROUTE_PATTERN = `${MANAGE_PLUGIN_DETAIL_ROUTE_PREFIX}/:pluginId`, LOCAL_CONVERSATION_ROUTE_PREFIX = "/local", LOCAL_CONVERSATION_ROUTE_PATTERN = `${LOCAL_CONVERSATION_ROUTE_PREFIX}/:conversationId`, UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, localConversationReviewDiffFilterSchema = external_exports.enum(["branch", "last-turn"]), localConversationDeepLinkSchema = external_exports.object({
       conversationId: external_exports.string().regex(UUID_PATTERN),
       diffFilter: localConversationReviewDiffFilterSchema.nullable().catch(null),
       extraPathSegments: external_exports.array(external_exports.string()),
@@ -28523,10 +28523,10 @@ var DEFAULT_MODEL_ROUTING_CONFIG, modelSlugSchema, modelRoutingConfigSchema, ini
     "use strict";
     init_zod();
     DEFAULT_MODEL_ROUTING_CONFIG = {
-      automationModel: "gpt-5.6-terra",
-      ephemeralGenerationModel: "gpt-5.6-luna",
-      ambientSuggestionsModel: "gpt-5.6-luna",
-      ambientSuggestionsSafetyModel: "gpt-5.6-luna"
+      automationModel: "gpt-6.1-sol",
+      ephemeralGenerationModel: "gpt-6-luna",
+      ambientSuggestionsModel: "gpt-6-luna",
+      ambientSuggestionsSafetyModel: "gpt-6-luna"
     }, modelSlugSchema = external_exports.string().trim().min(1), modelRoutingConfigSchema = external_exports.object({
       codex_automation_model_slug: modelSlugSchema.catch(
         DEFAULT_MODEL_ROUTING_CONFIG.automationModel
@@ -28605,6 +28605,25 @@ var init_automation_tool_output = __esm({
 var init_automations_service = __esm({
   "../../codex/codex-apps/protocol/src/rpc/automations-service.ts"() {
     "use strict";
+  }
+});
+
+// ../../codex/codex-apps/protocol/src/rpc/windows-shell-service.ts
+var windowsShellActionSchema, init_windows_shell_service = __esm({
+  "../../codex/codex-apps/protocol/src/rpc/windows-shell-service.ts"() {
+    "use strict";
+    init_zod();
+    windowsShellActionSchema = external_exports.discriminatedUnion("kind", [
+      external_exports.object({ kind: external_exports.literal("new-chat") }),
+      external_exports.object({ kind: external_exports.literal("orbit") }),
+      external_exports.object({ kind: external_exports.literal("space") }),
+      external_exports.object({
+        kind: external_exports.literal("chat"),
+        accountId: external_exports.string().min(1).max(256),
+        conversationId: external_exports.string().min(1).max(256),
+        projectId: external_exports.string().max(256).nullable()
+      })
+    ]);
   }
 });
 
@@ -29008,10 +29027,34 @@ var init_notifications_service = __esm({
   }
 });
 
+// ../../codex/codex-apps/protocol/src/host-config.ts
+function getHostedGitEnvironmentId(hostId) {
+  return hostId.startsWith(HOSTED_GIT_HOST_ID_PREFIX) ? decodeURIComponent(hostId.slice(HOSTED_GIT_HOST_ID_PREFIX.length)) : null;
+}
+function isRemoteControlHostConfig(hostConfig) {
+  return hostConfig?.kind === REMOTE_CONTROL_HOST_KIND;
+}
+function isRemoteSshHostConfig(hostConfig) {
+  return hostConfig?.kind === "ssh";
+}
+function isRemoteWslHostConfig(hostConfig) {
+  return hostConfig?.kind === WSL_HOST_KIND;
+}
+function isRemoteHostConfig(hostConfig) {
+  return isRemoteSshHostConfig(hostConfig) || isRemoteWslHostConfig(hostConfig) || isRemoteControlHostConfig(hostConfig);
+}
+var ENVIRONMENT_SCOPED_GIT_HOST_ID_PREFIX, HOSTED_GIT_HOST_ID_PREFIX, REMOTE_CONTROL_HOST_KIND, WSL_HOST_KIND, init_host_config = __esm({
+  "../../codex/codex-apps/protocol/src/host-config.ts"() {
+    "use strict";
+    ENVIRONMENT_SCOPED_GIT_HOST_ID_PREFIX = "environment-git:", HOSTED_GIT_HOST_ID_PREFIX = `${ENVIRONMENT_SCOPED_GIT_HOST_ID_PREFIX}hosted:`, REMOTE_CONTROL_HOST_KIND = "remote-control", WSL_HOST_KIND = "wsl";
+  }
+});
+
 // ../../codex/codex-apps/protocol/src/app-server-feature-support.ts
 var init_app_server_feature_support = __esm({
   "../../codex/codex-apps/protocol/src/app-server-feature-support.ts"() {
     "use strict";
+    init_host_config();
     init_semantic_version();
   }
 });
@@ -30908,29 +30951,6 @@ var init_git_quoted_path_token = __esm({
   }
 });
 
-// ../../codex/codex-apps/protocol/src/host-config.ts
-function getHostedGitEnvironmentId(hostId) {
-  return hostId.startsWith(HOSTED_GIT_HOST_ID_PREFIX) ? decodeURIComponent(hostId.slice(HOSTED_GIT_HOST_ID_PREFIX.length)) : null;
-}
-function isRemoteControlHostConfig(hostConfig) {
-  return hostConfig?.kind === REMOTE_CONTROL_HOST_KIND;
-}
-function isRemoteSshHostConfig(hostConfig) {
-  return hostConfig?.kind === "ssh";
-}
-function isRemoteWslHostConfig(hostConfig) {
-  return hostConfig?.kind === WSL_HOST_KIND;
-}
-function isRemoteHostConfig(hostConfig) {
-  return isRemoteSshHostConfig(hostConfig) || isRemoteWslHostConfig(hostConfig) || isRemoteControlHostConfig(hostConfig);
-}
-var ENVIRONMENT_SCOPED_GIT_HOST_ID_PREFIX, HOSTED_GIT_HOST_ID_PREFIX, REMOTE_CONTROL_HOST_KIND, WSL_HOST_KIND, init_host_config = __esm({
-  "../../codex/codex-apps/protocol/src/host-config.ts"() {
-    "use strict";
-    ENVIRONMENT_SCOPED_GIT_HOST_ID_PREFIX = "environment-git:", HOSTED_GIT_HOST_ID_PREFIX = `${ENVIRONMENT_SCOPED_GIT_HOST_ID_PREFIX}hosted:`, REMOTE_CONTROL_HOST_KIND = "remote-control", WSL_HOST_KIND = "wsl";
-  }
-});
-
 // ../../codex/codex-apps/protocol/src/theme.ts
 function getCodeThemeIdsForVariant(variant) {
   let collator = new Intl.Collator(void 0, { sensitivity: "base" });
@@ -32184,6 +32204,13 @@ var init_query_devtools = __esm({
   }
 });
 
+// ../../codex/codex-apps/protocol/src/ipc.ts
+var init_ipc = __esm({
+  "../../codex/codex-apps/protocol/src/ipc.ts"() {
+    "use strict";
+  }
+});
+
 // ../../codex/codex-apps/protocol/src/realtime-transcript.ts
 var init_realtime_transcript = __esm({
   "../../codex/codex-apps/protocol/src/realtime-transcript.ts"() {
@@ -33114,6 +33141,33 @@ var DEFAULT_SERVICE_TIER_PERSISTED_ATOM_KEY, init_service_tier = __esm({
   }
 });
 
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/before.js
+var require_before = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/before.js"(exports, module) {
+    var toInteger = require_toInteger(), FUNC_ERROR_TEXT = "Expected a function";
+    function before(n, func) {
+      var result;
+      if (typeof func != "function")
+        throw new TypeError(FUNC_ERROR_TEXT);
+      return n = toInteger(n), function() {
+        return --n > 0 && (result = func.apply(this, arguments)), n <= 1 && (func = void 0), result;
+      };
+    }
+    module.exports = before;
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/once.js
+var require_once = __commonJS({
+  "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/once.js"(exports, module) {
+    var before = require_before();
+    function once2(func) {
+      return before(2, func);
+    }
+    module.exports = once2;
+  }
+});
+
 // ../../codex/codex-apps/protocol/src/settings/definitions/ambient-suggestions-settings.ts
 var ambientSuggestionsSettings, init_ambient_suggestions_settings = __esm({
   "../../codex/codex-apps/protocol/src/settings/definitions/ambient-suggestions-settings.ts"() {
@@ -33202,6 +33256,13 @@ var appearanceFontSizeLimits, appearanceSettings, init_appearance_settings = __e
         key: "codeFontSize",
         schema: external_exports.number().min(appearanceFontSizeLimits.code.min).max(appearanceFontSizeLimits.code.max)
       }),
+      useOpenAISans: defineConfigurationSetting({
+        agentAccess: "hidden",
+        default: !0,
+        description: "Whether enrolled ChatGPT Web accounts use OpenAI Sans",
+        key: "useOpenAISans",
+        schema: booleanSettingSchema
+      }),
       useFontSmoothing: defineConfigurationSetting({
         agentAccess: "read-write",
         default: !0,
@@ -33245,7 +33306,7 @@ var appshotsSettings, init_appshots_settings = __esm({
       alwaysSendToMini: defineConfigurationSetting({
         agentAccess: "read-write",
         default: !1,
-        description: "Whether automatic global shortcut appshots prefer Mini when it is visible",
+        description: "Whether global shortcut appshots prefer Mini when it is visible",
         key: "appshotAlwaysSendToMini",
         schema: booleanSettingSchema
       }),
@@ -33287,6 +33348,13 @@ var browserSettings, init_browser_settings = __esm({
         default: !0,
         description: "Whether the extensions puzzle button is pinned to the browser toolbar",
         key: "browser-extensions-toolbar-visible",
+        schema: external_exports.boolean()
+      }),
+      showDeviceToolbarInNewTabs: definePersistedAtomSetting({
+        agentAccess: "hidden",
+        default: !1,
+        description: "Whether new browser tabs show the device toolbar",
+        key: "browser-show-device-toolbar-in-new-tabs",
         schema: external_exports.boolean()
       }),
       showFullUrl: definePersistedAtomSetting({
@@ -34322,9 +34390,10 @@ function getAgentSettingSchema(key) {
       return;
   }
 }
-var registeredSettingDefinitions, toolVisibleSettingDefinitions, toolVisibleSettingMetadata, settingDefinitionsByKey, init_settings = __esm({
+var import_once, registeredSettingDefinitions, toolVisibleSettingDefinitions, getToolVisibleSettingMetadata, settingDefinitionsByKey, init_settings = __esm({
   "../../codex/codex-apps/protocol/src/settings.ts"() {
     "use strict";
+    import_once = __toESM(require_once());
     init_zod();
     init_settings_manifest();
     init_theme();
@@ -34333,14 +34402,16 @@ var registeredSettingDefinitions, toolVisibleSettingDefinitions, toolVisibleSett
     init_settings_manifest();
     registeredSettingDefinitions = [...allSettingDefinitions], toolVisibleSettingDefinitions = allSettingDefinitions.filter(
       (definition) => definition.agentAccess !== "hidden"
-    ), toolVisibleSettingMetadata = toolVisibleSettingDefinitions.map(
-      ({ agentAccess, default: defaultValue, description, key, schema: schema2 }) => ({
-        agentAccess,
-        default: defaultValue,
-        description,
-        key,
-        schema: external_exports.toJSONSchema(getAgentSettingSchema(key) ?? schema2)
-      })
+    ), getToolVisibleSettingMetadata = (0, import_once.default)(
+      () => toolVisibleSettingDefinitions.map(
+        ({ agentAccess, default: defaultValue, description, key, schema: schema2 }) => ({
+          agentAccess,
+          default: defaultValue,
+          description,
+          key,
+          schema: external_exports.toJSONSchema(getAgentSettingSchema(key) ?? schema2)
+        })
+      )
     ), settingDefinitionsByKey = new Map(
       registeredSettingDefinitions.map((definition) => [
         definition.key,
@@ -35312,13 +35383,16 @@ var init_workspace_root_label = __esm({
 });
 
 // ../../codex/codex-apps/protocol/src/worktree.ts
-var worktreeNameSchema, init_worktree = __esm({
+var threadAttachmentOwnerSchema, worktreeNameSchema, init_worktree = __esm({
   "../../codex/codex-apps/protocol/src/worktree.ts"() {
     "use strict";
     init_zod();
     init_filesystem_path();
     init_thread_source_kinds();
-    worktreeNameSchema = external_exports.string().min(1).max(64).regex(
+    threadAttachmentOwnerSchema = external_exports.object({
+      threadId: external_exports.string().min(1),
+      archived: external_exports.boolean()
+    }), worktreeNameSchema = external_exports.string().min(1).max(64).regex(
       /^(?![0-9a-f]{4,}$)(?!(?:con|prn|aux|nul|com[1-9]|lpt[1-9])$)[a-z0-9]+(?:-[a-z0-9]+)*$/,
       "Use lowercase letters, numbers, and single hyphens; hexadecimal IDs and Windows device names are reserved."
     );
@@ -35366,6 +35440,7 @@ var init_src2 = __esm({
     init_automations();
     init_automation_tool_output();
     init_automations_service();
+    init_windows_shell_service();
     init_app_brand();
     init_app_server_backend_adapter();
     init_app_server_identities();
@@ -35480,6 +35555,7 @@ var init_src2 = __esm({
     init_pull_request_revision();
     init_pull_request_search();
     init_query_devtools();
+    init_ipc();
     init_protocol2();
     init_realtime_transcript();
     init_realtime_transcript_history();
@@ -36444,7 +36520,8 @@ async function runGhOnce(args, options) {
       cwd: options.cwd ?? (isRemote ? "/" : process.cwd()),
       env: isRemote ? env : stripCrashReporterEnv({ ...process.env, ...env }),
       signal: options.signal,
-      timeoutMs: options.timeoutMs
+      timeoutMs: options.timeoutMs,
+      windowsHide: isRemote ? void 0 : !0
     }), { stdout, stderr, code, signal } = await waitForExecutionHostProcess(processHandle), trimmedStdout = stdout.trim(), trimmedStderr = stderr.trim();
     return !trimmedStderr && !trimmedStdout && options.timeoutMs != null && code == null && signal != null && (trimmedStderr = "GitHub CLI command timed out"), {
       command,
@@ -39175,6 +39252,30 @@ async function githubPrMetadata(request, host3, signal) {
     return signal?.throwIfAborted(), { status: "unavailable" };
   }
 }
+async function githubPrMergeability(request, host3, signal) {
+  getCanonicalPullRequestTarget(request, host3);
+  try {
+    let result = await readPullRequestResource(
+      request,
+      host3,
+      "query($owner:String!,$repo:String!,$number:Int!){viewer{login} repository(owner:$owner,name:$repo){pullRequest(number:$number){headRefOid baseRefOid state isDraft mergeable mergeStateStatus}}}",
+      mergeabilitySchema,
+      signal
+    );
+    if (result.data.viewer.login.toLowerCase() !== request.account.login.toLowerCase())
+      return { status: "unavailable" };
+    let pr = result.data.repository?.pullRequest;
+    return pr == null ? { status: "not-found" } : {
+      status: "success",
+      headRevision: pr.headRefOid,
+      baseRevision: pr.baseRefOid,
+      canMerge: canMergePullRequest({ ...pr, hasOpenPr: pr.state === "OPEN" }),
+      mergeBlocker: pr.state === "OPEN" ? getPullRequestMergeBlocker(pr) : null
+    };
+  } catch {
+    return signal?.throwIfAborted(), { status: "unavailable" };
+  }
+}
 async function githubPrReviews(request, host3, signal) {
   getCanonicalPullRequestTarget(request, host3);
   let view = { reviews: [] }, avatars = {}, cursor = null, isPartial = !1;
@@ -39653,7 +39754,7 @@ var require_chunk = __commonJS({
 });
 
 // ../../codex/codex-apps/shared-node/src/github/pull-request-stack.ts
-async function githubPrStack(request, host3, signal) {
+async function githubPrStack(request, host3, signal, onProgress) {
   try {
     let target = getCanonicalPullRequestTarget(request, host3), user = await githubCurrentUser(host3, target.hostname);
     if (user.status !== "success" || user.account.login.toLowerCase() !== request.account.login.toLowerCase())
@@ -39666,6 +39767,7 @@ async function githubPrStack(request, host3, signal) {
     );
     if (seed.state !== "open")
       return { status: "success", entries: [] };
+    await onProgress?.({ status: "loading", entries: orderStack([seed]) });
     let pullRequests;
     if (seed.stack?.number != null)
       pullRequests = external_exports.object({ pull_requests: pullRequestsSchema }).parse(
@@ -39694,7 +39796,7 @@ async function githubPrStack(request, host3, signal) {
             signal
           ),
           current.head.repo?.id !== seed.base.repo?.id ? [] : readPullRequests(request, host3, "base", current.head.ref, signal)
-        ]);
+        ]), previousSize = pullRequests.length;
         for (let related of [
           ...parents.filter((parent) => isParent(parent, current)),
           ...children.filter((child) => isParent(current, child))
@@ -39706,31 +39808,17 @@ async function githubPrStack(request, host3, signal) {
               );
             seen.add(related.number), pullRequests.push(related);
           }
+        pullRequests.length !== previousSize && await onProgress?.({
+          status: "loading",
+          entries: orderStack(pullRequests)
+        });
       }
     }
-    let entries = pullRequests.map((pr) => {
-      let parents = pullRequests.filter((parent) => isParent(parent, pr));
-      if (parents.length > 1)
-        throw new Error(
-          "Multiple open pull requests match a stack base branch"
-        );
-      return {
-        number: pr.number,
-        title: pr.title,
-        isDraft: pr.draft,
-        baseBranch: pr.base.ref,
-        headBranch: pr.head.ref,
-        parentNumber: parents[0]?.number ?? null,
-        diffStats: pr.additions != null && pr.deletions != null ? { additions: pr.additions, deletions: pr.deletions } : null
-      };
-    }), ordered = [], visit = (parentNumber) => {
-      for (let entry of entries.filter(
-        (item) => item.parentNumber === parentNumber
-      ))
-        ordered.push(entry), visit(entry.number);
-    };
-    if (visit(null), ordered.length !== entries.length)
-      throw new Error("Pull request branch relationships contain a cycle");
+    let ordered = orderStack(pullRequests);
+    await onProgress?.({
+      status: "loading",
+      entries: ordered.map((entry) => ({ ...entry }))
+    });
     for (let batch of (0, import_chunk.default)(
       ordered.filter((entry) => entry.diffStats == null),
       4
@@ -39750,7 +39838,10 @@ async function githubPrStack(request, host3, signal) {
             signal?.throwIfAborted(), countLookupFailed = !0;
           }
         })
-      ), countLookupFailed)
+      ), await onProgress?.({
+        status: "loading",
+        entries: ordered.map((entry) => ({ ...entry }))
+      }), countLookupFailed)
         break;
     }
     return { status: "success", entries: ordered };
@@ -39760,6 +39851,30 @@ async function githubPrStack(request, host3, signal) {
       error: error51 instanceof Error ? error51.message : String(error51)
     };
   }
+}
+function orderStack(pullRequests) {
+  let entries = pullRequests.map((pr) => {
+    let parents = pullRequests.filter((parent) => isParent(parent, pr));
+    if (parents.length > 1)
+      throw new Error("Multiple open pull requests match a stack base branch");
+    return {
+      number: pr.number,
+      title: pr.title,
+      isDraft: pr.draft,
+      baseBranch: pr.base.ref,
+      headBranch: pr.head.ref,
+      parentNumber: parents[0]?.number ?? null,
+      diffStats: pr.additions != null && pr.deletions != null ? { additions: pr.additions, deletions: pr.deletions } : null
+    };
+  }), ordered = [], visit = (parentNumber) => {
+    for (let entry of entries.filter(
+      (item) => item.parentNumber === parentNumber
+    ))
+      ordered.push(entry), visit(entry.number);
+  };
+  if (visit(null), ordered.length !== entries.length)
+    throw new Error("Pull request branch relationships contain a cycle");
+  return ordered;
 }
 function isParent(parent, child) {
   return parent.number !== child.number && parent.head.repo != null && parent.head.repo.id === child.base.repo?.id && parent.head.ref === child.base.ref;
@@ -45947,6 +46062,7 @@ async function readPullRequestMedia(host3, pullRequest, url2, account, mediaKind
       if (account == null) return githubMediaUnavailable;
       let media = await client2.request("read-media", {
         account,
+        pullRequest,
         url: url2,
         mediaKind: repositoryImage == null ? mediaKind : "image"
       });
@@ -47859,6 +47975,7 @@ var development, appTitle, host2, configuredGitHubHosts, currentUserRequests, in
           }).optional(),
           hostname: external_exports.string().trim().min(1).optional(),
           initialView: external_exports.enum(["inbox", "pull_request"]).optional(),
+          initialPage: external_exports.enum(["summary", "code"]).optional(),
           pullRequest: pullRequestIdentitySchema.optional()
         },
         _meta: {
@@ -47869,7 +47986,7 @@ var development, appTitle, host2, configuredGitHubHosts, currentUserRequests, in
           }
         }
       },
-      ({ appearance, hostname: hostname3, initialView, pullRequest }, extra) => withSelectedGitHubProvider(
+      ({ appearance, hostname: hostname3, initialView, initialPage, pullRequest }, extra) => withSelectedGitHubProvider(
         extra._meta?.["openai/github-provider"],
         async () => {
           let explicitPullRequest = initialView === "pull_request" ? pullRequest : void 0, selectedHostname = explicitPullRequest?.hostname ?? hostname3 ?? "github.com", usesService2 = githubProviderRequired();
@@ -47877,7 +47994,11 @@ var development, appTitle, host2, configuredGitHubHosts, currentUserRequests, in
           }), toolResult({
             appearance,
             usesService: usesService2,
-            initialView: explicitPullRequest == null ? { type: "inbox", hostname: hostname3 } : { pullRequest: explicitPullRequest, type: "pull_request" }
+            initialView: explicitPullRequest == null ? { type: "inbox", hostname: hostname3 } : {
+              pullRequest: explicitPullRequest,
+              type: "pull_request",
+              page: initialPage
+            }
           });
         }
       )
@@ -47944,6 +48065,11 @@ var development, appTitle, host2, configuredGitHubHosts, currentUserRequests, in
           )
         );
       }
+    );
+    registerTool(
+      "pull_requests.mergeability",
+      { pullRequest: pullRequestIdentitySchema },
+      async ({ pullRequest }, signal) => githubProviderRequired() ? { status: "unavailable" } : githubPrMergeability(await getRequest(pullRequest), host2, signal)
     );
     for (let [name, readResource] of [
       ["body", githubPrBody],

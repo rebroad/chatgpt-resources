@@ -1035,6 +1035,11 @@ textarea.form-control {
   line-height: 18px;
 }
 
+.form-select option {
+  color: var(--popover-foreground);
+  background-color: var(--popover);
+}
+
 .form-select:not(:disabled):hover {
   background-color: light-dark(
     color-mix(in srgb, var(--foreground) 5.5%, transparent),
