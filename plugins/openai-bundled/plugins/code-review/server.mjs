@@ -21291,13 +21291,13 @@ var require_core = __commonJS({
     }, warn() {
     }, error() {
     } };
-    function getLogger2(logger3) {
-      if (logger3 === !1)
+    function getLogger2(logger2) {
+      if (logger2 === !1)
         return noLogs;
-      if (logger3 === void 0)
+      if (logger2 === void 0)
         return console;
-      if (logger3.log && logger3.warn && logger3.error)
-        return logger3;
+      if (logger2.log && logger2.warn && logger2.error)
+        return logger2;
       throw new Error("logger must implement log, warn and error methods");
     }
     var KEYWORD_NAME = /^[a-z_$][a-z0-9_$:-]*$/i;
@@ -24522,11 +24522,19 @@ var StdioServerTransport, init_stdio2 = __esm({
   }
 });
 
-// bridge/src/code-review-bridge.ts
-var readFailureSchema, activityCursorSchema, activityScanSchema, init_code_review_bridge = __esm({
-  "bridge/src/code-review-bridge.ts"() {
+// ../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/code-review-bridge.ts
+var CODE_REVIEW_GITHUB_WRITE_METHODS, readFailureSchema, activityCursorSchema, activityScanSchema, init_code_review_bridge = __esm({
+  "../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/code-review-bridge.ts"() {
     init_v4();
-    readFailureSchema = external_exports.object({
+    CODE_REVIEW_GITHUB_WRITE_METHODS = [
+      "gh-pr-comment",
+      "gh-pr-comment-update",
+      "gh-pr-submit-review",
+      "gh-pr-review-thread-update",
+      "gh-pr-reaction-update",
+      "gh-pr-update",
+      "gh-pr-merge"
+    ], readFailureSchema = external_exports.object({
       kind: external_exports.enum(["access", "rate-limit", "transient"]),
       retryAt: external_exports.number().optional()
     }), activityCursorSchema = external_exports.object({
@@ -24580,10 +24588,428 @@ var readFailureSchema, activityCursorSchema, activityScanSchema, init_code_revie
   }
 });
 
+// ../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/telemetry.ts
+var provider, onboardingConnectionStatus, context, codeReviewTelemetrySchema, init_telemetry = __esm({
+  "../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/telemetry.ts"() {
+    init_zod();
+    provider = external_exports.enum(["github", "gitlab"]).optional(), onboardingConnectionStatus = external_exports.object({
+      authStatus: external_exports.enum(["active", "reauth_required", "unknown"]),
+      authReason: external_exports.enum([
+        "action_auth_issue",
+        "refresh_token_failed",
+        "none",
+        "unknown"
+      ]),
+      connectorStatus: external_exports.enum([
+        "enabled",
+        "disabled_by_admin",
+        "only_me",
+        "unknown"
+      ]),
+      unavailableReason: external_exports.enum(["unsupported_auth_strategy", "none", "unknown"])
+    }), context = {
+      provider,
+      surface: external_exports.enum(["global", "task", "settings"]),
+      page: external_exports.enum(["inbox", "summary", "code", "settings"])
+    }, codeReviewTelemetrySchema = external_exports.discriminatedUnion("type", [
+      external_exports.discriminatedUnion("phase", [
+        external_exports.object({
+          type: external_exports.literal("onboarding"),
+          provider,
+          phase: external_exports.literal("presented"),
+          screen: external_exports.enum(["welcome", "connection_error", "ready"]),
+          connectionStatus: onboardingConnectionStatus.optional(),
+          action: external_exports.never().optional(),
+          connectionResult: external_exports.never().optional()
+        }),
+        external_exports.object({
+          type: external_exports.literal("onboarding"),
+          provider,
+          phase: external_exports.literal("action"),
+          action: external_exports.enum(["setup", "reconnect", "use_existing"]),
+          screen: external_exports.never().optional(),
+          connectionStatus: external_exports.never().optional(),
+          connectionResult: external_exports.never().optional()
+        }),
+        external_exports.object({
+          type: external_exports.literal("onboarding"),
+          provider,
+          phase: external_exports.literal("connection_result"),
+          connectionResult: external_exports.enum(["connected", "cancelled", "failed"]),
+          screen: external_exports.never().optional(),
+          action: external_exports.never().optional(),
+          connectionStatus: external_exports.never().optional()
+        })
+      ]),
+      external_exports.object({
+        type: external_exports.literal("viewed"),
+        ...context,
+        visitId: external_exports.uuid()
+      }),
+      external_exports.object({
+        type: external_exports.literal("engagement"),
+        ...context,
+        visitId: external_exports.uuid(),
+        activeTimeMs: external_exports.number().int().positive().max(12e4)
+      }),
+      external_exports.object({
+        type: external_exports.literal("navigation"),
+        provider,
+        source: external_exports.enum([
+          "sidebar",
+          "notification",
+          "task_link",
+          "task_pr",
+          "pr_stack",
+          "pr_header",
+          "sidebar_menu",
+          "search"
+        ]),
+        destination: external_exports.enum(["code_review", "github", "gitlab"])
+      }),
+      external_exports.object({
+        type: external_exports.literal("notification"),
+        provider,
+        action: external_exports.enum(["opened", "item_opened", "item_read", "all_read"]),
+        kind: external_exports.enum(["approved", "review_requested"]).optional(),
+        count: external_exports.number().int().min(0).max(1e5),
+        trigger: external_exports.enum(["hover", "focus", "click"]).optional()
+      }),
+      external_exports.object({
+        type: external_exports.literal("pull_request_action"),
+        provider,
+        surface: external_exports.enum(["pull_request_page", "thread_side_panel"]),
+        state: external_exports.enum([
+          "closed",
+          "draft",
+          "failing",
+          "in_progress",
+          "merged",
+          "ready",
+          "successful"
+        ]).optional(),
+        isAuthor: external_exports.boolean().optional(),
+        action: external_exports.enum([
+          "close",
+          "copy_url",
+          "disable_auto_merge",
+          "enable_auto_merge",
+          "mark_draft",
+          "mark_ready",
+          "merge",
+          "merge_with_codex_dialog_opened",
+          "merge_with_codex_resumed",
+          "merge_with_codex_started",
+          "merge_with_codex_task_opened",
+          "open_code_review_view",
+          "open_in_browser",
+          "open_pull_request_view",
+          "reopen",
+          "request_approvals"
+        ])
+      }),
+      external_exports.object({
+        type: external_exports.literal("interaction"),
+        ...context,
+        surface: context.surface.optional(),
+        page: context.page.optional(),
+        action: external_exports.enum([
+          "page_viewed",
+          "copy_link",
+          "pin",
+          "unpin",
+          "review_requested",
+          "review_submitted",
+          "comment_posted",
+          "chat_opened",
+          "fix_requested"
+        ])
+      }),
+      external_exports.object({
+        type: external_exports.literal("option"),
+        provider,
+        option: external_exports.enum([
+          "content_tab",
+          "activity_filter",
+          "diff_layout",
+          "file_tree",
+          "expand_diffs",
+          "github_link_target",
+          "provider",
+          "notifications",
+          "review_decision"
+        ]),
+        value: external_exports.enum([
+          "summary",
+          "code",
+          "all",
+          "comments",
+          "human_comments",
+          "commits",
+          "code_review",
+          "split",
+          "unified",
+          "auto",
+          "true",
+          "false",
+          "github",
+          "gitlab",
+          "code-review-tab",
+          "in-app-browser",
+          "external-browser",
+          "approve",
+          "request_changes",
+          "comment"
+        ])
+      })
+    ]);
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/sidebar-policy.ts
+var init_sidebar_policy = __esm({
+  "../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/sidebar-policy.ts"() {
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/github-avatar.ts
+var init_github_avatar = __esm({
+  "../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/github-avatar.ts"() {
+  }
+});
+
+// ../../codex/codex-apps/protocol/src/base64.node.ts
+import { Buffer as Buffer2 } from "node:buffer";
+function base64ToBytes(value) {
+  return Buffer2.from(value, "base64");
+}
+var init_base64_node = __esm({
+  "../../codex/codex-apps/protocol/src/base64.node.ts"() {
+    "use strict";
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/write-attempts.ts
+function commentAppendIntent(request) {
+  let handle = "pendingReviewId" in request ? request.pendingReviewId : null;
+  if (typeof handle != "string" || handle.length > 1024 || !/^d1\.[\w-]+$/.test(handle))
+    return request;
+  try {
+    let target = deltaReviewTarget.parse(
+      JSON.parse(
+        new TextDecoder("utf-8", { fatal: !0 }).decode(
+          base64ToBytes(
+            handle.slice(3).replaceAll("-", "+").replaceAll("_", "/")
+          )
+        )
+      )
+    );
+    return {
+      ...request,
+      pendingReviewId: [target.c, target.i, target.p ?? null]
+    };
+  } catch {
+    return request;
+  }
+}
+async function hashIntent(serializedIntent) {
+  let identity = JSON.stringify(
+    JSON.parse(serializedIntent),
+    (_key, value) => value != null && typeof value == "object" && !Array.isArray(value) ? Object.fromEntries(
+      Object.keys(value).sort().map((key) => [key, value[key]])
+    ) : value
+  ), digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(identity)
+  );
+  return Array.from(
+    new Uint8Array(digest),
+    (byte) => byte.toString(16).padStart(2, "0")
+  ).join("");
+}
+function isDefinitiveWriteRejection(status) {
+  return status != null && [400, 401, 403, 404, 409, 422].includes(status);
+}
+var deltaReviewTarget, ReviewWriteAttempts, init_write_attempts = __esm({
+  "../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/write-attempts.ts"() {
+    init_base64_node();
+    init_v4();
+    deltaReviewTarget = external_exports.strictObject({
+      c: external_exports.string().min(1).max(128),
+      k: external_exports.literal("review"),
+      i: external_exports.string().min(1).max(128),
+      v: external_exports.number().min(1).max(2 ** 64 - 1).refine(Number.isInteger),
+      p: external_exports.string().max(128).nullable().optional()
+    }), ReviewWriteAttempts = class {
+      attempts = /* @__PURE__ */ new Map();
+      async start(context2, method, request) {
+        let isInlineDraft = method === "gh-pr-comment" && "review" in request && request.review === "pending" && "inlineComment" in request && request.inlineComment != null, [key, createReviewKey] = await Promise.all([
+          hashIntent(
+            JSON.stringify([
+              context2,
+              method,
+              method === "gh-pr-comment" ? commentAppendIntent(request) : request
+            ])
+          ),
+          isInlineDraft ? hashIntent(
+            JSON.stringify([
+              context2,
+              method,
+              { ...request, pendingReviewId: void 0 }
+            ])
+          ) : void 0
+        ]), previous = this.attempts.get(key) ?? (createReviewKey == null ? void 0 : this.attempts.get(createReviewKey));
+        if (previous != null)
+          return previous.pending += 1, previous.attempt;
+        if (this.attempts.size >= 128)
+          return;
+        let attempt = {
+          key,
+          parameters: { requestId: crypto.randomUUID() }
+        };
+        return key === createReviewKey && (attempt.parameters.pendingReviewId = void 0), this.attempts.set(key, { attempt, pending: 1, uncertain: !1 }), attempt;
+      }
+      complete(attempt) {
+        this.attempts.get(attempt.key)?.attempt === attempt && this.attempts.delete(attempt.key);
+      }
+      /** An accepted write keeps its key even if a later status read is rejected. */
+      accepted(attempt) {
+        let current = this.attempts.get(attempt.key);
+        current?.attempt === attempt && (current.uncertain = !0);
+      }
+      failed(attempt, status) {
+        let current = this.attempts.get(attempt.key);
+        current?.attempt === attempt && (current.pending -= 1, current.uncertain ||= !isDefinitiveWriteRejection(status), current.pending === 0 && !current.uncertain && this.complete(attempt));
+      }
+    };
+  }
+});
+
+// ../../codex/codex-apps/protocol/src/detach-request-on-abort.ts
+function detachRequestOnAbort(request, signal) {
+  return signal.aborted ? (request.catch(() => {
+  }), Promise.reject(getAbortError(signal))) : new Promise((resolve2, reject) => {
+    let onAbort = () => {
+      reject(getAbortError(signal));
+    };
+    signal.addEventListener("abort", onAbort, { once: !0 }), request.then(resolve2, reject).finally(() => {
+      signal.removeEventListener("abort", onAbort);
+    });
+  });
+}
+function getAbortError(signal) {
+  if (signal.reason instanceof Error)
+    return signal.reason;
+  let error51 = new Error("The operation was aborted");
+  return error51.name = "AbortError", error51;
+}
+var init_detach_request_on_abort = __esm({
+  "../../codex/codex-apps/protocol/src/detach-request-on-abort.ts"() {
+    "use strict";
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/merge-polling.ts
+async function waitForMergePoll(signal) {
+  let timer;
+  try {
+    await detachRequestOnAbort(
+      new Promise((resolve2) => {
+        timer = setTimeout(resolve2, 1e3);
+      }),
+      signal
+    );
+  } finally {
+    clearTimeout(timer);
+  }
+}
+var mergeResponseSchema, init_merge_polling = __esm({
+  "../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/merge-polling.ts"() {
+    init_detach_request_on_abort();
+    init_v4();
+    mergeResponseSchema = external_exports.discriminatedUnion("status", [
+      external_exports.object({ status: external_exports.literal("success") }),
+      external_exports.object({ status: external_exports.literal("error"), error: external_exports.string() }),
+      external_exports.object({ status: external_exports.literal("pending") })
+    ]);
+  }
+});
+
+// ../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/index.ts
+var init_src = __esm({
+  "../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/index.ts"() {
+    init_code_review_bridge();
+    init_telemetry();
+    init_code_review_bridge();
+    init_sidebar_policy();
+    init_github_avatar();
+    init_write_attempts();
+    init_merge_polling();
+  }
+});
+
+// bridge/src/code-review-bridge.ts
+var readFailureSchema2, activityCursorSchema2, activityScanSchema2, init_code_review_bridge2 = __esm({
+  "bridge/src/code-review-bridge.ts"() {
+    init_v4();
+    readFailureSchema2 = external_exports.object({
+      kind: external_exports.enum(["access", "rate-limit", "transient"]),
+      retryAt: external_exports.number().optional()
+    }), activityCursorSchema2 = external_exports.object({
+      githubUserId: external_exports.number().int(),
+      startedAt: external_exports.number(),
+      checkedAt: external_exports.number().nullable(),
+      reconciledAt: external_exports.number(),
+      approvalsCheckedAt: external_exports.number().nullable().optional(),
+      approvalsReconciledAt: external_exports.number().optional(),
+      requestedCheckedAt: external_exports.number().nullable().optional(),
+      requestedReconciledAt: external_exports.number().optional(),
+      requestedScan: external_exports.object({
+        startedAt: external_exports.number(),
+        after: external_exports.number(),
+        reconcile: external_exports.boolean(),
+        hadDenial: external_exports.boolean().optional(),
+        searchAfter: external_exports.string().nullable(),
+        completedPullRequests: external_exports.array(external_exports.string()).max(50),
+        pendingPullRequest: external_exports.string().nullable(),
+        timelinePage: external_exports.number().int().positive().nullable(),
+        pendingEventIds: external_exports.array(external_exports.string()).max(20).optional()
+      }).nullable().optional()
+    }), activityScanSchema2 = external_exports.discriminatedUnion("available", [
+      external_exports.object({ available: external_exports.literal(!1) }),
+      external_exports.object({
+        available: external_exports.literal(!0),
+        rows: external_exports.array(
+          external_exports.object({
+            id: external_exports.string(),
+            kind: external_exports.enum(["approved", "review_requested"]),
+            actor: external_exports.string(),
+            avatarUrl: external_exports.string().nullable(),
+            publishedAt: external_exports.string(),
+            title: external_exports.string(),
+            url: external_exports.string(),
+            state: external_exports.string(),
+            pullRequest: external_exports.object({
+              hostname: external_exports.string(),
+              owner: external_exports.string(),
+              repository: external_exports.string(),
+              number: external_exports.number().int()
+            })
+          })
+        ),
+        cursor: activityCursorSchema2,
+        cost: external_exports.number().nonnegative(),
+        nextPollAt: external_exports.number(),
+        error: external_exports.string().nullable()
+      })
+    ]);
+  }
+});
+
 // shared/inbox-cache.ts
 var PluginReadError, init_inbox_cache = __esm({
   "shared/inbox-cache.ts"() {
-    init_code_review_bridge();
+    init_code_review_bridge2();
     PluginReadError = class extends Error {
       constructor(message, kind, retryAt, status) {
         super(message);
@@ -24854,1394 +25280,697 @@ var require_lib = __commonJS({
   }
 });
 
-// ../../codex/codex-apps/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js
-var require_windows = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js"(exports, module) {
-    module.exports = isexe;
-    isexe.sync = sync;
-    var fs2 = __require("fs");
-    function checkPathExt(path7, options) {
-      var pathext = options.pathExt !== void 0 ? options.pathExt : process.env.PATHEXT;
-      if (!pathext || (pathext = pathext.split(";"), pathext.indexOf("") !== -1))
-        return !0;
-      for (var i = 0; i < pathext.length; i++) {
-        var p2 = pathext[i].toLowerCase();
-        if (p2 && path7.substr(-p2.length).toLowerCase() === p2)
-          return !0;
-      }
-      return !1;
-    }
-    function checkStat(stat2, path7, options) {
-      return !stat2.isSymbolicLink() && !stat2.isFile() ? !1 : checkPathExt(path7, options);
-    }
-    function isexe(path7, options, cb) {
-      fs2.stat(path7, function(er, stat2) {
-        cb(er, er ? !1 : checkStat(stat2, path7, options));
-      });
-    }
-    function sync(path7, options) {
-      return checkStat(fs2.statSync(path7), path7, options);
-    }
+// ../../codex/codex-apps/shared-node/src/shell-env/path.ts
+import process4 from "node:process";
+function getPathEnvironmentVariableValue(env) {
+  let pathKey = getPathEnvironmentVariableKey(env);
+  return env[pathKey];
+}
+function getPathEnvironmentVariableKey(env) {
+  if (process4.platform !== "win32")
+    return "PATH";
+  if (env.Path != null)
+    return "Path";
+  if (env.PATH != null)
+    return "PATH";
+  for (let envKey of Object.keys(env))
+    if (envKey.toLowerCase() === "path")
+      return envKey;
+  return "Path";
+}
+var init_path = __esm({
+  "../../codex/codex-apps/shared-node/src/shell-env/path.ts"() {
   }
 });
 
-// ../../codex/codex-apps/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js
-var require_mode = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js"(exports, module) {
-    module.exports = isexe;
-    isexe.sync = sync;
-    var fs2 = __require("fs");
-    function isexe(path7, options, cb) {
-      fs2.stat(path7, function(er, stat2) {
-        cb(er, er ? !1 : checkStat(stat2, options));
-      });
-    }
-    function sync(path7, options) {
-      return checkStat(fs2.statSync(path7), options);
-    }
-    function checkStat(stat2, options) {
-      return stat2.isFile() && checkMode(stat2, options);
-    }
-    function checkMode(stat2, options) {
-      var mod = stat2.mode, uid = stat2.uid, gid = stat2.gid, myUid = options.uid !== void 0 ? options.uid : process.getuid && process.getuid(), myGid = options.gid !== void 0 ? options.gid : process.getgid && process.getgid(), u2 = parseInt("100", 8), g = parseInt("010", 8), o = parseInt("001", 8), ug = u2 | g, ret = mod & o || mod & g && gid === myGid || mod & u2 && uid === myUid || mod & ug && myUid === 0;
-      return ret;
-    }
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js
-var require_isexe = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js"(exports, module) {
-    var fs2 = __require("fs"), core;
-    process.platform === "win32" || global.TESTING_WINDOWS ? core = require_windows() : core = require_mode();
-    module.exports = isexe;
-    isexe.sync = sync;
-    function isexe(path7, options, cb) {
-      if (typeof options == "function" && (cb = options, options = {}), !cb) {
-        if (typeof Promise != "function")
-          throw new TypeError("callback not provided");
-        return new Promise(function(resolve2, reject) {
-          isexe(path7, options || {}, function(er, is) {
-            er ? reject(er) : resolve2(is);
-          });
-        });
-      }
-      core(path7, options || {}, function(er, is) {
-        er && (er.code === "EACCES" || options && options.ignoreErrors) && (er = null, is = !1), cb(er, is);
-      });
-    }
-    function sync(path7, options) {
-      try {
-        return core.sync(path7, options || {});
-      } catch (er) {
-        if (options && options.ignoreErrors || er.code === "EACCES")
-          return !1;
-        throw er;
-      }
-    }
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/which@2.0.2/node_modules/which/which.js
-var require_which = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports, module) {
-    var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys", path7 = __require("path"), COLON = isWindows ? ";" : ":", isexe = require_isexe(), getNotFoundError = (cmd) => Object.assign(new Error(`not found: ${cmd}`), { code: "ENOENT" }), getPathInfo = (cmd, opt) => {
-      let colon = opt.colon || COLON, pathEnv = cmd.match(/\//) || isWindows && cmd.match(/\\/) ? [""] : [
-        // windows always checks the cwd first
-        ...isWindows ? [process.cwd()] : [],
-        ...(opt.path || process.env.PATH || /* istanbul ignore next: very unusual */
-        "").split(colon)
-      ], pathExtExe = isWindows ? opt.pathExt || process.env.PATHEXT || ".EXE;.CMD;.BAT;.COM" : "", pathExt = isWindows ? pathExtExe.split(colon) : [""];
-      return isWindows && cmd.indexOf(".") !== -1 && pathExt[0] !== "" && pathExt.unshift(""), {
-        pathEnv,
-        pathExt,
-        pathExtExe
-      };
-    }, which2 = (cmd, opt, cb) => {
-      typeof opt == "function" && (cb = opt, opt = {}), opt || (opt = {});
-      let { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt), found = [], step = (i) => new Promise((resolve2, reject) => {
-        if (i === pathEnv.length)
-          return opt.all && found.length ? resolve2(found) : reject(getNotFoundError(cmd));
-        let ppRaw = pathEnv[i], pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw, pCmd = path7.join(pathPart, cmd), p2 = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
-        resolve2(subStep(p2, i, 0));
-      }), subStep = (p2, i, ii) => new Promise((resolve2, reject) => {
-        if (ii === pathExt.length)
-          return resolve2(step(i + 1));
-        let ext = pathExt[ii];
-        isexe(p2 + ext, { pathExt: pathExtExe }, (er, is) => {
-          if (!er && is)
-            if (opt.all)
-              found.push(p2 + ext);
-            else
-              return resolve2(p2 + ext);
-          return resolve2(subStep(p2, i, ii + 1));
-        });
-      });
-      return cb ? step(0).then((res) => cb(null, res), cb) : step(0);
-    }, whichSync = (cmd, opt) => {
-      opt = opt || {};
-      let { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt), found = [];
-      for (let i = 0; i < pathEnv.length; i++) {
-        let ppRaw = pathEnv[i], pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw, pCmd = path7.join(pathPart, cmd), p2 = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
-        for (let j2 = 0; j2 < pathExt.length; j2++) {
-          let cur = p2 + pathExt[j2];
+// ../../codex/codex-apps/shared-node/src/binary-resolver.ts
+import { accessSync, constants } from "node:fs";
+import { delimiter, resolve } from "node:path";
+var import_which, BinaryResolver, binaryResolver, init_binary_resolver = __esm({
+  "../../codex/codex-apps/shared-node/src/binary-resolver.ts"() {
+    import_which = __toESM(require_lib());
+    init_path();
+    BinaryResolver = class {
+      executables = /* @__PURE__ */ new Map();
+      resolve(command, options = {}) {
+        if (command.includes("/") || process.platform === "win32" && command.includes("\\"))
+          return command;
+        let cwd = options.cwd ?? process.cwd(), env = options.env ?? process.env, path7 = getPathEnvironmentVariableValue(env), cacheKey = JSON.stringify([command, cwd, path7, env.PATHEXT]), cachedExecutable = this.executables.get(cacheKey);
+        if (cachedExecutable != null)
           try {
-            if (isexe.sync(cur, { pathExt: pathExtExe }))
-              if (opt.all)
-                found.push(cur);
-              else
-                return cur;
+            return accessSync(cachedExecutable, constants.X_OK), cachedExecutable;
           } catch {
+            this.executables.delete(cacheKey);
           }
-        }
-      }
-      if (opt.all && found.length)
-        return found;
-      if (opt.nothrow)
-        return null;
-      throw getNotFoundError(cmd);
-    };
-    module.exports = which2;
-    which2.sync = whichSync;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js
-var require_path_key = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js"(exports, module) {
-    "use strict";
-    var pathKey = (options = {}) => {
-      let environment = options.env || process.env;
-      return (options.platform || process.platform) !== "win32" ? "PATH" : Object.keys(environment).reverse().find((key) => key.toUpperCase() === "PATH") || "Path";
-    };
-    module.exports = pathKey;
-    module.exports.default = pathKey;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js
-var require_resolveCommand = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports, module) {
-    "use strict";
-    var path7 = __require("path"), which2 = require_which(), getPathKey = require_path_key();
-    function resolveCommandAttempt(parsed, withoutPathExt) {
-      let env = parsed.options.env || process.env, cwd = process.cwd(), hasCustomCwd = parsed.options.cwd != null, shouldSwitchCwd = hasCustomCwd && process.chdir !== void 0 && !process.chdir.disabled;
-      if (shouldSwitchCwd)
-        try {
-          process.chdir(parsed.options.cwd);
-        } catch {
-        }
-      let resolved;
-      try {
-        resolved = which2.sync(parsed.command, {
-          path: env[getPathKey({ env })],
-          pathExt: withoutPathExt ? path7.delimiter : void 0
+        let searchPath = path7?.split(delimiter).map((directory) => resolve(cwd, directory)).join(delimiter), executable = import_which.default.sync(command, {
+          nothrow: !0,
+          path: searchPath,
+          pathExt: env.PATHEXT
         });
-      } catch {
-      } finally {
-        shouldSwitchCwd && process.chdir(cwd);
+        return executable != null && this.executables.set(cacheKey, executable), executable;
       }
-      return resolved && (resolved = path7.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved)), resolved;
-    }
-    function resolveCommand(parsed) {
-      return resolveCommandAttempt(parsed) || resolveCommandAttempt(parsed, !0);
-    }
-    module.exports = resolveCommand;
+    }, binaryResolver = new BinaryResolver();
   }
 });
 
-// ../../codex/codex-apps/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js
-var require_escape = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js"(exports, module) {
-    "use strict";
-    var metaCharsRegExp = /([()\][%!^"`<>&|;, *?])/g;
-    function escapeCommand(arg) {
-      return arg = arg.replace(metaCharsRegExp, "^$1"), arg;
+// server/backend/authorization.ts
+import { spawn } from "node:child_process";
+import { createInterface } from "node:readline";
+async function codeReviewAuthorization(refresh) {
+  let executable = process.env.CODEX_CLI_PATH?.trim() || binaryResolver.resolve("codex");
+  if (!executable)
+    throw new Error("Codex is unavailable. Sign in to connect GitHub.");
+  let child = spawn(
+    executable,
+    ["app-server", "-c", "features.plugins=false"],
+    {
+      stdio: ["pipe", "pipe", "pipe"],
+      signal: AbortSignal.timeout(2e4)
     }
-    function escapeArgument(arg, doubleEscapeMetaChars) {
-      return arg = `${arg}`, arg = arg.replace(/(?=(\\+?)?)\1"/g, '$1$1\\"'), arg = arg.replace(/(?=(\\+?)?)\1$/, "$1$1"), arg = `"${arg}"`, arg = arg.replace(metaCharsRegExp, "^$1"), doubleEscapeMetaChars && (arg = arg.replace(metaCharsRegExp, "^$1")), arg;
-    }
-    module.exports.command = escapeCommand;
-    module.exports.argument = escapeArgument;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js
-var require_shebang_regex = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js"(exports, module) {
-    "use strict";
-    module.exports = /^#!(.*)/;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js
-var require_shebang_command = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js"(exports, module) {
-    "use strict";
-    var shebangRegex = require_shebang_regex();
-    module.exports = (string4 = "") => {
-      let match = string4.match(shebangRegex);
-      if (!match)
-        return null;
-      let [path7, argument] = match[0].replace(/#! ?/, "").split(" "), binary = path7.split("/").pop();
-      return binary === "env" ? argument : argument ? `${binary} ${argument}` : binary;
-    };
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js
-var require_readShebang = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js"(exports, module) {
-    "use strict";
-    var fs2 = __require("fs"), shebangCommand = require_shebang_command();
-    function readShebang(command) {
-      let buffer = Buffer.alloc(150), fd;
+  ), lines = createInterface({ input: child.stdout });
+  child.stderr.resume(), child.on("error", () => lines.close()), child.stdin.on("error", () => lines.close());
+  try {
+    child.stdin.write(
+      `${JSON.stringify({ id: 1, method: "initialize", params: { clientInfo: { name: "github_provider", version: "0.1.0" } } })}
+`
+    );
+    for await (let line of lines) {
+      let message;
       try {
-        fd = fs2.openSync(command, "r"), fs2.readSync(fd, buffer, 0, 150, 0), fs2.closeSync(fd);
+        message = responseSchema.parse(JSON.parse(line));
       } catch {
+        throw new Error("Codex returned an invalid sign-in response");
       }
-      return shebangCommand(buffer.toString());
-    }
-    module.exports = readShebang;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js
-var require_parse = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports, module) {
-    "use strict";
-    var path7 = __require("path"), resolveCommand = require_resolveCommand(), escape2 = require_escape(), readShebang = require_readShebang(), isWin = process.platform === "win32", isExecutableRegExp = /\.(?:com|exe)$/i, isCmdShimRegExp = /node_modules[\\/].bin[\\/][^\\/]+\.cmd$/i;
-    function detectShebang(parsed) {
-      parsed.file = resolveCommand(parsed);
-      let shebang = parsed.file && readShebang(parsed.file);
-      return shebang ? (parsed.args.unshift(parsed.file), parsed.command = shebang, resolveCommand(parsed)) : parsed.file;
-    }
-    function parseNonShell(parsed) {
-      if (!isWin)
-        return parsed;
-      let commandFile = detectShebang(parsed), needsShell = !isExecutableRegExp.test(commandFile);
-      if (parsed.options.forceShell || needsShell) {
-        let needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
-        parsed.command = path7.normalize(parsed.command), parsed.command = escape2.command(parsed.command), parsed.args = parsed.args.map((arg) => escape2.argument(arg, needsDoubleEscapeMetaChars));
-        let shellCommand = [parsed.command].concat(parsed.args).join(" ");
-        parsed.args = ["/d", "/s", "/c", `"${shellCommand}"`], parsed.command = process.env.comspec || "cmd.exe", parsed.options.windowsVerbatimArguments = !0;
+      if (message.id !== 1 && message.id !== 2) continue;
+      if (message.error)
+        throw new Error("Codex could not provide a signed-in session");
+      if (message.id === 1) {
+        child.stdin.write(
+          `${JSON.stringify({ method: "initialized", params: {} })}
+`
+        ), child.stdin.write(
+          `${JSON.stringify({ id: 2, method: "getAuthStatus", params: { includeToken: !0, refreshToken: refresh } })}
+`
+        );
+        continue;
       }
-      return parsed;
-    }
-    function parse4(command, args, options) {
-      args && !Array.isArray(args) && (options = args, args = null), args = args ? args.slice(0) : [], options = Object.assign({}, options);
-      let parsed = {
-        command,
-        args,
-        options,
-        file: void 0,
-        original: {
-          command,
-          args
-        }
-      };
-      return options.shell ? parsed : parseNonShell(parsed);
-    }
-    module.exports = parse4;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js
-var require_enoent = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js"(exports, module) {
-    "use strict";
-    var isWin = process.platform === "win32";
-    function notFoundError(original, syscall) {
-      return Object.assign(new Error(`${syscall} ${original.command} ENOENT`), {
-        code: "ENOENT",
-        errno: "ENOENT",
-        syscall: `${syscall} ${original.command}`,
-        path: original.command,
-        spawnargs: original.args
-      });
-    }
-    function hookChildProcess(cp, parsed) {
-      if (!isWin)
-        return;
-      let originalEmit = cp.emit;
-      cp.emit = function(name, arg1) {
-        if (name === "exit") {
-          let err = verifyENOENT(arg1, parsed);
-          if (err)
-            return originalEmit.call(cp, "error", err);
-        }
-        return originalEmit.apply(cp, arguments);
+      let auth = authSchema.safeParse(message.result);
+      if (!auth.success)
+        throw new Error("Sign in to Codex with ChatGPT to connect GitHub");
+      let routing = getChatGptAccountRoutingFromAccessToken(
+        auth.data.authToken
+      );
+      if (routing?.accountId == null)
+        throw new Error("Codex session has no selected workspace");
+      return {
+        Authorization: `Bearer ${auth.data.authToken}`,
+        "ChatGPT-Account-ID": routing.accountId,
+        originator: "Codex Code Review",
+        ...routing.isFedramp === !0 ? { "X-OpenAI-Fedramp": "true" } : {}
       };
     }
-    function verifyENOENT(status, parsed) {
-      return isWin && status === 1 && !parsed.file ? notFoundError(parsed.original, "spawn") : null;
-    }
-    function verifyENOENTSync(status, parsed) {
-      return isWin && status === 1 && !parsed.file ? notFoundError(parsed.original, "spawnSync") : null;
-    }
-    module.exports = {
-      hookChildProcess,
-      verifyENOENT,
-      verifyENOENTSync,
-      notFoundError
-    };
+    throw new Error("Codex sign-in check ended before returning a session");
+  } finally {
+    lines.close(), child.kill();
+  }
+}
+var responseSchema, authSchema, init_authorization = __esm({
+  "server/backend/authorization.ts"() {
+    init_auth_token();
+    init_binary_resolver();
+    init_v4();
+    responseSchema = external_exports.object({
+      id: external_exports.union([external_exports.string(), external_exports.number()]).optional(),
+      result: external_exports.unknown().optional(),
+      error: external_exports.object({ message: external_exports.string() }).optional()
+    }), authSchema = external_exports.object({
+      authMethod: external_exports.enum(["chatgpt", "chatgptAuthTokens"]),
+      authToken: external_exports.string().min(1)
+    });
   }
 });
 
-// ../../codex/codex-apps/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js
-var require_cross_spawn = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js"(exports, module) {
-    "use strict";
-    var cp = __require("child_process"), parse4 = require_parse(), enoent = require_enoent();
-    function spawn3(command, args, options) {
-      let parsed = parse4(command, args, options), spawned = cp.spawn(parsed.command, parsed.args, parsed.options);
-      return enoent.hookChildProcess(spawned, parsed), spawned;
-    }
-    function spawnSync(command, args, options) {
-      let parsed = parse4(command, args, options), result = cp.spawnSync(parsed.command, parsed.args, parsed.options);
-      return result.error = result.error || enoent.verifyENOENTSync(result.status, parsed), result;
-    }
-    module.exports = spawn3;
-    module.exports.spawn = spawn3;
-    module.exports.sync = spawnSync;
-    module.exports._parse = parse4;
-    module.exports._enoent = enoent;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/strip-final-newline@2.0.0/node_modules/strip-final-newline/index.js
-var require_strip_final_newline = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/strip-final-newline@2.0.0/node_modules/strip-final-newline/index.js"(exports, module) {
-    "use strict";
-    module.exports = (input) => {
-      let LF = typeof input == "string" ? `
-` : 10, CR = typeof input == "string" ? "\r" : 13;
-      return input[input.length - 1] === LF && (input = input.slice(0, input.length - 1)), input[input.length - 1] === CR && (input = input.slice(0, input.length - 1)), input;
-    };
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/npm-run-path@4.0.1/node_modules/npm-run-path/index.js
-var require_npm_run_path = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/npm-run-path@4.0.1/node_modules/npm-run-path/index.js"(exports, module) {
-    "use strict";
-    var path7 = __require("path"), pathKey = require_path_key(), npmRunPath = (options) => {
-      options = {
-        cwd: process.cwd(),
-        path: process.env[pathKey()],
-        execPath: process.execPath,
-        ...options
-      };
-      let previous, cwdPath = path7.resolve(options.cwd), result = [];
-      for (; previous !== cwdPath; )
-        result.push(path7.join(cwdPath, "node_modules/.bin")), previous = cwdPath, cwdPath = path7.resolve(cwdPath, "..");
-      let execPathDir = path7.resolve(options.cwd, options.execPath, "..");
-      return result.push(execPathDir), result.concat(options.path).join(path7.delimiter);
-    };
-    module.exports = npmRunPath;
-    module.exports.default = npmRunPath;
-    module.exports.env = (options) => {
-      options = {
-        env: process.env,
-        ...options
-      };
-      let env = { ...options.env }, path8 = pathKey({ env });
-      return options.path = env[path8], env[path8] = module.exports(options), env;
-    };
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/mimic-fn@2.1.0/node_modules/mimic-fn/index.js
-var require_mimic_fn = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/mimic-fn@2.1.0/node_modules/mimic-fn/index.js"(exports, module) {
-    "use strict";
-    var mimicFn = (to, from) => {
-      for (let prop of Reflect.ownKeys(from))
-        Object.defineProperty(to, prop, Object.getOwnPropertyDescriptor(from, prop));
-      return to;
-    };
-    module.exports = mimicFn;
-    module.exports.default = mimicFn;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/onetime@5.1.2/node_modules/onetime/index.js
-var require_onetime = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/onetime@5.1.2/node_modules/onetime/index.js"(exports, module) {
-    "use strict";
-    var mimicFn = require_mimic_fn(), calledFunctions = /* @__PURE__ */ new WeakMap(), onetime = (function_, options = {}) => {
-      if (typeof function_ != "function")
-        throw new TypeError("Expected a function");
-      let returnValue, callCount = 0, functionName = function_.displayName || function_.name || "<anonymous>", onetime2 = function(...arguments_) {
-        if (calledFunctions.set(onetime2, ++callCount), callCount === 1)
-          returnValue = function_.apply(this, arguments_), function_ = null;
-        else if (options.throw === !0)
-          throw new Error(`Function \`${functionName}\` can only be called once`);
-        return returnValue;
-      };
-      return mimicFn(onetime2, function_), calledFunctions.set(onetime2, callCount), onetime2;
-    };
-    module.exports = onetime;
-    module.exports.default = onetime;
-    module.exports.callCount = (function_) => {
-      if (!calledFunctions.has(function_))
-        throw new Error(`The given function \`${function_.name}\` is not wrapped by the \`onetime\` package`);
-      return calledFunctions.get(function_);
-    };
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/human-signals@2.1.0/node_modules/human-signals/build/src/core.js
-var require_core3 = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/human-signals@2.1.0/node_modules/human-signals/build/src/core.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: !0 });
-    exports.SIGNALS = void 0;
-    var SIGNALS = [
-      {
-        name: "SIGHUP",
-        number: 1,
-        action: "terminate",
-        description: "Terminal closed",
-        standard: "posix"
-      },
-      {
-        name: "SIGINT",
-        number: 2,
-        action: "terminate",
-        description: "User interruption with CTRL-C",
-        standard: "ansi"
-      },
-      {
-        name: "SIGQUIT",
-        number: 3,
-        action: "core",
-        description: "User interruption with CTRL-\\",
-        standard: "posix"
-      },
-      {
-        name: "SIGILL",
-        number: 4,
-        action: "core",
-        description: "Invalid machine instruction",
-        standard: "ansi"
-      },
-      {
-        name: "SIGTRAP",
-        number: 5,
-        action: "core",
-        description: "Debugger breakpoint",
-        standard: "posix"
-      },
-      {
-        name: "SIGABRT",
-        number: 6,
-        action: "core",
-        description: "Aborted",
-        standard: "ansi"
-      },
-      {
-        name: "SIGIOT",
-        number: 6,
-        action: "core",
-        description: "Aborted",
-        standard: "bsd"
-      },
-      {
-        name: "SIGBUS",
-        number: 7,
-        action: "core",
-        description: "Bus error due to misaligned, non-existing address or paging error",
-        standard: "bsd"
-      },
-      {
-        name: "SIGEMT",
-        number: 7,
-        action: "terminate",
-        description: "Command should be emulated but is not implemented",
-        standard: "other"
-      },
-      {
-        name: "SIGFPE",
-        number: 8,
-        action: "core",
-        description: "Floating point arithmetic error",
-        standard: "ansi"
-      },
-      {
-        name: "SIGKILL",
-        number: 9,
-        action: "terminate",
-        description: "Forced termination",
-        standard: "posix",
-        forced: !0
-      },
-      {
-        name: "SIGUSR1",
-        number: 10,
-        action: "terminate",
-        description: "Application-specific signal",
-        standard: "posix"
-      },
-      {
-        name: "SIGSEGV",
-        number: 11,
-        action: "core",
-        description: "Segmentation fault",
-        standard: "ansi"
-      },
-      {
-        name: "SIGUSR2",
-        number: 12,
-        action: "terminate",
-        description: "Application-specific signal",
-        standard: "posix"
-      },
-      {
-        name: "SIGPIPE",
-        number: 13,
-        action: "terminate",
-        description: "Broken pipe or socket",
-        standard: "posix"
-      },
-      {
-        name: "SIGALRM",
-        number: 14,
-        action: "terminate",
-        description: "Timeout or timer",
-        standard: "posix"
-      },
-      {
-        name: "SIGTERM",
-        number: 15,
-        action: "terminate",
-        description: "Termination",
-        standard: "ansi"
-      },
-      {
-        name: "SIGSTKFLT",
-        number: 16,
-        action: "terminate",
-        description: "Stack is empty or overflowed",
-        standard: "other"
-      },
-      {
-        name: "SIGCHLD",
-        number: 17,
-        action: "ignore",
-        description: "Child process terminated, paused or unpaused",
-        standard: "posix"
-      },
-      {
-        name: "SIGCLD",
-        number: 17,
-        action: "ignore",
-        description: "Child process terminated, paused or unpaused",
-        standard: "other"
-      },
-      {
-        name: "SIGCONT",
-        number: 18,
-        action: "unpause",
-        description: "Unpaused",
-        standard: "posix",
-        forced: !0
-      },
-      {
-        name: "SIGSTOP",
-        number: 19,
-        action: "pause",
-        description: "Paused",
-        standard: "posix",
-        forced: !0
-      },
-      {
-        name: "SIGTSTP",
-        number: 20,
-        action: "pause",
-        description: 'Paused using CTRL-Z or "suspend"',
-        standard: "posix"
-      },
-      {
-        name: "SIGTTIN",
-        number: 21,
-        action: "pause",
-        description: "Background process cannot read terminal input",
-        standard: "posix"
-      },
-      {
-        name: "SIGBREAK",
-        number: 21,
-        action: "terminate",
-        description: "User interruption with CTRL-BREAK",
-        standard: "other"
-      },
-      {
-        name: "SIGTTOU",
-        number: 22,
-        action: "pause",
-        description: "Background process cannot write to terminal output",
-        standard: "posix"
-      },
-      {
-        name: "SIGURG",
-        number: 23,
-        action: "ignore",
-        description: "Socket received out-of-band data",
-        standard: "bsd"
-      },
-      {
-        name: "SIGXCPU",
-        number: 24,
-        action: "core",
-        description: "Process timed out",
-        standard: "bsd"
-      },
-      {
-        name: "SIGXFSZ",
-        number: 25,
-        action: "core",
-        description: "File too big",
-        standard: "bsd"
-      },
-      {
-        name: "SIGVTALRM",
-        number: 26,
-        action: "terminate",
-        description: "Timeout or timer",
-        standard: "bsd"
-      },
-      {
-        name: "SIGPROF",
-        number: 27,
-        action: "terminate",
-        description: "Timeout or timer",
-        standard: "bsd"
-      },
-      {
-        name: "SIGWINCH",
-        number: 28,
-        action: "ignore",
-        description: "Terminal window size changed",
-        standard: "bsd"
-      },
-      {
-        name: "SIGIO",
-        number: 29,
-        action: "terminate",
-        description: "I/O is available",
-        standard: "other"
-      },
-      {
-        name: "SIGPOLL",
-        number: 29,
-        action: "terminate",
-        description: "Watched event",
-        standard: "other"
-      },
-      {
-        name: "SIGINFO",
-        number: 29,
-        action: "ignore",
-        description: "Request for process information",
-        standard: "other"
-      },
-      {
-        name: "SIGPWR",
-        number: 30,
-        action: "terminate",
-        description: "Device running out of power",
-        standard: "systemv"
-      },
-      {
-        name: "SIGSYS",
-        number: 31,
-        action: "core",
-        description: "Invalid system call",
-        standard: "other"
-      },
-      {
-        name: "SIGUNUSED",
-        number: 31,
-        action: "terminate",
-        description: "Invalid system call",
-        standard: "other"
+// server/backend/session.ts
+function trustedCodeReviewBackendUrl(baseUrl, message) {
+  let base = new URL(baseUrl), loopback = ["127.0.0.1", "localhost", "[::1]"].includes(base.hostname), trustedChatGptHost = base.hostname === "chatgpt.com" || base.hostname === "chatgpt-staging.com" || base.hostname.endsWith(".chatgpt-staging.com");
+  if (base.username !== "" || base.password !== "" || base.search !== "" || base.hash !== "" || !(loopback && base.protocol === "http:" || trustedChatGptHost && base.protocol === "https:"))
+    throw new Error(message);
+  return base;
+}
+function withAbort(pending, signal) {
+  return signal.throwIfAborted(), new Promise((resolve2, reject) => {
+    let abort = () => reject(signal.reason);
+    signal.addEventListener("abort", abort, { once: !0 }), pending.then(resolve2, reject).finally(() => {
+      signal.removeEventListener("abort", abort);
+    });
+  });
+}
+var CodeReviewBackendSession, init_session = __esm({
+  "server/backend/session.ts"() {
+    init_auth_token();
+    init_authorization();
+    CodeReviewBackendSession = class {
+      constructor(signInMessage, authorization = codeReviewAuthorization) {
+        this.signInMessage = signInMessage;
+        this.authorization = authorization;
       }
-    ];
-    exports.SIGNALS = SIGNALS;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/human-signals@2.1.0/node_modules/human-signals/build/src/realtime.js
-var require_realtime = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/human-signals@2.1.0/node_modules/human-signals/build/src/realtime.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: !0 });
-    exports.SIGRTMAX = exports.getRealtimeSignals = void 0;
-    var getRealtimeSignals = function() {
-      let length = SIGRTMAX - SIGRTMIN + 1;
-      return Array.from({ length }, getRealtimeSignal);
-    };
-    exports.getRealtimeSignals = getRealtimeSignals;
-    var getRealtimeSignal = function(value, index) {
-      return {
-        name: `SIGRT${index + 1}`,
-        number: SIGRTMIN + index,
-        action: "terminate",
-        description: "Application-specific signal (realtime)",
-        standard: "posix"
-      };
-    }, SIGRTMIN = 34, SIGRTMAX = 64;
-    exports.SIGRTMAX = SIGRTMAX;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/human-signals@2.1.0/node_modules/human-signals/build/src/signals.js
-var require_signals = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/human-signals@2.1.0/node_modules/human-signals/build/src/signals.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: !0 });
-    exports.getSignals = void 0;
-    var _os = __require("os"), _core = require_core3(), _realtime = require_realtime(), getSignals = function() {
-      let realtimeSignals = (0, _realtime.getRealtimeSignals)();
-      return [..._core.SIGNALS, ...realtimeSignals].map(normalizeSignal);
-    };
-    exports.getSignals = getSignals;
-    var normalizeSignal = function({
-      name,
-      number: defaultNumber,
-      description,
-      action,
-      forced = !1,
-      standard
-    }) {
-      let {
-        signals: { [name]: constantSignal }
-      } = _os.constants, supported = constantSignal !== void 0;
-      return { name, number: supported ? constantSignal : defaultNumber, description, supported, action, forced, standard };
-    };
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/human-signals@2.1.0/node_modules/human-signals/build/src/main.js
-var require_main = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/human-signals@2.1.0/node_modules/human-signals/build/src/main.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: !0 });
-    exports.signalsByNumber = exports.signalsByName = void 0;
-    var _os = __require("os"), _signals = require_signals(), _realtime = require_realtime(), getSignalsByName = function() {
-      return (0, _signals.getSignals)().reduce(getSignalByName, {});
-    }, getSignalByName = function(signalByNameMemo, { name, number: number4, description, supported, action, forced, standard }) {
-      return {
-        ...signalByNameMemo,
-        [name]: { name, number: number4, description, supported, action, forced, standard }
-      };
-    }, signalsByName = getSignalsByName();
-    exports.signalsByName = signalsByName;
-    var getSignalsByNumber = function() {
-      let signals = (0, _signals.getSignals)(), length = _realtime.SIGRTMAX + 1, signalsA = Array.from({ length }, (value, number4) => getSignalByNumber(number4, signals));
-      return Object.assign({}, ...signalsA);
-    }, getSignalByNumber = function(number4, signals) {
-      let signal = findSignalByNumber(number4, signals);
-      if (signal === void 0)
-        return {};
-      let { name, description, supported, action, forced, standard } = signal;
-      return {
-        [number4]: {
-          name,
-          number: number4,
-          description,
-          supported,
-          action,
-          forced,
-          standard
-        }
-      };
-    }, findSignalByNumber = function(number4, signals) {
-      let signal = signals.find(({ name }) => _os.constants.signals[name] === number4);
-      return signal !== void 0 ? signal : signals.find((signalA) => signalA.number === number4);
-    }, signalsByNumber = getSignalsByNumber();
-    exports.signalsByNumber = signalsByNumber;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/error.js
-var require_error = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/error.js"(exports, module) {
-    "use strict";
-    var { signalsByName } = require_main(), getErrorPrefix = ({ timedOut, timeout, errorCode, signal, signalDescription, exitCode, isCanceled }) => timedOut ? `timed out after ${timeout} milliseconds` : isCanceled ? "was canceled" : errorCode !== void 0 ? `failed with ${errorCode}` : signal !== void 0 ? `was killed with ${signal} (${signalDescription})` : exitCode !== void 0 ? `failed with exit code ${exitCode}` : "failed", makeError = ({
-      stdout,
-      stderr,
-      all,
-      error: error51,
-      signal,
-      exitCode,
-      command,
-      escapedCommand,
-      timedOut,
-      isCanceled,
-      killed,
-      parsed: { options: { timeout } }
-    }) => {
-      exitCode = exitCode === null ? void 0 : exitCode, signal = signal === null ? void 0 : signal;
-      let signalDescription = signal === void 0 ? void 0 : signalsByName[signal].description, errorCode = error51 && error51.code, execaMessage = `Command ${getErrorPrefix({ timedOut, timeout, errorCode, signal, signalDescription, exitCode, isCanceled })}: ${command}`, isError = Object.prototype.toString.call(error51) === "[object Error]", shortMessage = isError ? `${execaMessage}
-${error51.message}` : execaMessage, message = [shortMessage, stderr, stdout].filter(Boolean).join(`
-`);
-      return isError ? (error51.originalMessage = error51.message, error51.message = message) : error51 = new Error(message), error51.shortMessage = shortMessage, error51.command = command, error51.escapedCommand = escapedCommand, error51.exitCode = exitCode, error51.signal = signal, error51.signalDescription = signalDescription, error51.stdout = stdout, error51.stderr = stderr, all !== void 0 && (error51.all = all), "bufferedData" in error51 && delete error51.bufferedData, error51.failed = !0, error51.timedOut = !!timedOut, error51.isCanceled = isCanceled, error51.killed = killed && !timedOut, error51;
-    };
-    module.exports = makeError;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/stdio.js
-var require_stdio = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/stdio.js"(exports, module) {
-    "use strict";
-    var aliases = ["stdin", "stdout", "stderr"], hasAlias = (options) => aliases.some((alias) => options[alias] !== void 0), normalizeStdio = (options) => {
-      if (!options)
-        return;
-      let { stdio } = options;
-      if (stdio === void 0)
-        return aliases.map((alias) => options[alias]);
-      if (hasAlias(options))
-        throw new Error(`It's not possible to provide \`stdio\` in combination with one of ${aliases.map((alias) => `\`${alias}\``).join(", ")}`);
-      if (typeof stdio == "string")
-        return stdio;
-      if (!Array.isArray(stdio))
-        throw new TypeError(`Expected \`stdio\` to be of type \`string\` or \`Array\`, got \`${typeof stdio}\``);
-      let length = Math.max(stdio.length, aliases.length);
-      return Array.from({ length }, (value, index) => stdio[index]);
-    };
-    module.exports = normalizeStdio;
-    module.exports.node = (options) => {
-      let stdio = normalizeStdio(options);
-      return stdio === "ipc" ? "ipc" : stdio === void 0 || typeof stdio == "string" ? [stdio, stdio, stdio, "ipc"] : stdio.includes("ipc") ? stdio : [...stdio, "ipc"];
-    };
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/signal-exit@3.0.7/node_modules/signal-exit/signals.js
-var require_signals2 = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/signal-exit@3.0.7/node_modules/signal-exit/signals.js"(exports, module) {
-    module.exports = [
-      "SIGABRT",
-      "SIGALRM",
-      "SIGHUP",
-      "SIGINT",
-      "SIGTERM"
-    ];
-    process.platform !== "win32" && module.exports.push(
-      "SIGVTALRM",
-      "SIGXCPU",
-      "SIGXFSZ",
-      "SIGUSR2",
-      "SIGTRAP",
-      "SIGSYS",
-      "SIGQUIT",
-      "SIGIOT"
-      // should detect profiler and enable/disable accordingly.
-      // see #21
-      // 'SIGPROF'
-    );
-    process.platform === "linux" && module.exports.push(
-      "SIGIO",
-      "SIGPOLL",
-      "SIGPWR",
-      "SIGSTKFLT",
-      "SIGUNUSED"
-    );
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/signal-exit@3.0.7/node_modules/signal-exit/index.js
-var require_signal_exit = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/signal-exit@3.0.7/node_modules/signal-exit/index.js"(exports, module) {
-    var process5 = global.process, processOk = function(process6) {
-      return process6 && typeof process6 == "object" && typeof process6.removeListener == "function" && typeof process6.emit == "function" && typeof process6.reallyExit == "function" && typeof process6.listeners == "function" && typeof process6.kill == "function" && typeof process6.pid == "number" && typeof process6.on == "function";
-    };
-    processOk(process5) ? (assert2 = __require("assert"), signals = require_signals2(), isWin = /^win/i.test(process5.platform), EE = __require("events"), typeof EE != "function" && (EE = EE.EventEmitter), process5.__signal_exit_emitter__ ? emitter = process5.__signal_exit_emitter__ : (emitter = process5.__signal_exit_emitter__ = new EE(), emitter.count = 0, emitter.emitted = {}), emitter.infinite || (emitter.setMaxListeners(1 / 0), emitter.infinite = !0), module.exports = function(cb, opts) {
-      if (!processOk(global.process))
-        return function() {
+      session;
+      /** Reuse the caller's deadline and retry only an authentication rejection. */
+      async request(send, signal) {
+        let attempt = async (refresh) => {
+          signal.throwIfAborted();
+          let headers = await withAbort(this.headers(refresh), signal);
+          return signal.throwIfAborted(), send(headers);
+        }, response = await attempt(!1);
+        return response.status === 401 && (await response.body?.cancel(), response = await attempt(!0)), response;
+      }
+      async headers(refresh) {
+        let previous = await (this.session ??= this.authorization(!1)), principal = getAuthenticatedPrincipalFromAccessToken(
+          previous.Authorization?.slice(7) ?? null
+        );
+        if (principal == null) throw new Error(this.signInMessage);
+        let expected = {
+          "X-Codex-Expected-User-Id": principal.userId,
+          "X-Codex-Expected-Account-Id": principal.accountId
         };
-      assert2.equal(typeof cb, "function", "a callback must be provided for exit handler"), loaded === !1 && load();
-      var ev = "exit";
-      opts && opts.alwaysLast && (ev = "afterexit");
-      var remove = function() {
-        emitter.removeListener(ev, cb), emitter.listeners("exit").length === 0 && emitter.listeners("afterexit").length === 0 && unload();
-      };
-      return emitter.on(ev, cb), remove;
-    }, unload = function() {
-      !loaded || !processOk(global.process) || (loaded = !1, signals.forEach(function(sig) {
-        try {
-          process5.removeListener(sig, sigListeners[sig]);
-        } catch {
-        }
-      }), process5.emit = originalProcessEmit, process5.reallyExit = originalProcessReallyExit, emitter.count -= 1);
-    }, module.exports.unload = unload, emit = function(event, code, signal) {
-      emitter.emitted[event] || (emitter.emitted[event] = !0, emitter.emit(event, code, signal));
-    }, sigListeners = {}, signals.forEach(function(sig) {
-      sigListeners[sig] = function() {
-        if (processOk(global.process)) {
-          var listeners = process5.listeners(sig);
-          listeners.length === emitter.count && (unload(), emit("exit", null, sig), emit("afterexit", null, sig), isWin && sig === "SIGHUP" && (sig = "SIGINT"), process5.kill(process5.pid, sig));
-        }
-      };
-    }), module.exports.signals = function() {
-      return signals;
-    }, loaded = !1, load = function() {
-      loaded || !processOk(global.process) || (loaded = !0, emitter.count += 1, signals = signals.filter(function(sig) {
-        try {
-          return process5.on(sig, sigListeners[sig]), !0;
-        } catch {
-          return !1;
-        }
-      }), process5.emit = processEmit, process5.reallyExit = processReallyExit);
-    }, module.exports.load = load, originalProcessReallyExit = process5.reallyExit, processReallyExit = function(code) {
-      processOk(global.process) && (process5.exitCode = code || /* istanbul ignore next */
-      0, emit("exit", process5.exitCode, null), emit("afterexit", process5.exitCode, null), originalProcessReallyExit.call(process5, process5.exitCode));
-    }, originalProcessEmit = process5.emit, processEmit = function(ev, arg) {
-      if (ev === "exit" && processOk(global.process)) {
-        arg !== void 0 && (process5.exitCode = arg);
-        var ret = originalProcessEmit.apply(this, arguments);
-        return emit("exit", process5.exitCode, null), emit("afterexit", process5.exitCode, null), ret;
-      } else
-        return originalProcessEmit.apply(this, arguments);
-    }) : module.exports = function() {
-      return function() {
-      };
-    };
-    var assert2, signals, isWin, EE, emitter, unload, emit, sigListeners, loaded, load, originalProcessReallyExit, processReallyExit, originalProcessEmit, processEmit;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/kill.js
-var require_kill = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/kill.js"(exports, module) {
-    "use strict";
-    var os3 = __require("os"), onExit = require_signal_exit(), DEFAULT_FORCE_KILL_TIMEOUT = 1e3 * 5, spawnedKill = (kill, signal = "SIGTERM", options = {}) => {
-      let killResult = kill(signal);
-      return setKillTimeout(kill, signal, options, killResult), killResult;
-    }, setKillTimeout = (kill, signal, options, killResult) => {
-      if (!shouldForceKill(signal, options, killResult))
-        return;
-      let timeout = getForceKillAfterTimeout(options), t = setTimeout(() => {
-        kill("SIGKILL");
-      }, timeout);
-      t.unref && t.unref();
-    }, shouldForceKill = (signal, { forceKillAfterTimeout }, killResult) => isSigterm(signal) && forceKillAfterTimeout !== !1 && killResult, isSigterm = (signal) => signal === os3.constants.signals.SIGTERM || typeof signal == "string" && signal.toUpperCase() === "SIGTERM", getForceKillAfterTimeout = ({ forceKillAfterTimeout = !0 }) => {
-      if (forceKillAfterTimeout === !0)
-        return DEFAULT_FORCE_KILL_TIMEOUT;
-      if (!Number.isFinite(forceKillAfterTimeout) || forceKillAfterTimeout < 0)
-        throw new TypeError(`Expected the \`forceKillAfterTimeout\` option to be a non-negative integer, got \`${forceKillAfterTimeout}\` (${typeof forceKillAfterTimeout})`);
-      return forceKillAfterTimeout;
-    }, spawnedCancel = (spawned, context2) => {
-      spawned.kill() && (context2.isCanceled = !0);
-    }, timeoutKill = (spawned, signal, reject) => {
-      spawned.kill(signal), reject(Object.assign(new Error("Timed out"), { timedOut: !0, signal }));
-    }, setupTimeout = (spawned, { timeout, killSignal = "SIGTERM" }, spawnedPromise) => {
-      if (timeout === 0 || timeout === void 0)
-        return spawnedPromise;
-      let timeoutId, timeoutPromise = new Promise((resolve2, reject) => {
-        timeoutId = setTimeout(() => {
-          timeoutKill(spawned, killSignal, reject);
-        }, timeout);
-      }), safeSpawnedPromise = spawnedPromise.finally(() => {
-        clearTimeout(timeoutId);
-      });
-      return Promise.race([timeoutPromise, safeSpawnedPromise]);
-    }, validateTimeout = ({ timeout }) => {
-      if (timeout !== void 0 && (!Number.isFinite(timeout) || timeout < 0))
-        throw new TypeError(`Expected the \`timeout\` option to be a non-negative integer, got \`${timeout}\` (${typeof timeout})`);
-    }, setExitHandler = async (spawned, { cleanup, detached }, timedPromise) => {
-      if (!cleanup || detached)
-        return timedPromise;
-      let removeExitHandler = onExit(() => {
-        spawned.kill();
-      });
-      return timedPromise.finally(() => {
-        removeExitHandler();
-      });
-    };
-    module.exports = {
-      spawnedKill,
-      spawnedCancel,
-      setupTimeout,
-      validateTimeout,
-      setExitHandler
-    };
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/is-stream@2.0.1/node_modules/is-stream/index.js
-var require_is_stream = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/is-stream@2.0.1/node_modules/is-stream/index.js"(exports, module) {
-    "use strict";
-    var isStream = (stream) => stream !== null && typeof stream == "object" && typeof stream.pipe == "function";
-    isStream.writable = (stream) => isStream(stream) && stream.writable !== !1 && typeof stream._write == "function" && typeof stream._writableState == "object";
-    isStream.readable = (stream) => isStream(stream) && stream.readable !== !1 && typeof stream._read == "function" && typeof stream._readableState == "object";
-    isStream.duplex = (stream) => isStream.writable(stream) && isStream.readable(stream);
-    isStream.transform = (stream) => isStream.duplex(stream) && typeof stream._transform == "function";
-    module.exports = isStream;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/get-stream@6.0.1/node_modules/get-stream/buffer-stream.js
-var require_buffer_stream = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/get-stream@6.0.1/node_modules/get-stream/buffer-stream.js"(exports, module) {
-    "use strict";
-    var { PassThrough: PassThroughStream } = __require("stream");
-    module.exports = (options) => {
-      options = { ...options };
-      let { array: array2 } = options, { encoding } = options, isBuffer = encoding === "buffer", objectMode = !1;
-      array2 ? objectMode = !(encoding || isBuffer) : encoding = encoding || "utf8", isBuffer && (encoding = null);
-      let stream = new PassThroughStream({ objectMode });
-      encoding && stream.setEncoding(encoding);
-      let length = 0, chunks = [];
-      return stream.on("data", (chunk2) => {
-        chunks.push(chunk2), objectMode ? length = chunks.length : length += chunk2.length;
-      }), stream.getBufferedValue = () => array2 ? chunks : isBuffer ? Buffer.concat(chunks, length) : chunks.join(""), stream.getBufferedLength = () => length, stream;
-    };
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/get-stream@6.0.1/node_modules/get-stream/index.js
-var require_get_stream = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/get-stream@6.0.1/node_modules/get-stream/index.js"(exports, module) {
-    "use strict";
-    var { constants: BufferConstants } = __require("buffer"), stream = __require("stream"), { promisify } = __require("util"), bufferStream = require_buffer_stream(), streamPipelinePromisified = promisify(stream.pipeline), MaxBufferError = class extends Error {
-      constructor() {
-        super("maxBuffer exceeded"), this.name = "MaxBufferError";
+        if (!refresh) return { ...previous, ...expected };
+        let headers = await this.authorization(!0), after = getAuthenticatedPrincipalFromAccessToken(
+          headers.Authorization?.slice(7) ?? null
+        );
+        if (after == null || principal.accountId !== after.accountId || principal.userId !== after.userId)
+          throw new Error("The Codex account changed. Reopen Code Review.");
+        return this.session = Promise.resolve(headers), { ...headers, ...expected };
       }
     };
-    async function getStream(inputStream, options) {
-      if (!inputStream)
-        throw new Error("Expected a stream");
-      options = {
-        maxBuffer: 1 / 0,
-        ...options
-      };
-      let { maxBuffer } = options, stream2 = bufferStream(options);
-      return await new Promise((resolve2, reject) => {
-        let rejectPromise = (error51) => {
-          error51 && stream2.getBufferedLength() <= BufferConstants.MAX_LENGTH && (error51.bufferedData = stream2.getBufferedValue()), reject(error51);
+  }
+});
+
+// server/github/service-client.ts
+import { createHash } from "node:crypto";
+var retryTimes, writeAttempts, writeOperations, accounts, GitHubProviderClient, init_service_client = __esm({
+  "server/github/service-client.ts"() {
+    init_src();
+    init_v4();
+    init_inbox_cache();
+    init_authorization();
+    init_session();
+    retryTimes = /* @__PURE__ */ new Map(), writeAttempts = new ReviewWriteAttempts(), writeOperations = new Set(CODE_REVIEW_GITHUB_WRITE_METHODS), accounts = /* @__PURE__ */ new Map(), GitHubProviderClient = class {
+      constructor(baseUrl, authorization = codeReviewAuthorization, fetchRequest = fetch, selection) {
+        this.fetchRequest = fetchRequest;
+        this.selection = selection;
+        let base = trustedCodeReviewBackendUrl(
+          baseUrl,
+          "GitHub provider credentials require ChatGPT HTTPS or loopback HTTP"
+        );
+        this.session = new CodeReviewBackendSession(
+          "Sign in to Codex to connect GitHub",
+          authorization
+        ), this.endpoint = new URL(base), this.endpoint.pathname = `${base.pathname.replace(/\/+$/, "")}/operations/`;
+      }
+      endpoint;
+      session;
+      /** Share display checks only after reading this action's current signed-in session. */
+      async getAccount(hostname3, fresh = !1, connection = this.selection?.hostname === hostname3 ? this.selection.connection : void 0) {
+        let headers = await this.session.headers(!1), key = this.accountKey(headers, hostname3, connection), cached2 = accounts.get(key);
+        if (!fresh && cached2 != null && cached2.expiresAt > Date.now())
+          return cached2.value;
+        for (let [key2, entry2] of accounts)
+          entry2.expiresAt <= Date.now() && accounts.delete(key2);
+        accounts.size >= 128 && accounts.delete(accounts.keys().next().value);
+        let entry = {
+          expiresAt: Date.now() + 15 * 6e4,
+          value: this.request("account", { hostname: hostname3, connection })
         };
-        (async () => {
-          try {
-            await streamPipelinePromisified(inputStream, stream2), resolve2();
-          } catch (error51) {
-            rejectPromise(error51);
-          }
-        })(), stream2.on("data", () => {
-          stream2.getBufferedLength() > maxBuffer && rejectPromise(new MaxBufferError());
-        });
-      }), stream2.getBufferedValue();
-    }
-    module.exports = getStream;
-    module.exports.buffer = (stream2, options) => getStream(stream2, { ...options, encoding: "buffer" });
-    module.exports.array = (stream2, options) => getStream(stream2, { ...options, array: !0 });
-    module.exports.MaxBufferError = MaxBufferError;
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/merge-stream@2.0.0/node_modules/merge-stream/index.js
-var require_merge_stream = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/merge-stream@2.0.0/node_modules/merge-stream/index.js"(exports, module) {
-    "use strict";
-    var { PassThrough } = __require("stream");
-    module.exports = function() {
-      var sources = [], output = new PassThrough({ objectMode: !0 });
-      return output.setMaxListeners(0), output.add = add, output.isEmpty = isEmpty, output.on("unpipe", remove), Array.prototype.slice.call(arguments).forEach(add), output;
-      function add(source) {
-        return Array.isArray(source) ? (source.forEach(add), this) : (sources.push(source), source.once("end", remove.bind(null, source)), source.once("error", output.emit.bind(output, "error")), source.pipe(output, { end: !1 }), this);
-      }
-      function isEmpty() {
-        return sources.length == 0;
-      }
-      function remove(source) {
-        sources = sources.filter(function(it) {
-          return it !== source;
-        }), !sources.length && output.readable && output.end();
-      }
-    };
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/stream.js
-var require_stream = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/stream.js"(exports, module) {
-    "use strict";
-    var isStream = require_is_stream(), getStream = require_get_stream(), mergeStream = require_merge_stream(), handleInput = (spawned, input) => {
-      input === void 0 || spawned.stdin === void 0 || (isStream(input) ? input.pipe(spawned.stdin) : spawned.stdin.end(input));
-    }, makeAllStream = (spawned, { all }) => {
-      if (!all || !spawned.stdout && !spawned.stderr)
-        return;
-      let mixed = mergeStream();
-      return spawned.stdout && mixed.add(spawned.stdout), spawned.stderr && mixed.add(spawned.stderr), mixed;
-    }, getBufferedData = async (stream, streamPromise) => {
-      if (stream) {
-        stream.destroy();
+        accounts.set(key, entry);
         try {
-          return await streamPromise;
+          let result = await entry.value;
+          return result.currentUser.status !== "success" && accounts.get(key) === entry && accounts.delete(key), result;
         } catch (error51) {
-          return error51.bufferedData;
+          throw accounts.get(key) === entry && accounts.delete(key), error51;
         }
       }
-    }, getStreamPromise = (stream, { encoding, buffer, maxBuffer }) => {
-      if (!(!stream || !buffer))
-        return encoding ? getStream(stream, { encoding, maxBuffer }) : getStream.buffer(stream, { maxBuffer });
-    }, getSpawnedResult = async ({ stdout, stderr, all }, { encoding, buffer, maxBuffer }, processDone) => {
-      let stdoutPromise = getStreamPromise(stdout, { encoding, buffer, maxBuffer }), stderrPromise = getStreamPromise(stderr, { encoding, buffer, maxBuffer }), allPromise = getStreamPromise(all, { encoding, buffer, maxBuffer: maxBuffer * 2 });
-      try {
-        return await Promise.all([processDone, stdoutPromise, stderrPromise, allPromise]);
-      } catch (error51) {
-        return Promise.all([
-          { error: error51, signal: error51.signal, timedOut: error51.timedOut },
-          getBufferedData(stdout, stdoutPromise),
-          getBufferedData(stderr, stderrPromise),
-          getBufferedData(all, allPromise)
+      accountKey(headers, hostname3 = "github.com", connection) {
+        return JSON.stringify([
+          this.endpoint.href,
+          hostname3.toLowerCase(),
+          connection?.connectorId,
+          connection?.accountLinkId,
+          createHash("sha256").update(JSON.stringify(headers)).digest("hex")
         ]);
       }
-    }, validateInputSync = ({ input }) => {
-      if (isStream(input))
-        throw new TypeError("The `input` option cannot be a stream in sync mode");
-    };
-    module.exports = {
-      handleInput,
-      makeAllStream,
-      getSpawnedResult,
-      validateInputSync
-    };
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/promise.js
-var require_promise = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/promise.js"(exports, module) {
-    "use strict";
-    var nativePromisePrototype = (async () => {
-    })().constructor.prototype, descriptors = ["then", "catch", "finally"].map((property) => [
-      property,
-      Reflect.getOwnPropertyDescriptor(nativePromisePrototype, property)
-    ]), mergePromise = (spawned, promise2) => {
-      for (let [property, descriptor] of descriptors) {
-        let value = typeof promise2 == "function" ? (...args) => Reflect.apply(descriptor.value, promise2(), args) : descriptor.value.bind(promise2);
-        Reflect.defineProperty(spawned, property, { ...descriptor, value });
-      }
-      return spawned;
-    }, getSpawnedPromise = (spawned) => new Promise((resolve2, reject) => {
-      spawned.on("exit", (exitCode, signal) => {
-        resolve2({ exitCode, signal });
-      }), spawned.on("error", (error51) => {
-        reject(error51);
-      }), spawned.stdin && spawned.stdin.on("error", (error51) => {
-        reject(error51);
-      });
-    });
-    module.exports = {
-      mergePromise,
-      getSpawnedPromise
-    };
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/command.js
-var require_command = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/command.js"(exports, module) {
-    "use strict";
-    var normalizeArgs = (file2, args = []) => Array.isArray(args) ? [file2, ...args] : [file2], NO_ESCAPE_REGEXP = /^[\w.-]+$/, DOUBLE_QUOTES_REGEXP = /"/g, escapeArg = (arg) => typeof arg != "string" || NO_ESCAPE_REGEXP.test(arg) ? arg : `"${arg.replace(DOUBLE_QUOTES_REGEXP, '\\"')}"`, joinCommand = (file2, args) => normalizeArgs(file2, args).join(" "), getEscapedCommand = (file2, args) => normalizeArgs(file2, args).map((arg) => escapeArg(arg)).join(" "), SPACES_REGEXP = / +/g, parseCommand = (command) => {
-      let tokens = [];
-      for (let token of command.trim().split(SPACES_REGEXP)) {
-        let previousToken = tokens[tokens.length - 1];
-        previousToken && previousToken.endsWith("\\") ? tokens[tokens.length - 1] = `${previousToken.slice(0, -1)} ${token}` : tokens.push(token);
-      }
-      return tokens;
-    };
-    module.exports = {
-      joinCommand,
-      getEscapedCommand,
-      parseCommand
-    };
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/execa@5.1.1/node_modules/execa/index.js
-var require_execa = __commonJS({
-  "../../codex/codex-apps/node_modules/.pnpm/execa@5.1.1/node_modules/execa/index.js"(exports, module) {
-    "use strict";
-    var path7 = __require("path"), childProcess = __require("child_process"), crossSpawn = require_cross_spawn(), stripFinalNewline = require_strip_final_newline(), npmRunPath = require_npm_run_path(), onetime = require_onetime(), makeError = require_error(), normalizeStdio = require_stdio(), { spawnedKill, spawnedCancel, setupTimeout, validateTimeout, setExitHandler } = require_kill(), { handleInput, getSpawnedResult, makeAllStream, validateInputSync } = require_stream(), { mergePromise, getSpawnedPromise } = require_promise(), { joinCommand, parseCommand, getEscapedCommand } = require_command(), DEFAULT_MAX_BUFFER = 1e3 * 1e3 * 100, getEnv = ({ env: envOption, extendEnv, preferLocal, localDir, execPath }) => {
-      let env = extendEnv ? { ...process.env, ...envOption } : envOption;
-      return preferLocal ? npmRunPath.env({ env, cwd: localDir, execPath }) : env;
-    }, handleArguments = (file2, args, options = {}) => {
-      let parsed = crossSpawn._parse(file2, args, options);
-      return file2 = parsed.command, args = parsed.args, options = parsed.options, options = {
-        maxBuffer: DEFAULT_MAX_BUFFER,
-        buffer: !0,
-        stripFinalNewline: !0,
-        extendEnv: !0,
-        preferLocal: !1,
-        localDir: options.cwd || process.cwd(),
-        execPath: process.execPath,
-        encoding: "utf8",
-        reject: !0,
-        cleanup: !0,
-        all: !1,
-        windowsHide: !0,
-        ...options
-      }, options.env = getEnv(options), options.stdio = normalizeStdio(options), process.platform === "win32" && path7.basename(file2, ".exe") === "cmd" && args.unshift("/q"), { file: file2, args, options, parsed };
-    }, handleOutput = (options, value, error51) => typeof value != "string" && !Buffer.isBuffer(value) ? error51 === void 0 ? void 0 : "" : options.stripFinalNewline ? stripFinalNewline(value) : value, execa2 = (file2, args, options) => {
-      let parsed = handleArguments(file2, args, options), command = joinCommand(file2, args), escapedCommand = getEscapedCommand(file2, args);
-      validateTimeout(parsed.options);
-      let spawned;
-      try {
-        spawned = childProcess.spawn(parsed.file, parsed.args, parsed.options);
-      } catch (error51) {
-        let dummySpawned = new childProcess.ChildProcess(), errorPromise = Promise.reject(makeError({
-          error: error51,
-          stdout: "",
-          stderr: "",
-          all: "",
-          command,
-          escapedCommand,
-          parsed,
-          timedOut: !1,
-          isCanceled: !1,
-          killed: !1
-        }));
-        return mergePromise(dummySpawned, errorPromise);
-      }
-      let spawnedPromise = getSpawnedPromise(spawned), timedPromise = setupTimeout(spawned, parsed.options, spawnedPromise), processDone = setExitHandler(spawned, parsed.options, timedPromise), context2 = { isCanceled: !1 };
-      spawned.kill = spawnedKill.bind(null, spawned.kill.bind(spawned)), spawned.cancel = spawnedCancel.bind(null, spawned, context2);
-      let handlePromiseOnce = onetime(async () => {
-        let [{ error: error51, exitCode, signal, timedOut }, stdoutResult, stderrResult, allResult] = await getSpawnedResult(spawned, parsed.options, processDone), stdout = handleOutput(parsed.options, stdoutResult), stderr = handleOutput(parsed.options, stderrResult), all = handleOutput(parsed.options, allResult);
-        if (error51 || exitCode !== 0 || signal !== null) {
-          let returnedError = makeError({
-            error: error51,
-            exitCode,
-            signal,
-            stdout,
-            stderr,
-            all,
-            command,
-            escapedCommand,
-            parsed,
-            timedOut,
-            isCanceled: context2.isCanceled,
-            killed: spawned.killed
-          });
-          if (!parsed.options.reject)
-            return returnedError;
-          throw returnedError;
+      async request(operation, request, options = {}) {
+        let endpoint = new URL(this.endpoint);
+        endpoint.pathname += operation;
+        let signal = options.signal ?? new AbortController().signal, retryKey = "", selectedAccount = "account" in request ? request.account : void 0, hostname3 = selectedAccount != null ? selectedAccount.hostname : "hostname" in request ? request.hostname : "github.com", connection = selectedAccount != null ? selectedAccount.connection : "connection" in request ? request.connection : void 0, requestBody = JSON.stringify(request), writeAttempt, send = async (headers, requestSignal) => {
+          retryKey = JSON.stringify([
+            this.endpoint.href,
+            headers["X-Codex-Expected-User-Id"],
+            headers["X-Codex-Expected-Account-Id"],
+            hostname3,
+            connection?.connectorId,
+            connection?.accountLinkId
+          ]);
+          let retryAt = retryTimes.get(retryKey) ?? 0;
+          if (retryAt > Date.now())
+            throw new PluginReadError(
+              "GitHub asked Code Review to wait before trying again.",
+              "rate-limit",
+              retryAt
+            );
+          if (writeOperations.has(operation) && writeAttempt == null) {
+            if (writeAttempt = await writeAttempts.start(retryKey, operation, request), writeAttempt == null)
+              throw new Error(
+                "Too many actions have an uncertain outcome. Check them before submitting more."
+              );
+            requestBody = JSON.stringify({
+              ...request,
+              ...writeAttempt.parameters
+            });
+          }
+          try {
+            let response = await this.fetchRequest(endpoint, {
+              method: "POST",
+              headers: {
+                ...headers,
+                "Content-Type": "application/json"
+              },
+              body: requestBody,
+              redirect: "error",
+              signal: requestSignal
+            });
+            return [401, 403, 409].includes(response.status) && accounts.delete(this.accountKey(headers, hostname3, connection)), response;
+          } catch (error51) {
+            throw requestSignal.throwIfAborted(), new Error("Can't connect to GitHub. Try again.", {
+              cause: error51
+            });
+          }
+        }, responseStatus;
+        try {
+          for (; ; ) {
+            signal.throwIfAborted();
+            let requestSignal = AbortSignal.any([
+              signal,
+              AbortSignal.timeout(options.timeoutMs ?? 6e4)
+            ]), response = await this.session.request(
+              (headers) => send(headers, requestSignal),
+              requestSignal
+            );
+            if (responseStatus = response.status, !response.ok) {
+              let failure = external_exports.object({
+                error: external_exports.object({ message: external_exports.string() }).optional().catch(void 0),
+                detail: external_exports.string().optional().catch(void 0)
+              }).safeParse(await response.json().catch(() => null));
+              if (response.status === 429 || response.headers.get("x-ratelimit-remaining") === "0") {
+                let retryAt = Math.max(
+                  Date.now() + Number(response.headers.get("retry-after") ?? 60) * 1e3,
+                  Number(response.headers.get("x-ratelimit-reset") ?? 0) * 1e3
+                );
+                for (let [key, deadline] of retryTimes)
+                  deadline <= Date.now() && retryTimes.delete(key);
+                throw retryTimes.set(retryKey, retryAt), new PluginReadError(
+                  "GitHub asked Code Review to wait before trying again.",
+                  "rate-limit",
+                  retryAt
+                );
+              }
+              if (response.status === 401)
+                throw new PluginReadError(
+                  "Sign in to Codex to connect GitHub",
+                  "access"
+                );
+              if (response.status === 403)
+                throw new PluginReadError(
+                  "GitHub access is denied for this workspace",
+                  "access"
+                );
+              let message = failure.success ? failure.data.error?.message || failure.data.detail : void 0;
+              throw new Error(
+                `GitHub provider request failed (HTTP ${response.status})${message ? `: ${message}` : ""}`
+              );
+            }
+            let result = await response.json();
+            if (operation === "gh-pr-merge" && writeAttempt != null && mergeResponseSchema.parse(result).status === "pending") {
+              writeAttempts.accepted(writeAttempt), await waitForMergePoll(signal);
+              continue;
+            }
+            return writeAttempt != null && (external_exports.object({ status: external_exports.enum(["success", "error"]) }).safeParse(result).success ? writeAttempts.complete(writeAttempt) : writeAttempts.failed(writeAttempt)), result;
+          }
+        } catch (error51) {
+          throw writeAttempt != null && writeAttempts.failed(writeAttempt, responseStatus), error51;
         }
-        return {
-          command,
-          escapedCommand,
-          exitCode: 0,
-          stdout,
-          stderr,
-          all,
-          failed: !1,
-          timedOut: !1,
-          isCanceled: !1,
-          killed: !1
-        };
-      });
-      return handleInput(spawned, parsed.options.input), spawned.all = makeAllStream(spawned, parsed.options), mergePromise(spawned, handlePromiseOnce);
+      }
     };
-    module.exports = execa2;
-    module.exports.sync = (file2, args, options) => {
-      let parsed = handleArguments(file2, args, options), command = joinCommand(file2, args), escapedCommand = getEscapedCommand(file2, args);
-      validateInputSync(parsed.options);
-      let result;
-      try {
-        result = childProcess.spawnSync(parsed.file, parsed.args, parsed.options);
-      } catch (error51) {
-        throw makeError({
-          error: error51,
-          stdout: "",
-          stderr: "",
-          all: "",
-          command,
-          escapedCommand,
-          parsed,
-          timedOut: !1,
-          isCanceled: !1,
-          killed: !1
-        });
+  }
+});
+
+// server/github/service.ts
+import { AsyncLocalStorage } from "node:async_hooks";
+function selectGitHubProvider(enabled) {
+  return enabled === serviceEnabled ? !1 : (serviceEnabled = enabled, enabled ? legacyWork.abort(
+    new Error(
+      "Code Review switched to the GitHub service. Retry the action."
+    )
+  ) : legacyWork = new AbortController(), enabled);
+}
+function selectedGitHubProvider() {
+  return serviceEnabled;
+}
+function githubWorkSignal() {
+  return serviceRequest.getStore()?.signal;
+}
+function checkGitHubWork() {
+  githubWorkSignal()?.throwIfAborted();
+}
+function withGitHubProvider(enabled, run, selection) {
+  let client = null;
+  if (enabled) {
+    let override = process.env.GITHUB_PROVIDER_URL?.trim();
+    if (override) {
+      let url2 = new URL(override);
+      if (url2.protocol !== "http:" || !["127.0.0.1", "localhost", "[::1]"].includes(url2.hostname))
+        throw new Error(
+          "GITHUB_PROVIDER_URL must use loopback HTTP; use CODEX_API_BASE_URL for ChatGPT"
+        );
+    }
+    let baseUrl = process.env.CODEX_API_BASE_URL?.trim().replace(/\/+$/, "") || ((process.env.CODEX_API_ENDPOINT ?? "").toLowerCase() === "localhost" ? "http://localhost:8000/api" : "https://chatgpt.com/backend-api");
+    client = new GitHubProviderClient(
+      override || `${baseUrl}/wham/github`,
+      void 0,
+      void 0,
+      selection
+    );
+  }
+  return serviceRequest.run(
+    { client, signal: enabled ? void 0 : legacyWork.signal },
+    run
+  );
+}
+function githubProviderRequired() {
+  return serviceRequest.getStore()?.client != null;
+}
+function githubProviderForRequest(_hostname) {
+  return checkGitHubWork(), serviceRequest.getStore()?.client ?? null;
+}
+async function githubOperation(operation, request, legacy, host3) {
+  let client = githubProviderForRequest(request.account.hostname);
+  return client == null ? legacy(request, host3) : client.request(operation, request);
+}
+var serviceRequest, serviceEnabled, legacyWork, init_service = __esm({
+  "server/github/service.ts"() {
+    init_service_client();
+    serviceRequest = new AsyncLocalStorage(), serviceEnabled = !1, legacyWork = new AbortController();
+  }
+});
+
+// server/github/background-budget.ts
+import { AsyncLocalStorage as AsyncLocalStorage2 } from "node:async_hooks";
+var BackgroundBudget, init_background_budget = __esm({
+  "server/github/background-budget.ts"() {
+    BackgroundBudget = class {
+      context = new AsyncLocalStorage2();
+      accounts = /* @__PURE__ */ new Map();
+      run(account, signal, read) {
+        let key = JSON.stringify([account.hostname, account.login]), allowance = this.accounts.get(key);
+        return allowance == null && (allowance = { charges: [], pauseUntil: 0 }, this.accounts.set(key, allowance)), this.context.run({ allowance, signal }, read);
       }
-      let stdout = handleOutput(parsed.options, result.stdout, result.error), stderr = handleOutput(parsed.options, result.stderr, result.error);
-      if (result.error || result.status !== 0 || result.signal !== null) {
-        let error51 = makeError({
-          stdout,
-          stderr,
-          error: result.error,
-          signal: result.signal,
-          exitCode: result.status,
-          command,
-          escapedCommand,
-          parsed,
-          timedOut: result.error && result.error.code === "ETIMEDOUT",
-          isCanceled: !1,
-          killed: result.signal !== null
-        });
-        if (!parsed.options.reject)
-          return error51;
-        throw error51;
+      get active() {
+        return this.context.getStore() != null;
       }
-      return {
-        command,
-        escapedCommand,
-        exitCode: 0,
-        stdout,
-        stderr,
-        failed: !1,
-        timedOut: !1,
-        isCanceled: !1,
-        killed: !1
+      get signal() {
+        return this.context.getStore()?.signal;
+      }
+      charge(args) {
+        let context2 = this.context.getStore();
+        if (context2 == null)
+          return;
+        context2.signal.throwIfAborted();
+        let { allowance } = context2, now = Date.now();
+        allowance.charges = allowance.charges.filter(
+          (item) => item.at > now - 36e5
+        );
+        let graphql = 0, rest = 0;
+        if (args[0] === "api")
+          args[1] === "graphql" ? graphql = 3 : args.includes("rate_limit") || (rest = 1);
+        else if (args[0] === "pr" && args[1] === "view")
+          graphql = 1;
+        else if (args[0] === "pr" && args[1] === "diff")
+          graphql = 1, rest = 1;
+        else
+          throw new Error("Unsupported background GitHub operation");
+        let used = allowance.charges.reduce(
+          (sum, item) => ({
+            graphql: sum.graphql + item.graphql,
+            rest: sum.rest + item.rest
+          }),
+          { graphql, rest }
+        );
+        if (allowance.pauseUntil > now || used.graphql > 180 || used.rest > 180)
+          throw new Error("Background GitHub allowance exhausted");
+        allowance.charges.push({ at: now, graphql, rest });
+      }
+      observeRemaining(remaining, resetAt) {
+        let allowance = this.context.getStore()?.allowance;
+        allowance != null && remaining < 500 && (allowance.pauseUntil = Math.max(allowance.pauseUntil, resetAt));
+      }
+    };
+  }
+});
+
+// server/local-execution-host.ts
+import { AsyncLocalStorage as AsyncLocalStorage3 } from "node:async_hooks";
+import { spawn as spawnChild } from "node:child_process";
+import { constants as fsConstants } from "node:fs";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+function toReadableStream(stream) {
+  return new ReadableStream({
+    start(controller) {
+      stream.on("data", (chunk2) => {
+        controller.enqueue(
+          typeof chunk2 == "string" ? Buffer.from(chunk2) : chunk2
+        );
+      }), stream.once("end", () => controller.close()), stream.once("error", (error51) => controller.error(error51));
+    },
+    cancel() {
+      stream.destroy();
+    }
+  });
+}
+function toWritableStream(stream) {
+  return new WritableStream({
+    write(chunk2) {
+      return new Promise((resolve2, reject) => {
+        stream.write(chunk2, (error51) => {
+          error51 != null ? reject(error51) : resolve2();
+        });
+      });
+    },
+    close() {
+      stream.end();
+    },
+    abort() {
+      stream.destroy();
+    }
+  });
+}
+var PullRequestsExecutionHost, init_local_execution_host = __esm({
+  "server/local-execution-host.ts"() {
+    init_inbox_cache();
+    init_background_budget();
+    init_service();
+    PullRequestsExecutionHost = class {
+      backgroundBudget = new BackgroundBudget();
+      githubRetryTimes = /* @__PURE__ */ new Map();
+      githubRequests = new AsyncLocalStorage3();
+      hostConfig = {
+        id: "local",
+        display_name: "Local",
+        kind: "local"
       };
-    };
-    module.exports.command = (command, options) => {
-      let [file2, ...args] = parseCommand(command);
-      return execa2(file2, args, options);
-    };
-    module.exports.commandSync = (command, options) => {
-      let [file2, ...args] = parseCommand(command);
-      return execa2.sync(file2, args, options);
-    };
-    module.exports.node = (scriptPath, args, options = {}) => {
-      args && !Array.isArray(args) && typeof args == "object" && (options = args, args = []);
-      let stdio = normalizeStdio.node(options), defaultExecArgv = process.execArgv.filter((arg) => !arg.startsWith("--inspect")), {
-        nodePath = process.execPath,
-        nodeOptions = defaultExecArgv
-      } = options;
-      return execa2(
-        nodePath,
-        [
-          ...nodeOptions,
-          scriptPath,
-          ...Array.isArray(args) ? args : []
-        ],
-        {
-          ...options,
-          stdin: void 0,
-          stdout: void 0,
-          stderr: void 0,
-          stdio,
-          shell: !1
+      id = "local";
+      isLocal = !0;
+      githubRetryAt(hostname3, resource) {
+        let times = this.githubRetryTimes.get(hostname3.toLowerCase());
+        return Math.max(
+          times?.all ?? 0,
+          resource == null ? Math.max(times?.core ?? 0, times?.graphql ?? 0) : times?.[resource] ?? 0
+        );
+      }
+      withGitHubRequest(read) {
+        return this.githubRequests.run({ retryAt: 0 }, read);
+      }
+      get requestRetryAt() {
+        return this.githubRequests.getStore()?.retryAt ?? 0;
+      }
+      checkGitHubRetry(hostname3, resource) {
+        let retryAt = this.githubRetryAt(hostname3, resource);
+        if (retryAt <= Date.now()) return;
+        let request = this.githubRequests.getStore();
+        throw request != null && (request.retryAt = Math.max(request.retryAt, retryAt)), new PluginReadError(
+          "GitHub asked Code Review to wait before trying again.",
+          "rate-limit",
+          retryAt
+        );
+      }
+      recordGitHubRateLimit(hostname3, resource, diagnostics, request) {
+        if (!/rate limit|secondary limit|abuse|HTTP(?:\/\S+)?\s+429|x-ratelimit-remaining:\s*0\b/i.test(
+          diagnostics
+        ))
+          return;
+        let retryAfter = Number(
+          diagnostics.match(/retry-after:\s*(\d+)/i)?.[1] ?? 60
+        ), reset = Number(diagnostics.match(/x-ratelimit-reset:\s*(\d+)/i)?.[1] ?? 0) * 1e3, primary = /x-ratelimit-remaining:\s*0\b/i.test(diagnostics), headerResource = diagnostics.match(
+          /x-ratelimit-resource:\s*(\w+)/i
+        )?.[1], limitedResource = primary ? headerResource === "core" || headerResource === "graphql" ? headerResource : resource : void 0, times = this.githubRetryTimes.get(hostname3) ?? {
+          all: 0,
+          core: 0,
+          graphql: 0
+        }, key = limitedResource ?? "all";
+        times[key] = Math.max(
+          times[key],
+          Date.now() + retryAfter * 1e3,
+          primary ? reset : 0
+        ), this.githubRetryTimes.set(hostname3, times), request != null && (request.retryAt = Math.max(request.retryAt, times[key]));
+      }
+      async spawn(options) {
+        let [command, ...args] = options.args;
+        if (command == null)
+          throw new Error("Cannot start an empty command");
+        if (githubProviderRequired() && path.basename(command) === "gh")
+          throw new Error(
+            "GitHub CLI execution is disabled while Code Review uses the service"
+          );
+        let githubHostname;
+        if (command === "gh" && (args[0] === "api" || args[0] === "pr")) {
+          let hostnameIndex = args.indexOf("--hostname"), repoIndex = args.indexOf("--repo"), repo = repoIndex < 0 ? void 0 : args[repoIndex + 1]?.split("/");
+          githubHostname = (hostnameIndex >= 0 ? args[hostnameIndex + 1] : repo?.length === 3 ? repo[0] : options.env?.GH_HOST ?? process.env.GH_HOST ?? "github.com")?.toLowerCase();
         }
-      );
+        let resource = args[0] === "api" ? args[1] === "graphql" ? "graphql" : "core" : args[0] === "pr" && args[1] === "view" ? "graphql" : void 0, request = this.githubRequests.getStore();
+        githubHostname != null && this.checkGitHubRetry(githubHostname, resource), command === "gh" && this.backgroundBudget.charge(args);
+        let backgroundSignal = command === "gh" ? this.backgroundBudget.signal : void 0, signal = AbortSignal.any(
+          [options.signal, backgroundSignal, githubWorkSignal()].filter(
+            (value) => value != null
+          )
+        );
+        signal.throwIfAborted();
+        let child = spawnChild(command, args, {
+          cwd: options.cwd,
+          env: { ...process.env, ...options.env },
+          stdio: ["pipe", "pipe", "pipe"]
+        });
+        if (githubHostname != null) {
+          let diagnostics = "", observe = (chunk2) => {
+            diagnostics = (diagnostics + chunk2.toString()).slice(-16384);
+          };
+          child.stderr.on("data", observe), args.includes("--include") && child.stdout.on("data", observe), child.once("close", (code) => {
+            code !== 0 && this.recordGitHubRateLimit(
+              githubHostname,
+              resource,
+              diagnostics,
+              request
+            );
+          });
+        }
+        let timeout = options.timeoutMs == null ? null : setTimeout(() => child.kill(), options.timeoutMs), onAbort = () => {
+          child.kill();
+        };
+        return signal?.addEventListener("abort", onAbort, { once: !0 }), signal?.aborted && child.kill(), {
+          stdin: toWritableStream(child.stdin),
+          stderr: toReadableStream(child.stderr),
+          stdout: toReadableStream(child.stdout),
+          kill: () => child.kill(),
+          resize: async () => {
+          },
+          wait: async () => {
+            let result = await new Promise((resolve2, reject) => {
+              child.once("error", reject), child.once("close", (code, signal2) => {
+                resolve2({ code, signal: signal2 });
+              });
+            });
+            return timeout != null && clearTimeout(timeout), signal?.removeEventListener("abort", onAbort), result;
+          }
+        };
+      }
+      readFile(filePath) {
+        return fs.readFile(filePath).then(
+          (contents) => new ReadableStream({
+            start(controller) {
+              controller.enqueue(contents), controller.close();
+            }
+          })
+        );
+      }
+      async writeFile(filePath, contents, options = {}) {
+        if (options.signal?.throwIfAborted(), contents instanceof ReadableStream) {
+          let reader = contents.getReader(), chunks = [];
+          for (; ; ) {
+            options.signal?.throwIfAborted();
+            let chunk2 = await reader.read();
+            if (chunk2.done)
+              break;
+            chunks.push(chunk2.value);
+          }
+          await fs.writeFile(filePath, Buffer.concat(chunks));
+          return;
+        }
+        await fs.writeFile(
+          filePath,
+          typeof contents == "string" || contents instanceof Uint8Array ? contents : new Uint8Array(await contents.arrayBuffer())
+        );
+      }
+      async createDirectory(dirPath, options = {}) {
+        await fs.mkdir(dirPath, { recursive: options.recursive ?? !0 });
+      }
+      stat(filePath, options = {}) {
+        return options.followSymlinks === !1 ? fs.lstat(filePath) : fs.stat(filePath);
+      }
+      readDirectory(dirPath) {
+        return fs.readdir(dirPath, { withFileTypes: !0 });
+      }
+      remove(targetPath, options = {}) {
+        return fs.rm(targetPath, {
+          force: options.force ?? !0,
+          recursive: options.recursive ?? !0
+        });
+      }
+      copyFile(sourcePath, destinationPath, options = {}) {
+        return fs.copyFile(
+          sourcePath,
+          destinationPath,
+          options.exclusive ? fsConstants.COPYFILE_EXCL : 0
+        );
+      }
+      copy(sourcePath, destinationPath, options = {}) {
+        return fs.cp(sourcePath, destinationPath, {
+          recursive: options.recursive ?? !1
+        });
+      }
+      codexHome() {
+        return Promise.resolve(
+          process.env.CODEX_HOME?.trim() || path.join(os.homedir(), ".codex")
+        );
+      }
+      async workspacesRoot() {
+        throw new Error("Pull Requests does not manage local workspaces");
+      }
+      platformFamily() {
+        return Promise.resolve(process.platform === "win32" ? "windows" : "unix");
+      }
+      platformOs() {
+        return Promise.resolve(
+          process.platform === "darwin" ? "macos" : process.platform
+        );
+      }
+      platformPath() {
+        return Promise.resolve(
+          process.platform === "win32" ? path.win32 : path.posix
+        );
+      }
+      startFileWatch(_params) {
+        throw new Error("Pull Requests does not watch local files");
+      }
     };
-  }
-});
-
-// ../../codex/codex-apps/git-worker/src/platform-path.ts
-var init_platform_path = __esm({
-  "../../codex/codex-apps/git-worker/src/platform-path.ts"() {
-  }
-});
-
-// ../../codex/codex-apps/git-worker/src/git/git-manager-paths.ts
-var init_git_manager_paths = __esm({
-  "../../codex/codex-apps/git-worker/src/git/git-manager-paths.ts"() {
   }
 });
 
@@ -26369,6 +26098,7 @@ var DEFAULT_WORKTREE_UPSTREAM_REFRESH_MODE, DEFAULT_BROWSER_ANNOTATION_SCREENSHO
       SITE_CREATOR_BUNDLED_PLUGIN_AUTO_INSTALL_DISABLED: "site-creator-bundled-plugin-auto-install-disabled",
       BROWSER_USE_BUNDLED_PLUGIN_AUTO_INSTALL_DISABLED: "browser-use-bundled-plugin-auto-install-disabled",
       COMPUTER_USE_BUNDLED_PLUGIN_AUTO_INSTALL_DISABLED: "computer-use-bundled-plugin-auto-install-disabled",
+      IMAGE_GUIDED_ASSETS_BUNDLED_PLUGIN_AUTO_INSTALL_DISABLED: "image-guided-assets-bundled-plugin-auto-install-disabled",
       BROWSER_ANNOTATION_SCREENSHOTS_MODE: "browser-annotation-screenshots-mode",
       BROWSER_DOWNLOAD_DIRECTORY: "browser-download-directory",
       BROWSER_DOWNLOAD_PROMPT_ENABLED: "browser-download-prompt-enabled",
@@ -26412,13 +26142,13 @@ var init_node_repl_codex_config = __esm({
 });
 
 // ../../codex/codex-apps/protocol/src/bundled-plugins.ts
-var OPENAI_BUNDLED_MARKETPLACE_NAME, BUNDLED_BROWSER_USE_PLUGIN_NAME, BUNDLED_COMPUTER_USE_PLUGIN_NAME, BUNDLED_COMPUTER_USE_PLUGIN_ID, bundledPluginOptOutKeys, init_bundled_plugins = __esm({
+var OPENAI_BUNDLED_MARKETPLACE_NAME, BUNDLED_BROWSER_USE_PLUGIN_NAME, BUNDLED_COMPUTER_USE_PLUGIN_NAME, BUNDLED_COMPUTER_USE_PLUGIN_ID, BUNDLED_IMAGE_GUIDED_ASSETS_PLUGIN_NAME, bundledPluginOptOutKeys, init_bundled_plugins = __esm({
   "../../codex/codex-apps/protocol/src/bundled-plugins.ts"() {
     "use strict";
     init_browser_use_plugin();
     init_global_state_key();
     init_node_repl_codex_config();
-    OPENAI_BUNDLED_MARKETPLACE_NAME = "openai-bundled", BUNDLED_BROWSER_USE_PLUGIN_NAME = IN_APP_BROWSER_USE_PLUGIN_NAME, BUNDLED_COMPUTER_USE_PLUGIN_NAME = "computer-use", BUNDLED_COMPUTER_USE_PLUGIN_ID = `${BUNDLED_COMPUTER_USE_PLUGIN_NAME}@${OPENAI_BUNDLED_MARKETPLACE_NAME}`, bundledPluginOptOutKeys = /* @__PURE__ */ new Map([
+    OPENAI_BUNDLED_MARKETPLACE_NAME = "openai-bundled", BUNDLED_BROWSER_USE_PLUGIN_NAME = IN_APP_BROWSER_USE_PLUGIN_NAME, BUNDLED_COMPUTER_USE_PLUGIN_NAME = "computer-use", BUNDLED_COMPUTER_USE_PLUGIN_ID = `${BUNDLED_COMPUTER_USE_PLUGIN_NAME}@${OPENAI_BUNDLED_MARKETPLACE_NAME}`, BUNDLED_IMAGE_GUIDED_ASSETS_PLUGIN_NAME = "image-guided-assets", bundledPluginOptOutKeys = /* @__PURE__ */ new Map([
       [
         BUNDLED_BROWSER_USE_PLUGIN_NAME,
         GlobalStateKey.BROWSER_USE_BUNDLED_PLUGIN_AUTO_INSTALL_DISABLED
@@ -26426,6 +26156,10 @@ var OPENAI_BUNDLED_MARKETPLACE_NAME, BUNDLED_BROWSER_USE_PLUGIN_NAME, BUNDLED_CO
       [
         BUNDLED_COMPUTER_USE_PLUGIN_NAME,
         GlobalStateKey.COMPUTER_USE_BUNDLED_PLUGIN_AUTO_INSTALL_DISABLED
+      ],
+      [
+        BUNDLED_IMAGE_GUIDED_ASSETS_PLUGIN_NAME,
+        GlobalStateKey.IMAGE_GUIDED_ASSETS_BUNDLED_PLUGIN_AUTO_INSTALL_DISABLED
       ]
     ]);
   }
@@ -27489,7 +27223,7 @@ var require_stubFalse = __commonJS({
 // ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/isBuffer.js
 var require_isBuffer = __commonJS({
   "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/isBuffer.js"(exports, module) {
-    var root = require_root(), stubFalse = require_stubFalse(), freeExports = typeof exports == "object" && exports && !exports.nodeType && exports, freeModule = freeExports && typeof module == "object" && module && !module.nodeType && module, moduleExports = freeModule && freeModule.exports === freeExports, Buffer2 = moduleExports ? root.Buffer : void 0, nativeIsBuffer = Buffer2 ? Buffer2.isBuffer : void 0, isBuffer = nativeIsBuffer || stubFalse;
+    var root = require_root(), stubFalse = require_stubFalse(), freeExports = typeof exports == "object" && exports && !exports.nodeType && exports, freeModule = freeExports && typeof module == "object" && module && !module.nodeType && module, moduleExports = freeModule && freeModule.exports === freeExports, Buffer3 = moduleExports ? root.Buffer : void 0, nativeIsBuffer = Buffer3 ? Buffer3.isBuffer : void 0, isBuffer = nativeIsBuffer || stubFalse;
     module.exports = isBuffer;
   }
 });
@@ -27718,7 +27452,7 @@ var require_baseAssignIn = __commonJS({
 // ../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneBuffer.js
 var require_cloneBuffer = __commonJS({
   "../../codex/codex-apps/node_modules/.pnpm/lodash@4.18.1/node_modules/lodash/_cloneBuffer.js"(exports, module) {
-    var root = require_root(), freeExports = typeof exports == "object" && exports && !exports.nodeType && exports, freeModule = freeExports && typeof module == "object" && module && !module.nodeType && module, moduleExports = freeModule && freeModule.exports === freeExports, Buffer2 = moduleExports ? root.Buffer : void 0, allocUnsafe = Buffer2 ? Buffer2.allocUnsafe : void 0;
+    var root = require_root(), freeExports = typeof exports == "object" && exports && !exports.nodeType && exports, freeModule = freeExports && typeof module == "object" && module && !module.nodeType && module, moduleExports = freeModule && freeModule.exports === freeExports, Buffer3 = moduleExports ? root.Buffer : void 0, allocUnsafe = Buffer3 ? Buffer3.allocUnsafe : void 0;
     function cloneBuffer(buffer, isDeep) {
       if (isDeep)
         return buffer.slice();
@@ -28525,6 +28259,8 @@ var DEFAULT_MODEL_ROUTING_CONFIG, modelSlugSchema, modelRoutingConfigSchema, ini
     DEFAULT_MODEL_ROUTING_CONFIG = {
       automationModel: "gpt-6.1-sol",
       ephemeralGenerationModel: "gpt-6-luna",
+      /** Preferred model for ephemeral Page visualizations. */
+      ephemeralVisualizationModel: "gpt-6.1-sol",
       ambientSuggestionsModel: "gpt-6-luna",
       ambientSuggestionsSafetyModel: "gpt-6-luna"
     }, modelSlugSchema = external_exports.string().trim().min(1), modelRoutingConfigSchema = external_exports.object({
@@ -28533,6 +28269,9 @@ var DEFAULT_MODEL_ROUTING_CONFIG, modelSlugSchema, modelRoutingConfigSchema, ini
       ),
       codex_ephemeral_generation_model_slug: modelSlugSchema.catch(
         DEFAULT_MODEL_ROUTING_CONFIG.ephemeralGenerationModel
+      ),
+      codex_ephemeral_visualization_model_slug: modelSlugSchema.catch(
+        DEFAULT_MODEL_ROUTING_CONFIG.ephemeralVisualizationModel
       ),
       codex_ambient_suggestions_model_slug: modelSlugSchema.catch(
         DEFAULT_MODEL_ROUTING_CONFIG.ambientSuggestionsModel
@@ -30101,33 +29840,16 @@ var init_deferred = __esm({
   }
 });
 
-// ../../codex/codex-apps/protocol/src/detach-request-on-abort.ts
-function detachRequestOnAbort(request, signal) {
-  return signal.aborted ? (request.catch(() => {
-  }), Promise.reject(getAbortError(signal))) : new Promise((resolve2, reject) => {
-    let onAbort = () => {
-      reject(getAbortError(signal));
-    };
-    signal.addEventListener("abort", onAbort, { once: !0 }), request.then(resolve2, reject).finally(() => {
-      signal.removeEventListener("abort", onAbort);
-    });
-  });
-}
-function getAbortError(signal) {
-  if (signal.reason instanceof Error)
-    return signal.reason;
-  let error51 = new Error("The operation was aborted");
-  return error51.name = "AbortError", error51;
-}
-var init_detach_request_on_abort = __esm({
-  "../../codex/codex-apps/protocol/src/detach-request-on-abort.ts"() {
+// ../../codex/codex-apps/protocol/src/diffs.ts
+var init_diffs = __esm({
+  "../../codex/codex-apps/protocol/src/diffs.ts"() {
     "use strict";
   }
 });
 
-// ../../codex/codex-apps/protocol/src/diffs.ts
-var init_diffs = __esm({
-  "../../codex/codex-apps/protocol/src/diffs.ts"() {
+// ../../codex/codex-apps/protocol/src/dictation-shortcut-gesture.ts
+var init_dictation_shortcut_gesture = __esm({
+  "../../codex/codex-apps/protocol/src/dictation-shortcut-gesture.ts"() {
     "use strict";
   }
 });
@@ -30508,16 +30230,19 @@ var require_mergeWith = __commonJS({
 });
 
 // ../../codex/codex-apps/protocol/src/feature-overrides.ts
-var import_mergeWith, guardianV2ExperimentSchema, init_feature_overrides = __esm({
+var import_mergeWith, guardianV2ConfigRuleSchema, guardianV2ExperimentSchema, init_feature_overrides = __esm({
   "../../codex/codex-apps/protocol/src/feature-overrides.ts"() {
     "use strict";
     import_mergeWith = __toESM(require_mergeWith());
     init_zod();
     init_app_server_feature_support();
     init_semantic_version();
-    guardianV2ExperimentSchema = external_exports.object({
+    guardianV2ConfigRuleSchema = external_exports.object({
       min_app_server_version: external_exports.string().refine(isSemanticVersion),
       config: external_exports.record(external_exports.string(), external_exports.json())
+    }), guardianV2ExperimentSchema = guardianV2ConfigRuleSchema.extend({
+      // A malformed optional rule must not discard the legacy config or other valid rules.
+      config_rules: external_exports.array(guardianV2ConfigRuleSchema.nullable().catch(null)).catch([]).transform((rules) => rules.filter((rule) => rule != null)).optional()
     });
   }
 });
@@ -31371,6 +31096,7 @@ var appServerHttpErrorInfoSchema, APP_SERVER_NOTIFICATION_OPT_IN, CONNECTION_INT
       error: !0,
       "thread/started": !0,
       "thread/name/updated": !0,
+      "thread/readState/changed": !1,
       "thread/attachment/updated": !0,
       "thread/project/updated": !1,
       "thread/prediction/updated": !1,
@@ -31527,6 +31253,7 @@ var appServerHttpErrorInfoSchema, APP_SERVER_NOTIFICATION_OPT_IN, CONNECTION_INT
       guardianWarning: !0,
       warning: !1
     }, CONNECTION_INTERNAL_NOTIFICATION_METHODS = /* @__PURE__ */ new Set([
+      "turn/moderationMetadata",
       "process/outputDelta",
       "process/exited",
       "fs/changed"
@@ -31547,7 +31274,7 @@ function createMcpAppToolMetaSchema(ignoreInvalidValues) {
     "openai/outputTemplate": resourceUri.nullable(),
     ui: ignoreInvalidValues ? ui.catch(void 0) : ui,
     "ui/resourceUri": resourceUri
-  }).loose();
+  });
 }
 var mcpAppToolMetaSchema, savedCitationToolMetaSchema, init_mcp_app_ui = __esm({
   "../../codex/codex-apps/protocol/src/mcp-app-ui.ts"() {
@@ -32069,6 +31796,8 @@ var pullRequestActivityEventKindSchema, pullRequestActivityEventSchema, pullRequ
       id: external_exports.string(),
       nodeId: external_exports.string().optional(),
       isPending: external_exports.boolean().optional(),
+      isDeleted: external_exports.boolean().optional(),
+      viewerCanReply: external_exports.boolean().optional(),
       pendingReviewId: external_exports.string().optional(),
       rawBody: external_exports.string().optional(),
       url: external_exports.string().nullable(),
@@ -32098,6 +31827,8 @@ var pullRequestActivityEventKindSchema, pullRequestActivityEventSchema, pullRequ
       line: external_exports.number().nullable().optional(),
       nodeId: external_exports.string().optional(),
       isPending: external_exports.boolean().optional(),
+      isDeleted: external_exports.boolean().optional(),
+      viewerCanReply: external_exports.boolean().optional(),
       pendingReviewId: external_exports.string().optional(),
       originalLine: external_exports.number().nullable().optional(),
       originalStartLine: external_exports.number().nullable().optional(),
@@ -32831,6 +32562,7 @@ var chatGptComposerActionMetadataSchema, chatGptComposerItemSchema, init_ambient
     "use strict";
     init_zod();
     chatGptComposerActionMetadataSchema = external_exports.object({
+      action_url: external_exports.string().optional().catch(void 0),
       dismissal_id: external_exports.string().optional().catch(void 0),
       app_name: external_exports.string().optional().catch(void 0),
       connector_filler_hover_enabled: external_exports.boolean().optional().catch(void 0),
@@ -32990,7 +32722,7 @@ function decodeCollaborationSchemaManifest(value) {
   });
   return Object.fromEntries(entries);
 }
-var collaborationSchemaStatuses, collaborationSchemaReasonsByStatus, VALIDATION_MESSAGES, CollaborationSchemaValidationError, MAX_ARTIFACT_TYPES, MAX_SCHEMAS_PER_OPERATION, init_src = __esm({
+var collaborationSchemaStatuses, collaborationSchemaReasonsByStatus, VALIDATION_MESSAGES, CollaborationSchemaValidationError, MAX_ARTIFACT_TYPES, MAX_SCHEMAS_PER_OPERATION, init_src2 = __esm({
   "../../codex/codex-apps/node_modules/.pnpm/@oai+collaboration-schemas@file+..+..+lib+js+oai_js_collaboration_schemas/node_modules/@oai/collaboration-schemas/src/index.ts"() {
     collaborationSchemaStatuses = Object.freeze([
       "supported",
@@ -33027,7 +32759,7 @@ var collaborationSchemaStatuses, collaborationSchemaReasonsByStatus, VALIDATION_
 var artifactSessionExternalUpdateSchema, MAX_ARTIFACT_SESSION_EXTERNAL_IMAGE_BYTES, init_artifact_session_host_service = __esm({
   "../../codex/codex-apps/protocol/src/rpc/artifact-session-host-service.ts"() {
     "use strict";
-    init_src();
+    init_src2();
     init_zod();
     artifactSessionExternalUpdateSchema = external_exports.object({
       snapshotId: external_exports.string().min(1),
@@ -33817,6 +33549,13 @@ var generalSettings, init_general_settings = __esm({
     init_schemas4();
     init_setting_definition();
     generalSettings = {
+      autoArchiveAfterDays: defineConfigurationSetting({
+        agentAccess: "read-write",
+        default: 0,
+        description: "Number of inactive days before local chats are automatically archived; 0 disables auto-archive",
+        key: "autoArchiveAfterDays",
+        schema: external_exports.number().int().nonnegative()
+      }),
       latexAutoCompile: definePersistedAtomSetting({
         agentAccess: "hidden",
         default: !0,
@@ -33975,12 +33714,11 @@ var generalSettings, init_general_settings = __esm({
   }
 });
 
-// ../../codex/codex-apps/protocol/src/settings/definitions/model-features-settings.ts
-var reasoningEffortSchema, DEFAULT_ENABLED_REASONING_EFFORTS, modelFeaturesSettings, init_model_features_settings = __esm({
-  "../../codex/codex-apps/protocol/src/settings/definitions/model-features-settings.ts"() {
+// ../../codex/codex-apps/protocol/src/models/reasoning-efforts.ts
+var reasoningEffortSchema, DEFAULT_ENABLED_REASONING_EFFORTS, init_reasoning_efforts = __esm({
+  "../../codex/codex-apps/protocol/src/models/reasoning-efforts.ts"() {
     "use strict";
     init_zod();
-    init_setting_definition();
     reasoningEffortSchema = external_exports.enum([
       "none",
       "minimal",
@@ -33991,14 +33729,18 @@ var reasoningEffortSchema, DEFAULT_ENABLED_REASONING_EFFORTS, modelFeaturesSetti
       "max",
       "ultra",
       "persistent"
-    ]), DEFAULT_ENABLED_REASONING_EFFORTS = [
-      "low",
-      "medium",
-      "high",
-      "xhigh",
-      "ultra",
-      "persistent"
-    ], modelFeaturesSettings = {
+    ]), DEFAULT_ENABLED_REASONING_EFFORTS = ["low", "medium", "high", "xhigh", "ultra", "persistent"];
+  }
+});
+
+// ../../codex/codex-apps/protocol/src/settings/definitions/model-features-settings.ts
+var modelFeaturesSettings, init_model_features_settings = __esm({
+  "../../codex/codex-apps/protocol/src/settings/definitions/model-features-settings.ts"() {
+    "use strict";
+    init_zod();
+    init_reasoning_efforts();
+    init_setting_definition();
+    modelFeaturesSettings = {
       daybreakEnabled: definePersistedAtomSetting({
         agentAccess: "hidden",
         default: null,
@@ -34228,23 +33970,12 @@ var profileDisplayOptionsSchema, profilePhotoShapeSchema, personalizationSetting
 });
 
 // ../../codex/codex-apps/protocol/src/settings/definitions/realtime-voice-settings.ts
-var REALTIME_V1_VOICES, realtimeV1VoiceSchema, realtimeVoiceSettings, init_realtime_voice_settings = __esm({
+var realtimeVoiceSettings, init_realtime_voice_settings = __esm({
   "../../codex/codex-apps/protocol/src/settings/definitions/realtime-voice-settings.ts"() {
     "use strict";
-    init_zod();
     init_schemas4();
     init_setting_definition();
-    REALTIME_V1_VOICES = [
-      "juniper",
-      "maple",
-      "spruce",
-      "ember",
-      "vale",
-      "breeze",
-      "arbor",
-      "sol",
-      "cove"
-    ], realtimeV1VoiceSchema = external_exports.enum(REALTIME_V1_VOICES), realtimeVoiceSettings = {
+    realtimeVoiceSettings = {
       screenContextEnabled: defineConfigurationSetting({
         agentAccess: "hidden",
         default: !0,
@@ -34422,16 +34153,10 @@ var import_once, registeredSettingDefinitions, toolVisibleSettingDefinitions, ge
 });
 
 // ../../codex/codex-apps/protocol/src/shell-environment.ts
-var CODEX_SHELL_ENV_KEY, SHELL_ENV_DELIMITER, SHELL_ENV_COMMAND, SHELL_ENV_PROCESS_ENV, init_shell_environment = __esm({
+var SHELL_ENV_DELIMITER, SHELL_ENV_COMMAND, init_shell_environment = __esm({
   "../../codex/codex-apps/protocol/src/shell-environment.ts"() {
     "use strict";
-    CODEX_SHELL_ENV_KEY = "CODEX_SHELL", SHELL_ENV_DELIMITER = "_SHELL_ENV_DELIMITER_", SHELL_ENV_COMMAND = `printf '\\0%s\\0' '${SHELL_ENV_DELIMITER}'; command env -0 || exit; printf '\\0%s\\0' '${SHELL_ENV_DELIMITER}'; exit`, SHELL_ENV_PROCESS_ENV = {
-      // Disables Oh My Zsh auto-update thing that can block the process.
-      DISABLE_AUTO_UPDATE: "true",
-      // Prevents the oh-my-zsh tmux plugin from auto-starting.
-      ZSH_TMUX_AUTOSTARTED: "true",
-      ZSH_TMUX_AUTOSTART: "false"
-    };
+    SHELL_ENV_DELIMITER = "_SHELL_ENV_DELIMITER_", SHELL_ENV_COMMAND = `printf '\\0%s\\0' '${SHELL_ENV_DELIMITER}'; command env -0 || exit; printf '\\0%s\\0' '${SHELL_ENV_DELIMITER}'; exit`;
   }
 });
 
@@ -34455,6 +34180,7 @@ var unifiedSidebarEntryKeySchema, init_sidebar_entry_keys = __esm({
       external_exports.templateLiteral(["chatgpt:project:", external_exports.string()]),
       external_exports.templateLiteral(["space:page:", external_exports.string(), ":", external_exports.string()]),
       external_exports.templateLiteral(["space:space:", external_exports.string(), ":", external_exports.string()]),
+      external_exports.templateLiteral(["site:", external_exports.string(), ":", external_exports.string(), ":", external_exports.string()]),
       external_exports.templateLiteral(["content-tab:", external_exports.string()])
     ]);
   }
@@ -35422,7 +35148,7 @@ var singleLinePattern, workspaceSearchOptionsSchema, init_workspace_search_servi
 });
 
 // ../../codex/codex-apps/protocol/src/index.ts
-var init_src2 = __esm({
+var init_src3 = __esm({
   "../../codex/codex-apps/protocol/src/index.ts"() {
     init_codex_api();
     init_codex_deep_link();
@@ -35487,6 +35213,7 @@ var init_src2 = __esm({
     init_deferred();
     init_detach_request_on_abort();
     init_diffs();
+    init_dictation_shortcut_gesture();
     init_dynamic_app_tools();
     init_electron_top_level_menu_ids();
     init_email();
@@ -35625,824 +35352,6 @@ var init_src2 = __esm({
   }
 });
 
-// ../../codex/codex-apps/protocol/src/format-unserializable-log-field-value.ts
-var init_format_unserializable_log_field_value = __esm({
-  "../../codex/codex-apps/protocol/src/format-unserializable-log-field-value.ts"() {
-    "use strict";
-  }
-});
-
-// ../../codex/codex-apps/protocol/src/log-fields.ts
-var validationIssuesSchema, errorMetadataSchema, init_log_fields = __esm({
-  "../../codex/codex-apps/protocol/src/log-fields.ts"() {
-    "use strict";
-    init_zod();
-    validationIssuesSchema = external_exports.preprocess(
-      (value) => Array.isArray(value) ? value.slice(0, 5) : value,
-      external_exports.array(
-        external_exports.object({
-          code: external_exports.string().transform((value) => value.slice(0, 80)),
-          path: external_exports.preprocess(
-            (value) => Array.isArray(value) ? value.slice(0, 8) : value,
-            external_exports.array(
-              external_exports.union([
-                external_exports.string().transform((value) => value.slice(0, 80)),
-                external_exports.number()
-              ])
-            )
-          )
-        })
-      )
-    ), errorMetadataSchema = external_exports.object({
-      code: external_exports.union([external_exports.string().transform((value) => value.slice(0, 80)), external_exports.number()]).optional().catch(void 0),
-      issues: validationIssuesSchema.optional().catch(void 0),
-      data: external_exports.object({ issues: validationIssuesSchema.optional() }).optional().catch(void 0)
-    });
-  }
-});
-
-// ../../codex/codex-apps/protocol/src/log-tags.ts
-var init_log_tags = __esm({
-  "../../codex/codex-apps/protocol/src/log-tags.ts"() {
-    "use strict";
-  }
-});
-
-// ../../codex/codex-apps/protocol/src/logger.ts
-function withDefaultTags(tags) {
-  return tags == null ? EMPTY_LOG_TAGS : {
-    safe: tags.safe,
-    sensitive: tags.sensitive ?? {}
-  };
-}
-function getLogger() {
-  return currentLogger;
-}
-function getTaggedLogger(tag) {
-  let prefix = `[${tag}] `, logTagged = (level, message, tags) => {
-    getLogger().log(level, `${prefix}${message}`, withDefaultTags(tags));
-  }, createTaggedMethod = (level) => (message, tags) => {
-    logTagged(level, message, tags);
-  };
-  return {
-    trace: createTaggedMethod("trace"),
-    debug: createTaggedMethod("debug"),
-    info: createTaggedMethod("info"),
-    warning: createTaggedMethod("warning"),
-    error: createTaggedMethod("error"),
-    log: (level, message, tags) => {
-      logTagged(level, message, tags);
-    },
-    dispose: () => {
-      getLogger().dispose();
-    }
-  };
-}
-function getTaggedLoggerLazy(tag) {
-  let logger3 = null;
-  return () => (logger3 = logger3 ?? getTaggedLogger(tag), logger3);
-}
-var EMPTY_LOG_TAGS, BufferingLogger, currentLogger, init_logger = __esm({
-  "../../codex/codex-apps/protocol/src/logger.ts"() {
-    init_format_unserializable_log_field_value();
-    init_log_fields();
-    init_log_tags();
-    EMPTY_LOG_TAGS = { safe: {}, sensitive: {} };
-    BufferingLogger = class {
-      buffer = [];
-      maxBufferSize = 500;
-      hasLoggedDroppedLogMessage = !1;
-      push(entry) {
-        if (this.buffer.length >= this.maxBufferSize) {
-          this.hasLoggedDroppedLogMessage || (this.hasLoggedDroppedLogMessage = !0, this.buffer.push({
-            level: "warning",
-            message: "Dropped buffered log message after maxBufferSize was reached",
-            tags: EMPTY_LOG_TAGS
-          }));
-          return;
-        }
-        this.buffer.push(entry);
-      }
-      createLogMethod(level) {
-        return (message, tags) => {
-          this.push({ level, message, tags: withDefaultTags(tags) });
-        };
-      }
-      trace = this.createLogMethod("trace");
-      debug = this.createLogMethod("debug");
-      info = this.createLogMethod("info");
-      warning = this.createLogMethod("warning");
-      error = this.createLogMethod("error");
-      log = (level, message, tags) => {
-        this.push({ level, message, tags: withDefaultTags(tags) });
-      };
-      flushTo(logger3) {
-        for (let entry of this.buffer)
-          logger3.log(entry.level, entry.message, entry.tags);
-        this.buffer.length = 0;
-      }
-      dispose() {
-        this.buffer = [];
-      }
-    }, currentLogger = new BufferingLogger();
-  }
-});
-
-// ../../codex/codex-apps/git-worker/src/git/local-environment-execution-env.ts
-var READ_LOGIN_SHELL_COMMAND, SETUP_SHELL_ENV_PROCESS_ENV, logger, init_local_environment_execution_env = __esm({
-  "../../codex/codex-apps/git-worker/src/git/local-environment-execution-env.ts"() {
-    init_src2();
-    init_logger();
-    READ_LOGIN_SHELL_COMMAND = [
-      'entry=$(getent passwd "$(id -u)" 2>/dev/null) || entry=$(id -P 2>/dev/null) || exit 1',
-      "shell=${entry##*:}",
-      'test -n "$shell" || exit 1',
-      'printf "%s\\n" "$shell"'
-    ].join("; "), SETUP_SHELL_ENV_PROCESS_ENV = {
-      ...SHELL_ENV_PROCESS_ENV,
-      [CODEX_SHELL_ENV_KEY]: "1"
-    }, logger = getTaggedLoggerLazy("git");
-  }
-});
-
-// ../../codex/codex-apps/git-worker/src/git/local-environment-execution.ts
-var init_local_environment_execution = __esm({
-  "../../codex/codex-apps/git-worker/src/git/local-environment-execution.ts"() {
-    init_platform_path();
-    init_git_manager_paths();
-    init_local_environment_execution_env();
-  }
-});
-
-// ../../codex/codex-apps/shared-node/src/shell-env/index.ts
-import process4 from "node:process";
-function getPathEnvironmentVariableValue(env) {
-  let pathKey = getPathEnvironmentVariableKey(env);
-  return env[pathKey];
-}
-function getPathEnvironmentVariableKey(env) {
-  if (process4.platform !== "win32")
-    return "PATH";
-  if (env.Path != null)
-    return "Path";
-  if (env.PATH != null)
-    return "PATH";
-  for (let envKey of Object.keys(env))
-    if (envKey.toLowerCase() === "path")
-      return envKey;
-  return "Path";
-}
-var import_execa, WINDOWS_READ_ENV_COMMAND, POWERSHELL_READ_ENV_COMMAND, init_shell_env = __esm({
-  "../../codex/codex-apps/shared-node/src/shell-env/index.ts"() {
-    import_execa = __toESM(require_execa());
-    init_local_environment_execution();
-    init_src2();
-    init_src2();
-    WINDOWS_READ_ENV_COMMAND = `echo ${SHELL_ENV_DELIMITER}&&set&&echo ${SHELL_ENV_DELIMITER}`, POWERSHELL_READ_ENV_COMMAND = `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; Write-Output '${SHELL_ENV_DELIMITER}'; Get-ChildItem Env: | ForEach-Object { '{0}={1}' -f $_.Name, $_.Value }; Write-Output '${SHELL_ENV_DELIMITER}'`;
-  }
-});
-
-// ../../codex/codex-apps/shared-node/src/binary-resolver.ts
-import { accessSync, constants } from "node:fs";
-import { delimiter, resolve } from "node:path";
-var import_which, BinaryResolver, binaryResolver, init_binary_resolver = __esm({
-  "../../codex/codex-apps/shared-node/src/binary-resolver.ts"() {
-    import_which = __toESM(require_lib());
-    init_shell_env();
-    BinaryResolver = class {
-      executables = /* @__PURE__ */ new Map();
-      resolve(command, options = {}) {
-        if (command.includes("/") || process.platform === "win32" && command.includes("\\"))
-          return command;
-        let cwd = options.cwd ?? process.cwd(), env = options.env ?? process.env, path7 = getPathEnvironmentVariableValue(env), cacheKey = JSON.stringify([command, cwd, path7, env.PATHEXT]), cachedExecutable = this.executables.get(cacheKey);
-        if (cachedExecutable != null)
-          try {
-            return accessSync(cachedExecutable, constants.X_OK), cachedExecutable;
-          } catch {
-            this.executables.delete(cacheKey);
-          }
-        let searchPath = path7?.split(delimiter).map((directory) => resolve(cwd, directory)).join(delimiter), executable = import_which.default.sync(command, {
-          nothrow: !0,
-          path: searchPath,
-          pathExt: env.PATHEXT
-        });
-        return executable != null && this.executables.set(cacheKey, executable), executable;
-      }
-    }, binaryResolver = new BinaryResolver();
-  }
-});
-
-// server/backend/authorization.ts
-import { spawn } from "node:child_process";
-import { createInterface } from "node:readline";
-async function codeReviewAuthorization(refresh) {
-  let executable = process.env.CODEX_CLI_PATH?.trim() || binaryResolver.resolve("codex");
-  if (!executable)
-    throw new Error("Codex is unavailable. Sign in to connect GitHub.");
-  let child = spawn(
-    executable,
-    ["app-server", "-c", "features.plugins=false"],
-    {
-      stdio: ["pipe", "pipe", "pipe"],
-      signal: AbortSignal.timeout(2e4)
-    }
-  ), lines = createInterface({ input: child.stdout });
-  child.stderr.resume(), child.on("error", () => lines.close()), child.stdin.on("error", () => lines.close());
-  try {
-    child.stdin.write(
-      `${JSON.stringify({ id: 1, method: "initialize", params: { clientInfo: { name: "github_provider", version: "0.1.0" } } })}
-`
-    );
-    for await (let line of lines) {
-      let message;
-      try {
-        message = responseSchema.parse(JSON.parse(line));
-      } catch {
-        throw new Error("Codex returned an invalid sign-in response");
-      }
-      if (message.id !== 1 && message.id !== 2) continue;
-      if (message.error)
-        throw new Error("Codex could not provide a signed-in session");
-      if (message.id === 1) {
-        child.stdin.write(
-          `${JSON.stringify({ method: "initialized", params: {} })}
-`
-        ), child.stdin.write(
-          `${JSON.stringify({ id: 2, method: "getAuthStatus", params: { includeToken: !0, refreshToken: refresh } })}
-`
-        );
-        continue;
-      }
-      let auth = authSchema.safeParse(message.result);
-      if (!auth.success)
-        throw new Error("Sign in to Codex with ChatGPT to connect GitHub");
-      let routing = getChatGptAccountRoutingFromAccessToken(
-        auth.data.authToken
-      );
-      if (routing?.accountId == null)
-        throw new Error("Codex session has no selected workspace");
-      return {
-        Authorization: `Bearer ${auth.data.authToken}`,
-        "ChatGPT-Account-ID": routing.accountId,
-        originator: "Codex Code Review",
-        ...routing.isFedramp === !0 ? { "X-OpenAI-Fedramp": "true" } : {}
-      };
-    }
-    throw new Error("Codex sign-in check ended before returning a session");
-  } finally {
-    lines.close(), child.kill();
-  }
-}
-var responseSchema, authSchema, init_authorization = __esm({
-  "server/backend/authorization.ts"() {
-    init_auth_token();
-    init_binary_resolver();
-    init_v4();
-    responseSchema = external_exports.object({
-      id: external_exports.union([external_exports.string(), external_exports.number()]).optional(),
-      result: external_exports.unknown().optional(),
-      error: external_exports.object({ message: external_exports.string() }).optional()
-    }), authSchema = external_exports.object({
-      authMethod: external_exports.enum(["chatgpt", "chatgptAuthTokens"]),
-      authToken: external_exports.string().min(1)
-    });
-  }
-});
-
-// server/backend/session.ts
-function trustedCodeReviewBackendUrl(baseUrl, message) {
-  let base = new URL(baseUrl), loopback = ["127.0.0.1", "localhost", "[::1]"].includes(base.hostname), trustedChatGptHost = base.hostname === "chatgpt.com" || base.hostname === "chatgpt-staging.com" || base.hostname.endsWith(".chatgpt-staging.com");
-  if (base.username !== "" || base.password !== "" || base.search !== "" || base.hash !== "" || !(loopback && base.protocol === "http:" || trustedChatGptHost && base.protocol === "https:"))
-    throw new Error(message);
-  return base;
-}
-function withAbort(pending, signal) {
-  return signal.throwIfAborted(), new Promise((resolve2, reject) => {
-    let abort = () => reject(signal.reason);
-    signal.addEventListener("abort", abort, { once: !0 }), pending.then(resolve2, reject).finally(() => {
-      signal.removeEventListener("abort", abort);
-    });
-  });
-}
-var CodeReviewBackendSession, init_session = __esm({
-  "server/backend/session.ts"() {
-    init_auth_token();
-    init_authorization();
-    CodeReviewBackendSession = class {
-      constructor(signInMessage, authorization = codeReviewAuthorization) {
-        this.signInMessage = signInMessage;
-        this.authorization = authorization;
-      }
-      session;
-      /** Reuse the caller's deadline and retry only an authentication rejection. */
-      async request(send, signal) {
-        let attempt = async (refresh) => {
-          signal.throwIfAborted();
-          let headers = await withAbort(this.headers(refresh), signal);
-          return signal.throwIfAborted(), send(headers);
-        }, response = await attempt(!1);
-        return response.status === 401 && (await response.body?.cancel(), response = await attempt(!0)), response;
-      }
-      async headers(refresh) {
-        let previous = await (this.session ??= this.authorization(!1)), principal = getAuthenticatedPrincipalFromAccessToken(
-          previous.Authorization?.slice(7) ?? null
-        );
-        if (principal == null) throw new Error(this.signInMessage);
-        let expected = {
-          "X-Codex-Expected-User-Id": principal.userId,
-          "X-Codex-Expected-Account-Id": principal.accountId
-        };
-        if (!refresh) return { ...previous, ...expected };
-        let headers = await this.authorization(!0), after = getAuthenticatedPrincipalFromAccessToken(
-          headers.Authorization?.slice(7) ?? null
-        );
-        if (after == null || principal.accountId !== after.accountId || principal.userId !== after.userId)
-          throw new Error("The Codex account changed. Reopen Code Review.");
-        return this.session = Promise.resolve(headers), { ...headers, ...expected };
-      }
-    };
-  }
-});
-
-// server/github/service-client.ts
-import { createHash } from "node:crypto";
-var retryTimes, accounts, GitHubProviderClient, init_service_client = __esm({
-  "server/github/service-client.ts"() {
-    init_v4();
-    init_inbox_cache();
-    init_authorization();
-    init_session();
-    retryTimes = /* @__PURE__ */ new Map(), accounts = /* @__PURE__ */ new Map(), GitHubProviderClient = class {
-      constructor(baseUrl, authorization = codeReviewAuthorization, fetchRequest = fetch, selection) {
-        this.fetchRequest = fetchRequest;
-        this.selection = selection;
-        let base = trustedCodeReviewBackendUrl(
-          baseUrl,
-          "GitHub provider credentials require ChatGPT HTTPS or loopback HTTP"
-        );
-        this.session = new CodeReviewBackendSession(
-          "Sign in to Codex to connect GitHub",
-          authorization
-        ), this.endpoint = new URL(base), this.endpoint.pathname = `${base.pathname.replace(/\/+$/, "")}/operations/`;
-      }
-      endpoint;
-      session;
-      /** Share display checks only after reading this action's current signed-in session. */
-      async getAccount(hostname3, fresh = !1, connection = this.selection?.hostname === hostname3 ? this.selection.connection : void 0) {
-        let headers = await this.session.headers(!1), key = this.accountKey(headers, hostname3, connection), cached2 = accounts.get(key);
-        if (!fresh && cached2 != null && cached2.expiresAt > Date.now())
-          return cached2.value;
-        for (let [key2, entry2] of accounts)
-          entry2.expiresAt <= Date.now() && accounts.delete(key2);
-        accounts.size >= 128 && accounts.delete(accounts.keys().next().value);
-        let entry = {
-          expiresAt: Date.now() + 15 * 6e4,
-          value: this.request("account", { hostname: hostname3, connection })
-        };
-        accounts.set(key, entry);
-        try {
-          let result = await entry.value;
-          return result.currentUser.status !== "success" && accounts.get(key) === entry && accounts.delete(key), result;
-        } catch (error51) {
-          throw accounts.get(key) === entry && accounts.delete(key), error51;
-        }
-      }
-      accountKey(headers, hostname3 = "github.com", connection) {
-        return JSON.stringify([
-          this.endpoint.href,
-          hostname3.toLowerCase(),
-          connection?.connectorId,
-          connection?.accountLinkId,
-          createHash("sha256").update(JSON.stringify(headers)).digest("hex")
-        ]);
-      }
-      async request(operation, request, options = {}) {
-        let endpoint = new URL(this.endpoint);
-        endpoint.pathname += operation;
-        let timeout = AbortSignal.timeout(options.timeoutMs ?? 6e4), signal = options.signal == null ? timeout : AbortSignal.any([options.signal, timeout]), retryKey = "", selectedAccount = "account" in request ? request.account : void 0, hostname3 = selectedAccount != null ? selectedAccount.hostname : "hostname" in request ? request.hostname : "github.com", connection = selectedAccount != null ? selectedAccount.connection : "connection" in request ? request.connection : void 0, requestBody = JSON.stringify(request), send = async (headers) => {
-          retryKey = JSON.stringify([
-            this.endpoint.href,
-            headers["X-Codex-Expected-User-Id"],
-            headers["X-Codex-Expected-Account-Id"],
-            hostname3,
-            connection?.connectorId,
-            connection?.accountLinkId
-          ]);
-          let retryAt = retryTimes.get(retryKey) ?? 0;
-          if (retryAt > Date.now())
-            throw new PluginReadError(
-              "GitHub asked Code Review to wait before trying again.",
-              "rate-limit",
-              retryAt
-            );
-          try {
-            let response2 = await this.fetchRequest(endpoint, {
-              method: "POST",
-              headers: {
-                ...headers,
-                "Content-Type": "application/json"
-              },
-              body: requestBody,
-              redirect: "error",
-              signal
-            });
-            return [401, 403, 409].includes(response2.status) && accounts.delete(this.accountKey(headers, hostname3, connection)), response2;
-          } catch (error51) {
-            throw signal.throwIfAborted(), new Error("Can't connect to GitHub. Try again.", {
-              cause: error51
-            });
-          }
-        }, response = await this.session.request(send, signal);
-        if (!response.ok) {
-          let failure = external_exports.object({
-            error: external_exports.object({ message: external_exports.string() }).optional().catch(void 0),
-            detail: external_exports.string().optional().catch(void 0)
-          }).safeParse(await response.json().catch(() => null));
-          if (response.status === 429 || response.headers.get("x-ratelimit-remaining") === "0") {
-            let retryAt = Math.max(
-              Date.now() + Number(response.headers.get("retry-after") ?? 60) * 1e3,
-              Number(response.headers.get("x-ratelimit-reset") ?? 0) * 1e3
-            );
-            for (let [key, deadline] of retryTimes)
-              deadline <= Date.now() && retryTimes.delete(key);
-            throw retryTimes.set(retryKey, retryAt), new PluginReadError(
-              "GitHub asked Code Review to wait before trying again.",
-              "rate-limit",
-              retryAt
-            );
-          }
-          if (response.status === 401)
-            throw new PluginReadError(
-              "Sign in to Codex to connect GitHub",
-              "access"
-            );
-          if (response.status === 403)
-            throw new PluginReadError(
-              "GitHub access is denied for this workspace",
-              "access"
-            );
-          let message = failure.success ? failure.data.error?.message || failure.data.detail : void 0;
-          throw new Error(
-            `GitHub provider request failed (HTTP ${response.status})${message ? `: ${message}` : ""}`
-          );
-        }
-        return response.json();
-      }
-    };
-  }
-});
-
-// server/github/service.ts
-import { AsyncLocalStorage } from "node:async_hooks";
-function selectGitHubProvider(enabled) {
-  return enabled === serviceEnabled ? !1 : (serviceEnabled = enabled, enabled ? legacyWork.abort(
-    new Error(
-      "Code Review switched to the GitHub service. Retry the action."
-    )
-  ) : legacyWork = new AbortController(), enabled);
-}
-function selectedGitHubProvider() {
-  return serviceEnabled;
-}
-function githubWorkSignal() {
-  return serviceRequest.getStore()?.signal;
-}
-function checkGitHubWork() {
-  githubWorkSignal()?.throwIfAborted();
-}
-function withGitHubProvider(enabled, run, selection) {
-  let client = null;
-  if (enabled) {
-    let override = process.env.GITHUB_PROVIDER_URL?.trim();
-    if (override) {
-      let url2 = new URL(override);
-      if (url2.protocol !== "http:" || !["127.0.0.1", "localhost", "[::1]"].includes(url2.hostname))
-        throw new Error(
-          "GITHUB_PROVIDER_URL must use loopback HTTP; use CODEX_API_BASE_URL for ChatGPT"
-        );
-    }
-    let baseUrl = process.env.CODEX_API_BASE_URL?.trim().replace(/\/+$/, "") || ((process.env.CODEX_API_ENDPOINT ?? "").toLowerCase() === "localhost" ? "http://localhost:8000/api" : "https://chatgpt.com/backend-api");
-    client = new GitHubProviderClient(
-      override || `${baseUrl}/wham/github`,
-      void 0,
-      void 0,
-      selection
-    );
-  }
-  return serviceRequest.run(
-    { client, signal: enabled ? void 0 : legacyWork.signal },
-    run
-  );
-}
-function githubProviderRequired() {
-  return serviceRequest.getStore()?.client != null;
-}
-function githubProviderForRequest(_hostname) {
-  return checkGitHubWork(), serviceRequest.getStore()?.client ?? null;
-}
-async function githubOperation(operation, request, legacy, host3) {
-  let client = githubProviderForRequest(request.account.hostname);
-  return client == null ? legacy(request, host3) : client.request(operation, request);
-}
-var serviceRequest, serviceEnabled, legacyWork, init_service = __esm({
-  "server/github/service.ts"() {
-    init_service_client();
-    serviceRequest = new AsyncLocalStorage(), serviceEnabled = !1, legacyWork = new AbortController();
-  }
-});
-
-// server/github/background-budget.ts
-import { AsyncLocalStorage as AsyncLocalStorage2 } from "node:async_hooks";
-var BackgroundBudget, init_background_budget = __esm({
-  "server/github/background-budget.ts"() {
-    BackgroundBudget = class {
-      context = new AsyncLocalStorage2();
-      accounts = /* @__PURE__ */ new Map();
-      run(account, signal, read) {
-        let key = JSON.stringify([account.hostname, account.login]), allowance = this.accounts.get(key);
-        return allowance == null && (allowance = { charges: [], pauseUntil: 0 }, this.accounts.set(key, allowance)), this.context.run({ allowance, signal }, read);
-      }
-      get active() {
-        return this.context.getStore() != null;
-      }
-      get signal() {
-        return this.context.getStore()?.signal;
-      }
-      charge(args) {
-        let context2 = this.context.getStore();
-        if (context2 == null)
-          return;
-        context2.signal.throwIfAborted();
-        let { allowance } = context2, now = Date.now();
-        allowance.charges = allowance.charges.filter(
-          (item) => item.at > now - 36e5
-        );
-        let graphql = 0, rest = 0;
-        if (args[0] === "api")
-          args[1] === "graphql" ? graphql = 3 : args.includes("rate_limit") || (rest = 1);
-        else if (args[0] === "pr" && args[1] === "view")
-          graphql = 1;
-        else if (args[0] === "pr" && args[1] === "diff")
-          graphql = 1, rest = 1;
-        else
-          throw new Error("Unsupported background GitHub operation");
-        let used = allowance.charges.reduce(
-          (sum, item) => ({
-            graphql: sum.graphql + item.graphql,
-            rest: sum.rest + item.rest
-          }),
-          { graphql, rest }
-        );
-        if (allowance.pauseUntil > now || used.graphql > 180 || used.rest > 180)
-          throw new Error("Background GitHub allowance exhausted");
-        allowance.charges.push({ at: now, graphql, rest });
-      }
-      observeRemaining(remaining, resetAt) {
-        let allowance = this.context.getStore()?.allowance;
-        allowance != null && remaining < 500 && (allowance.pauseUntil = Math.max(allowance.pauseUntil, resetAt));
-      }
-    };
-  }
-});
-
-// server/local-execution-host.ts
-import { AsyncLocalStorage as AsyncLocalStorage3 } from "node:async_hooks";
-import { spawn as spawnChild } from "node:child_process";
-import { constants as fsConstants } from "node:fs";
-import fs from "node:fs/promises";
-import os from "node:os";
-import path2 from "node:path";
-function toReadableStream(stream) {
-  return new ReadableStream({
-    start(controller) {
-      stream.on("data", (chunk2) => {
-        controller.enqueue(
-          typeof chunk2 == "string" ? Buffer.from(chunk2) : chunk2
-        );
-      }), stream.once("end", () => controller.close()), stream.once("error", (error51) => controller.error(error51));
-    },
-    cancel() {
-      stream.destroy();
-    }
-  });
-}
-function toWritableStream(stream) {
-  return new WritableStream({
-    write(chunk2) {
-      return new Promise((resolve2, reject) => {
-        stream.write(chunk2, (error51) => {
-          error51 != null ? reject(error51) : resolve2();
-        });
-      });
-    },
-    close() {
-      stream.end();
-    },
-    abort() {
-      stream.destroy();
-    }
-  });
-}
-var PullRequestsExecutionHost, init_local_execution_host = __esm({
-  "server/local-execution-host.ts"() {
-    init_inbox_cache();
-    init_background_budget();
-    init_service();
-    PullRequestsExecutionHost = class {
-      backgroundBudget = new BackgroundBudget();
-      githubRetryTimes = /* @__PURE__ */ new Map();
-      githubRequests = new AsyncLocalStorage3();
-      hostConfig = {
-        id: "local",
-        display_name: "Local",
-        kind: "local"
-      };
-      id = "local";
-      isLocal = !0;
-      githubRetryAt(hostname3, resource) {
-        let times = this.githubRetryTimes.get(hostname3.toLowerCase());
-        return Math.max(
-          times?.all ?? 0,
-          resource == null ? Math.max(times?.core ?? 0, times?.graphql ?? 0) : times?.[resource] ?? 0
-        );
-      }
-      withGitHubRequest(read) {
-        return this.githubRequests.run({ retryAt: 0 }, read);
-      }
-      get requestRetryAt() {
-        return this.githubRequests.getStore()?.retryAt ?? 0;
-      }
-      checkGitHubRetry(hostname3, resource) {
-        let retryAt = this.githubRetryAt(hostname3, resource);
-        if (retryAt <= Date.now()) return;
-        let request = this.githubRequests.getStore();
-        throw request != null && (request.retryAt = Math.max(request.retryAt, retryAt)), new PluginReadError(
-          "GitHub asked Code Review to wait before trying again.",
-          "rate-limit",
-          retryAt
-        );
-      }
-      recordGitHubRateLimit(hostname3, resource, diagnostics, request) {
-        if (!/rate limit|secondary limit|abuse|HTTP(?:\/\S+)?\s+429|x-ratelimit-remaining:\s*0\b/i.test(
-          diagnostics
-        ))
-          return;
-        let retryAfter = Number(
-          diagnostics.match(/retry-after:\s*(\d+)/i)?.[1] ?? 60
-        ), reset = Number(diagnostics.match(/x-ratelimit-reset:\s*(\d+)/i)?.[1] ?? 0) * 1e3, primary = /x-ratelimit-remaining:\s*0\b/i.test(diagnostics), headerResource = diagnostics.match(
-          /x-ratelimit-resource:\s*(\w+)/i
-        )?.[1], limitedResource = primary ? headerResource === "core" || headerResource === "graphql" ? headerResource : resource : void 0, times = this.githubRetryTimes.get(hostname3) ?? {
-          all: 0,
-          core: 0,
-          graphql: 0
-        }, key = limitedResource ?? "all";
-        times[key] = Math.max(
-          times[key],
-          Date.now() + retryAfter * 1e3,
-          primary ? reset : 0
-        ), this.githubRetryTimes.set(hostname3, times), request != null && (request.retryAt = Math.max(request.retryAt, times[key]));
-      }
-      async spawn(options) {
-        let [command, ...args] = options.args;
-        if (command == null)
-          throw new Error("Cannot start an empty command");
-        if (githubProviderRequired() && path2.basename(command) === "gh")
-          throw new Error(
-            "GitHub CLI execution is disabled while Code Review uses the service"
-          );
-        let githubHostname;
-        if (command === "gh" && (args[0] === "api" || args[0] === "pr")) {
-          let hostnameIndex = args.indexOf("--hostname"), repoIndex = args.indexOf("--repo"), repo = repoIndex < 0 ? void 0 : args[repoIndex + 1]?.split("/");
-          githubHostname = (hostnameIndex >= 0 ? args[hostnameIndex + 1] : repo?.length === 3 ? repo[0] : options.env?.GH_HOST ?? process.env.GH_HOST ?? "github.com")?.toLowerCase();
-        }
-        let resource = args[0] === "api" ? args[1] === "graphql" ? "graphql" : "core" : args[0] === "pr" && args[1] === "view" ? "graphql" : void 0, request = this.githubRequests.getStore();
-        githubHostname != null && this.checkGitHubRetry(githubHostname, resource), command === "gh" && this.backgroundBudget.charge(args);
-        let backgroundSignal = command === "gh" ? this.backgroundBudget.signal : void 0, signal = AbortSignal.any(
-          [options.signal, backgroundSignal, githubWorkSignal()].filter(
-            (value) => value != null
-          )
-        );
-        signal.throwIfAborted();
-        let child = spawnChild(command, args, {
-          cwd: options.cwd,
-          env: { ...process.env, ...options.env },
-          stdio: ["pipe", "pipe", "pipe"]
-        });
-        if (githubHostname != null) {
-          let diagnostics = "", observe = (chunk2) => {
-            diagnostics = (diagnostics + chunk2.toString()).slice(-16384);
-          };
-          child.stderr.on("data", observe), args.includes("--include") && child.stdout.on("data", observe), child.once("close", (code) => {
-            code !== 0 && this.recordGitHubRateLimit(
-              githubHostname,
-              resource,
-              diagnostics,
-              request
-            );
-          });
-        }
-        let timeout = options.timeoutMs == null ? null : setTimeout(() => child.kill(), options.timeoutMs), onAbort = () => {
-          child.kill();
-        };
-        return signal?.addEventListener("abort", onAbort, { once: !0 }), signal?.aborted && child.kill(), {
-          stdin: toWritableStream(child.stdin),
-          stderr: toReadableStream(child.stderr),
-          stdout: toReadableStream(child.stdout),
-          kill: () => child.kill(),
-          resize: async () => {
-          },
-          wait: async () => {
-            let result = await new Promise((resolve2, reject) => {
-              child.once("error", reject), child.once("close", (code, signal2) => {
-                resolve2({ code, signal: signal2 });
-              });
-            });
-            return timeout != null && clearTimeout(timeout), signal?.removeEventListener("abort", onAbort), result;
-          }
-        };
-      }
-      readFile(filePath) {
-        return fs.readFile(filePath).then(
-          (contents) => new ReadableStream({
-            start(controller) {
-              controller.enqueue(contents), controller.close();
-            }
-          })
-        );
-      }
-      async writeFile(filePath, contents, options = {}) {
-        if (options.signal?.throwIfAborted(), contents instanceof ReadableStream) {
-          let reader = contents.getReader(), chunks = [];
-          for (; ; ) {
-            options.signal?.throwIfAborted();
-            let chunk2 = await reader.read();
-            if (chunk2.done)
-              break;
-            chunks.push(chunk2.value);
-          }
-          await fs.writeFile(filePath, Buffer.concat(chunks));
-          return;
-        }
-        await fs.writeFile(
-          filePath,
-          typeof contents == "string" || contents instanceof Uint8Array ? contents : new Uint8Array(await contents.arrayBuffer())
-        );
-      }
-      async createDirectory(dirPath, options = {}) {
-        await fs.mkdir(dirPath, { recursive: options.recursive ?? !0 });
-      }
-      stat(filePath, options = {}) {
-        return options.followSymlinks === !1 ? fs.lstat(filePath) : fs.stat(filePath);
-      }
-      readDirectory(dirPath) {
-        return fs.readdir(dirPath, { withFileTypes: !0 });
-      }
-      remove(targetPath, options = {}) {
-        return fs.rm(targetPath, {
-          force: options.force ?? !0,
-          recursive: options.recursive ?? !0
-        });
-      }
-      copyFile(sourcePath, destinationPath, options = {}) {
-        return fs.copyFile(
-          sourcePath,
-          destinationPath,
-          options.exclusive ? fsConstants.COPYFILE_EXCL : 0
-        );
-      }
-      copy(sourcePath, destinationPath, options = {}) {
-        return fs.cp(sourcePath, destinationPath, {
-          recursive: options.recursive ?? !1
-        });
-      }
-      codexHome() {
-        return Promise.resolve(
-          process.env.CODEX_HOME?.trim() || path2.join(os.homedir(), ".codex")
-        );
-      }
-      async workspacesRoot() {
-        throw new Error("Pull Requests does not manage local workspaces");
-      }
-      platformFamily() {
-        return Promise.resolve(process.platform === "win32" ? "windows" : "unix");
-      }
-      platformOs() {
-        return Promise.resolve(
-          process.platform === "darwin" ? "macos" : process.platform
-        );
-      }
-      platformPath() {
-        return Promise.resolve(
-          process.platform === "win32" ? path2.win32 : path2.posix
-        );
-      }
-      startFileWatch(_params) {
-        throw new Error("Pull Requests does not watch local files");
-      }
-    };
-  }
-});
-
 // ../../codex/codex-apps/node_modules/.pnpm/shlex@3.0.0/node_modules/shlex/shlex.js
 function quote(s) {
   return s === "" ? "''" : /[^\w@%\-+=:,./]/.test(s) ? ("'" + s.replace(/('+)/g, `'"$1"'`) + "'").replace(/^''|''$/g, "") : s;
@@ -36480,7 +35389,7 @@ var INHERITED_DESKTOP_APP_ENV_KEYS, init_crash_reporter_env = __esm({
 // ../../codex/codex-apps/shared-node/src/execution-host-streams.ts
 var init_execution_host_streams2 = __esm({
   "../../codex/codex-apps/shared-node/src/execution-host-streams.ts"() {
-    init_src2();
+    init_src3();
   }
 });
 
@@ -36575,7 +35484,7 @@ function startSharedGhBackoff(hostId, delayMs) {
 }
 var DEFAULT_GH_RATE_LIMIT_RETRY_DELAYS_MS, ghRateLimitBackoffByHostId, GIT_DEFAULTS, init_gh_runner = __esm({
   "../../codex/codex-apps/shared-node/src/github/gh-runner.ts"() {
-    init_src2();
+    init_src3();
     init_shlex();
     init_crash_reporter_env();
     init_execution_host_streams2();
@@ -36638,7 +35547,7 @@ ${result.stdout}`.toLowerCase();
 }
 var init_gh_shared = __esm({
   "../../codex/codex-apps/shared-node/src/github/gh-shared.ts"() {
-    init_src2();
+    init_src3();
   }
 });
 
@@ -36722,7 +35631,7 @@ async function getGitHubCliStatus({
 }
 var GhCurrentUserSchema, init_get_github_cli_status = __esm({
   "../../codex/codex-apps/shared-node/src/github/get-github-cli-status.ts"() {
-    init_src2();
+    init_src3();
     init_zod();
     init_gh_runner();
     init_gh_shared();
@@ -36809,7 +35718,7 @@ function parseGitHubReviewMetadata(payload, pullRequests) {
 }
 var sha, init_github_review_metadata = __esm({
   "shared/github-review-metadata.ts"() {
-    init_src2();
+    init_src3();
     init_v4();
     sha = external_exports.string().regex(/^[a-f\d]{40}$/i);
   }
@@ -37093,15 +36002,17 @@ var sha2, reviewSnapshotSchema, init_github = __esm({
 var review_tools_exports = {};
 import { readFile } from "node:fs/promises";
 import path3 from "node:path";
-function readTree(sha4, recursive) {
-  let endpoint = `git/trees/${sha4}${recursive ? "?recursive=1" : ""}`, tree = trees.get(endpoint);
+function readTree(sha4, recursive, commitRevision, directory) {
+  let key = JSON.stringify([sha4, recursive, commitRevision, directory]), tree = trees.get(key);
   return tree == null && (tree = readReviewResource(host, snapshot.account, snapshot.pullRequest, {
     operation: "review-tree",
     revision: sha4,
-    recursive
+    recursive,
+    commitRevision,
+    path: directory
   }).then((text) => treeSchema.parse(JSON.parse(text))).catch((error51) => {
-    throw trees.delete(endpoint), error51;
-  }), trees.set(endpoint, tree)), tree;
+    throw trees.delete(key), error51;
+  }), trees.set(key, tree)), tree;
 }
 var manifestPath, usesService, snapshot, diff, host, server, treeSchema, trees, revisionSchema, annotations, init_review_tools = __esm({
   async "server/review-tools.ts"() {
@@ -37125,7 +36036,11 @@ var manifestPath, usesService, snapshot, diff, host, server, treeSchema, trees, 
     }), treeSchema = external_exports.object({
       truncated: external_exports.boolean(),
       tree: external_exports.array(
-        external_exports.object({ path: external_exports.string(), type: external_exports.string(), sha: external_exports.string() })
+        external_exports.object({
+          path: external_exports.string(),
+          type: external_exports.string(),
+          sha: external_exports.string().optional()
+        })
       )
     }), trees = /* @__PURE__ */ new Map(), revisionSchema = external_exports.enum(["head", "base"]).default("head"), annotations = {
       readOnlyHint: !0,
@@ -37175,21 +36090,23 @@ var manifestPath, usesService, snapshot, diff, host, server, treeSchema, trees, 
       },
       ({ query, directory, offset, revision }) => withGitHubProvider(usesService, async () => {
         await requireReviewAccount(host, snapshot.account);
-        let sha4 = revision === "head" ? snapshot.headRevision : snapshot.mergeBaseRevision, treeSha = sha4;
+        let sha4 = revision === "head" ? snapshot.headRevision : snapshot.mergeBaseRevision, treeSha = sha4, treePath = "";
         if (directory !== "") {
           checkedRepositoryPath(directory);
           for (let segment of directory.split("/")) {
-            let child = (await readTree(treeSha, !1)).tree.find(
+            let child = (await readTree(treeSha, !1, sha4, treePath)).tree.find(
               (entry) => entry.type === "tree" && entry.path === segment
             );
             if (child == null)
               throw new Error(
                 "This directory does not exist at the reviewed revision"
               );
-            treeSha = child.sha;
+            if (child.sha == null && !usesService)
+              throw new Error("This directory does not have a tree object ID");
+            treeSha = child.sha ?? sha4, treePath = treePath === "" ? segment : `${treePath}/${segment}`;
           }
         }
-        let result = await readTree(treeSha, !0), paths = result.tree.filter((entry) => entry.type === "blob").map(
+        let result = await readTree(treeSha, !0, sha4, treePath), paths = result.tree.filter((entry) => entry.type === "blob").map(
           (entry) => directory === "" ? entry.path : `${directory}/${entry.path}`
         ).filter((file2) => file2.toLowerCase().includes(query.toLowerCase()));
         return {
@@ -37257,7 +36174,7 @@ var manifestPath, usesService, snapshot, diff, host, server, treeSchema, trees, 
   }
 });
 
-// ../../codex/codex-apps/node_modules/.pnpm/@modelcontextprotocol+ext-apps@1.7.5_@modelcontextprotocol+sdk@1.29.0_@cfworker+json-sc_35c8847ff73954b8c7841556abadcc08/node_modules/@modelcontextprotocol/ext-apps/dist/src/server/index.js
+// ../../codex/codex-apps/node_modules/.pnpm/@modelcontextprotocol+ext-apps@1.7.5_@modelcontextprotocol+sdk@1.29.0_@cfworker+json-sc_bd5df0f40d314ac379191a54b1b226a1/node_modules/@modelcontextprotocol/ext-apps/dist/src/server/index.js
 function K3(Z, $, J, X) {
   let V = J._meta, D = V.ui, L = V[C], W = V;
   return D?.resourceUri && !L ? W = { ...V, [C]: D.resourceUri } : L && !D?.resourceUri && (W = { ...V, ui: { ...D, resourceUri: L } }), Z.registerTool($, { ...J, _meta: W }, X);
@@ -37266,7 +36183,7 @@ function N3(Z, $, J, X, V) {
   return Z.registerResource($, J, { mimeType: p, ...X }, V);
 }
 var r, v, K, QQ, ZQ, $Q, I, P, w, JQ, Y, j, XQ, H, _, A, f, u, E, VQ, O, DQ, d, h, LQ, WQ, BQ, R, m, GQ, dQ, KQ, NQ, YQ, U, T, k, jQ, FQ, M, C, p, init_server3 = __esm({
-  "../../codex/codex-apps/node_modules/.pnpm/@modelcontextprotocol+ext-apps@1.7.5_@modelcontextprotocol+sdk@1.29.0_@cfworker+json-sc_35c8847ff73954b8c7841556abadcc08/node_modules/@modelcontextprotocol/ext-apps/dist/src/server/index.js"() {
+  "../../codex/codex-apps/node_modules/.pnpm/@modelcontextprotocol+ext-apps@1.7.5_@modelcontextprotocol+sdk@1.29.0_@cfworker+json-sc_bd5df0f40d314ac379191a54b1b226a1/node_modules/@modelcontextprotocol/ext-apps/dist/src/server/index.js"() {
     init_protocol();
     init_types2();
     init_protocol();
@@ -37315,221 +36232,6 @@ Boolean requesting whether a visible border and background is provided by the ho
 - "model": Tool visible to and callable by the agent
 - "app": Tool callable by the app from this server only`), csp: external_exports.never().optional(), permissions: external_exports.never().optional() }), dQ = external_exports.object({ mimeTypes: external_exports.array(external_exports.string()).optional().describe('Array of supported MIME types for UI resources.\nMust include `"text/html;profile=mcp-app"` for MCP Apps support.') }), KQ = external_exports.object({ method: external_exports.literal("ui/download-file"), params: external_exports.object({ contents: external_exports.array(external_exports.union([EmbeddedResourceSchema, ResourceLinkSchema])).describe("Resource contents to download \u2014 embedded (inline data) or linked (host fetches). Uses standard MCP resource types.") }) }), NQ = external_exports.object({ method: external_exports.literal("ui/message"), params: external_exports.object({ role: external_exports.literal("user").describe('Message role, currently only "user" is supported.'), content: external_exports.array(ContentBlockSchema).describe("Message content blocks (text, image, etc.).") }) }), YQ = external_exports.object({ method: external_exports.literal("ui/notifications/sandbox-resource-ready"), params: external_exports.object({ html: external_exports.string().describe("HTML content to load into the inner iframe."), sandbox: external_exports.string().optional().describe("Optional override for the inner iframe's sandbox attribute."), csp: Y.optional().describe("CSP configuration from resource metadata."), permissions: j.optional().describe("Sandbox permissions from resource metadata.") }) }), U = external_exports.object({ method: external_exports.literal("ui/notifications/tool-result"), params: CallToolResultSchema.describe("Standard MCP tool execution result.") }), T = external_exports.object({ toolInfo: external_exports.object({ id: RequestIdSchema.optional().describe("JSON-RPC id of the tools/call request."), tool: ToolSchema.describe("Tool definition including name, inputSchema, etc.") }).optional().describe("Metadata of the tool call that instantiated this App."), theme: v.optional().describe("Current color theme preference."), styles: u.optional().describe("Style configuration for theming the app."), displayMode: K.optional().describe("How the UI is currently displayed."), availableDisplayModes: external_exports.array(K).optional().describe("Display modes the host supports."), containerDimensions: external_exports.union([external_exports.object({ height: external_exports.number().describe("Fixed container height in pixels.") }), external_exports.object({ maxHeight: external_exports.union([external_exports.number(), external_exports.undefined()]).optional().describe("Maximum container height in pixels.") })]).and(external_exports.union([external_exports.object({ width: external_exports.number().describe("Fixed container width in pixels.") }), external_exports.object({ maxWidth: external_exports.union([external_exports.number(), external_exports.undefined()]).optional().describe("Maximum container width in pixels.") })])).optional().describe(`Container dimensions. Represents the dimensions of the iframe or other
 container holding the app. Specify either width or maxWidth, and either height or maxHeight.`), locale: external_exports.string().optional().describe("User's language and region preference in BCP 47 format."), timeZone: external_exports.string().optional().describe("User's timezone in IANA format."), userAgent: external_exports.string().optional().describe("Host application identifier."), platform: external_exports.union([external_exports.literal("web"), external_exports.literal("desktop"), external_exports.literal("mobile")]).optional().describe("Platform type for responsive design decisions."), deviceCapabilities: external_exports.object({ touch: external_exports.boolean().optional().describe("Whether the device supports touch input."), hover: external_exports.boolean().optional().describe("Whether the device supports hover interactions.") }).optional().describe("Device input capabilities."), safeAreaInsets: external_exports.object({ top: external_exports.number().describe("Top safe area inset in pixels."), right: external_exports.number().describe("Right safe area inset in pixels."), bottom: external_exports.number().describe("Bottom safe area inset in pixels."), left: external_exports.number().describe("Left safe area inset in pixels.") }).optional().describe("Mobile safe area boundaries in pixels.") }).passthrough(), k = external_exports.object({ method: external_exports.literal("ui/notifications/host-context-changed"), params: T.describe("Partial context update containing only changed fields.") }), jQ = external_exports.object({ method: external_exports.literal("ui/update-model-context"), params: external_exports.object({ content: external_exports.array(ContentBlockSchema).optional().describe("Context content blocks (text, image, etc.)."), structuredContent: external_exports.record(external_exports.string(), external_exports.unknown().describe("Structured content for machine-readable context data.")).optional().describe("Structured content for machine-readable context data.") }) }), FQ = external_exports.object({ method: external_exports.literal("ui/initialize"), params: external_exports.object({ appInfo: ImplementationSchema.describe("App identification (name and version)."), appCapabilities: h.describe("Features and capabilities this app provides."), protocolVersion: external_exports.string().describe("Protocol version this app supports.") }) }), M = external_exports.object({ protocolVersion: external_exports.string().describe('Negotiated protocol version string (e.g., "2025-11-21").'), hostInfo: ImplementationSchema.describe("Host application identification and version."), hostCapabilities: d.describe("Features and capabilities provided by the host."), hostContext: T.describe("Rich context about the host environment.") }).passthrough(), C = "ui/resourceUri", p = "text/html;profile=mcp-app";
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/code-review-bridge.ts
-var readFailureSchema2, activityCursorSchema2, activityScanSchema2, init_code_review_bridge2 = __esm({
-  "../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/code-review-bridge.ts"() {
-    init_v4();
-    readFailureSchema2 = external_exports.object({
-      kind: external_exports.enum(["access", "rate-limit", "transient"]),
-      retryAt: external_exports.number().optional()
-    }), activityCursorSchema2 = external_exports.object({
-      githubUserId: external_exports.number().int(),
-      startedAt: external_exports.number(),
-      checkedAt: external_exports.number().nullable(),
-      reconciledAt: external_exports.number(),
-      approvalsCheckedAt: external_exports.number().nullable().optional(),
-      approvalsReconciledAt: external_exports.number().optional(),
-      requestedCheckedAt: external_exports.number().nullable().optional(),
-      requestedReconciledAt: external_exports.number().optional(),
-      requestedScan: external_exports.object({
-        startedAt: external_exports.number(),
-        after: external_exports.number(),
-        reconcile: external_exports.boolean(),
-        hadDenial: external_exports.boolean().optional(),
-        searchAfter: external_exports.string().nullable(),
-        completedPullRequests: external_exports.array(external_exports.string()).max(50),
-        pendingPullRequest: external_exports.string().nullable(),
-        timelinePage: external_exports.number().int().positive().nullable(),
-        pendingEventIds: external_exports.array(external_exports.string()).max(20).optional()
-      }).nullable().optional()
-    }), activityScanSchema2 = external_exports.discriminatedUnion("available", [
-      external_exports.object({ available: external_exports.literal(!1) }),
-      external_exports.object({
-        available: external_exports.literal(!0),
-        rows: external_exports.array(
-          external_exports.object({
-            id: external_exports.string(),
-            kind: external_exports.enum(["approved", "review_requested"]),
-            actor: external_exports.string(),
-            avatarUrl: external_exports.string().nullable(),
-            publishedAt: external_exports.string(),
-            title: external_exports.string(),
-            url: external_exports.string(),
-            state: external_exports.string(),
-            pullRequest: external_exports.object({
-              hostname: external_exports.string(),
-              owner: external_exports.string(),
-              repository: external_exports.string(),
-              number: external_exports.number().int()
-            })
-          })
-        ),
-        cursor: activityCursorSchema2,
-        cost: external_exports.number().nonnegative(),
-        nextPollAt: external_exports.number(),
-        error: external_exports.string().nullable()
-      })
-    ]);
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/telemetry.ts
-var provider, context, codeReviewTelemetrySchema, init_telemetry = __esm({
-  "../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/telemetry.ts"() {
-    init_zod();
-    provider = external_exports.enum(["github", "gitlab"]).optional(), context = {
-      provider,
-      surface: external_exports.enum(["global", "task", "settings"]),
-      page: external_exports.enum(["inbox", "summary", "code", "settings"])
-    }, codeReviewTelemetrySchema = external_exports.discriminatedUnion("type", [
-      external_exports.object({
-        type: external_exports.literal("viewed"),
-        ...context,
-        visitId: external_exports.uuid()
-      }),
-      external_exports.object({
-        type: external_exports.literal("engagement"),
-        ...context,
-        visitId: external_exports.uuid(),
-        activeTimeMs: external_exports.number().int().positive().max(12e4)
-      }),
-      external_exports.object({
-        type: external_exports.literal("navigation"),
-        provider,
-        source: external_exports.enum([
-          "sidebar",
-          "notification",
-          "task_link",
-          "task_pr",
-          "pr_stack",
-          "pr_header",
-          "sidebar_menu",
-          "search"
-        ]),
-        destination: external_exports.enum(["code_review", "github", "gitlab"])
-      }),
-      external_exports.object({
-        type: external_exports.literal("notification"),
-        provider,
-        action: external_exports.enum(["opened", "item_opened", "item_read", "all_read"]),
-        kind: external_exports.enum(["approved", "review_requested"]).optional(),
-        count: external_exports.number().int().min(0).max(1e5),
-        trigger: external_exports.enum(["hover", "focus", "click"]).optional()
-      }),
-      external_exports.object({
-        type: external_exports.literal("pull_request_action"),
-        provider,
-        surface: external_exports.enum(["pull_request_page", "thread_side_panel"]),
-        state: external_exports.enum([
-          "closed",
-          "draft",
-          "failing",
-          "in_progress",
-          "merged",
-          "ready",
-          "successful"
-        ]).optional(),
-        isAuthor: external_exports.boolean().optional(),
-        action: external_exports.enum([
-          "close",
-          "copy_url",
-          "disable_auto_merge",
-          "enable_auto_merge",
-          "mark_draft",
-          "mark_ready",
-          "merge",
-          "merge_with_codex_dialog_opened",
-          "merge_with_codex_resumed",
-          "merge_with_codex_started",
-          "merge_with_codex_task_opened",
-          "open_code_review_view",
-          "open_in_browser",
-          "open_pull_request_view",
-          "reopen",
-          "request_approvals"
-        ])
-      }),
-      external_exports.object({
-        type: external_exports.literal("interaction"),
-        ...context,
-        surface: context.surface.optional(),
-        page: context.page.optional(),
-        action: external_exports.enum([
-          "page_viewed",
-          "copy_link",
-          "pin",
-          "unpin",
-          "review_requested",
-          "review_submitted",
-          "comment_posted",
-          "chat_opened",
-          "fix_requested"
-        ])
-      }),
-      external_exports.object({
-        type: external_exports.literal("option"),
-        provider,
-        option: external_exports.enum([
-          "content_tab",
-          "activity_filter",
-          "diff_layout",
-          "file_tree",
-          "expand_diffs",
-          "github_link_target",
-          "provider",
-          "notifications",
-          "review_decision"
-        ]),
-        value: external_exports.enum([
-          "summary",
-          "code",
-          "all",
-          "comments",
-          "human_comments",
-          "commits",
-          "code_review",
-          "split",
-          "unified",
-          "auto",
-          "true",
-          "false",
-          "github",
-          "gitlab",
-          "code-review-tab",
-          "in-app-browser",
-          "external-browser",
-          "approve",
-          "request_changes",
-          "comment"
-        ])
-      })
-    ]);
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/sidebar-policy.ts
-var init_sidebar_policy = __esm({
-  "../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/sidebar-policy.ts"() {
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/github-avatar.ts
-var init_github_avatar = __esm({
-  "../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/github-avatar.ts"() {
-  }
-});
-
-// ../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/index.ts
-var init_src3 = __esm({
-  "../../codex/codex-apps/node_modules/.pnpm/@openai+pull-requests-bridge@file+..+..+plugins+pull-requests+bridge/node_modules/@openai/pull-requests-bridge/src/index.ts"() {
-    init_code_review_bridge2();
-    init_telemetry();
-    init_code_review_bridge2();
-    init_sidebar_policy();
-    init_github_avatar();
   }
 });
 
@@ -38397,7 +37099,7 @@ async function getPullRequestDiffWithGh({
 }
 var MAX_DIFF_ACQUISITION_ATTEMPTS, init_get_pull_request_diff_with_gh = __esm({
   "../../codex/codex-apps/shared-node/src/github/get-pull-request-diff-with-gh.ts"() {
-    init_src2();
+    init_src3();
     init_get_github_cli_status();
     init_get_pull_request_head_revision_with_gh();
     init_gh_runner();
@@ -39204,7 +37906,7 @@ function getGitHubTeamSlug(slug) {
 }
 var REVIEW_STATUS_BY_DECISION, init_pull_request_status_helpers = __esm({
   "../../codex/codex-apps/shared-node/src/github/pull-request-status-helpers.ts"() {
-    init_src2();
+    init_src3();
     REVIEW_STATUS_BY_DECISION = {
       APPROVED: "approved",
       CHANGES_REQUESTED: "changes_requested",
@@ -39705,7 +38407,7 @@ async function readApi(request, host3, path7, args, signal) {
 var import_async_sema, revisionFileReadsByHostId, shaSchema, filePathSchema, fileContentsSchema, MAX_REVISION_FILE_BYTES, revisionsSchema, comparisonPagesSchema, init_pull_request_review_revisions = __esm({
   "../../codex/codex-apps/shared-node/src/github/pull-request-review-revisions.ts"() {
     import_async_sema = __toESM(require_lib2());
-    init_src2();
+    init_src3();
     init_zod();
     init_get_github_cli_status();
     init_gh_runner();
@@ -39936,6 +38638,126 @@ var import_chunk, MAX_STACK_SIZE, branchSchema, pullRequestSchema, pullRequestsS
   }
 });
 
+// ../../codex/codex-apps/protocol/src/format-unserializable-log-field-value.ts
+var init_format_unserializable_log_field_value = __esm({
+  "../../codex/codex-apps/protocol/src/format-unserializable-log-field-value.ts"() {
+    "use strict";
+  }
+});
+
+// ../../codex/codex-apps/protocol/src/log-fields.ts
+var validationIssuesSchema, errorMetadataSchema, init_log_fields = __esm({
+  "../../codex/codex-apps/protocol/src/log-fields.ts"() {
+    "use strict";
+    init_zod();
+    validationIssuesSchema = external_exports.preprocess(
+      (value) => Array.isArray(value) ? value.slice(0, 5) : value,
+      external_exports.array(
+        external_exports.object({
+          code: external_exports.string().transform((value) => value.slice(0, 80)),
+          path: external_exports.preprocess(
+            (value) => Array.isArray(value) ? value.slice(0, 8) : value,
+            external_exports.array(
+              external_exports.union([
+                external_exports.string().transform((value) => value.slice(0, 80)),
+                external_exports.number()
+              ])
+            )
+          )
+        })
+      )
+    ), errorMetadataSchema = external_exports.object({
+      code: external_exports.union([external_exports.string().transform((value) => value.slice(0, 80)), external_exports.number()]).optional().catch(void 0),
+      issues: validationIssuesSchema.optional().catch(void 0),
+      data: external_exports.object({ issues: validationIssuesSchema.optional() }).optional().catch(void 0)
+    });
+  }
+});
+
+// ../../codex/codex-apps/protocol/src/log-tags.ts
+var init_log_tags = __esm({
+  "../../codex/codex-apps/protocol/src/log-tags.ts"() {
+    "use strict";
+  }
+});
+
+// ../../codex/codex-apps/protocol/src/logger.ts
+function withDefaultTags(tags) {
+  return tags == null ? EMPTY_LOG_TAGS : {
+    safe: tags.safe,
+    sensitive: tags.sensitive ?? {}
+  };
+}
+function getLogger() {
+  return currentLogger;
+}
+function getTaggedLogger(tag) {
+  let prefix = `[${tag}] `, logTagged = (level, message, tags) => {
+    getLogger().log(level, `${prefix}${message}`, withDefaultTags(tags));
+  }, createTaggedMethod = (level) => (message, tags) => {
+    logTagged(level, message, tags);
+  };
+  return {
+    trace: createTaggedMethod("trace"),
+    debug: createTaggedMethod("debug"),
+    info: createTaggedMethod("info"),
+    warning: createTaggedMethod("warning"),
+    error: createTaggedMethod("error"),
+    log: (level, message, tags) => {
+      logTagged(level, message, tags);
+    },
+    dispose: () => {
+      getLogger().dispose();
+    }
+  };
+}
+var EMPTY_LOG_TAGS, BufferingLogger, currentLogger, init_logger = __esm({
+  "../../codex/codex-apps/protocol/src/logger.ts"() {
+    init_format_unserializable_log_field_value();
+    init_log_fields();
+    init_log_tags();
+    EMPTY_LOG_TAGS = { safe: {}, sensitive: {} };
+    BufferingLogger = class {
+      buffer = [];
+      maxBufferSize = 500;
+      hasLoggedDroppedLogMessage = !1;
+      push(entry) {
+        if (this.buffer.length >= this.maxBufferSize) {
+          this.hasLoggedDroppedLogMessage || (this.hasLoggedDroppedLogMessage = !0, this.buffer.push({
+            timestamp: entry.timestamp,
+            level: "warning",
+            message: "Dropped buffered log message after maxBufferSize was reached",
+            tags: EMPTY_LOG_TAGS
+          }));
+          return;
+        }
+        this.buffer.push(entry);
+      }
+      createLogMethod(level) {
+        return (message, tags) => {
+          this.log(level, message, tags);
+        };
+      }
+      trace = this.createLogMethod("trace");
+      debug = this.createLogMethod("debug");
+      info = this.createLogMethod("info");
+      warning = this.createLogMethod("warning");
+      error = this.createLogMethod("error");
+      log = (level, message, tags, timestamp = Date.now()) => {
+        this.push({ timestamp, level, message, tags: withDefaultTags(tags) });
+      };
+      flushTo(log) {
+        for (let entry of this.buffer)
+          log(entry.level, entry.message, entry.tags, entry.timestamp);
+        this.buffer.length = 0;
+      }
+      dispose() {
+        this.buffer = [];
+      }
+    }, currentLogger = new BufferingLogger();
+  }
+});
+
 // ../../codex/codex-apps/shared-node/src/logger.ts
 var init_logger2 = __esm({
   "../../codex/codex-apps/shared-node/src/logger.ts"() {
@@ -39946,7 +38768,7 @@ var init_logger2 = __esm({
 // ../../codex/codex-apps/shared-node/src/github/pull-request-check-rollup.ts
 var init_pull_request_check_rollup = __esm({
   "../../codex/codex-apps/shared-node/src/github/pull-request-check-rollup.ts"() {
-    init_src2();
+    init_src3();
   }
 });
 
@@ -40046,9 +38868,9 @@ async function fetchSummaries(account, host3, pullRequests, isNeeded) {
   }
   return results;
 }
-var MAX_BATCH_SIZE, MAX_CHECK_PAGES, logger2, batchesByAccount, pullRequestSchema2, responseSchema2, viewerSchema, repositorySchema, PullRequestSummaryBatch, init_pull_request_summary_batch = __esm({
+var MAX_BATCH_SIZE, MAX_CHECK_PAGES, logger, batchesByAccount, pullRequestSchema2, responseSchema2, viewerSchema, repositorySchema, PullRequestSummaryBatch, init_pull_request_summary_batch = __esm({
   "../../codex/codex-apps/shared-node/src/github/pull-request-summary-batch.ts"() {
-    init_src2();
+    init_src3();
     init_zod();
     init_logger2();
     init_gh_pr_list_schema();
@@ -40057,7 +38879,7 @@ var MAX_BATCH_SIZE, MAX_CHECK_PAGES, logger2, batchesByAccount, pullRequestSchem
     init_pull_request_canonical_target();
     init_pull_request_check_rollup();
     init_pull_request_status_helpers();
-    MAX_BATCH_SIZE = 60, MAX_CHECK_PAGES = 20, logger2 = getTaggedLogger("github"), batchesByAccount = /* @__PURE__ */ new Map(), pullRequestSchema2 = external_exports.object({
+    MAX_BATCH_SIZE = 60, MAX_CHECK_PAGES = 20, logger = getTaggedLogger("github"), batchesByAccount = /* @__PURE__ */ new Map(), pullRequestSchema2 = external_exports.object({
       number: external_exports.number(),
       url: external_exports.string(),
       title: external_exports.string(),
@@ -40140,7 +38962,7 @@ var MAX_BATCH_SIZE, MAX_CHECK_PAGES, logger2, batchesByAccount, pullRequestSchem
               )
             ));
           } catch (error51) {
-            logger2.warning("Pull request summary batch failed", {
+            logger.warning("Pull request summary batch failed", {
               safe: {},
               sensitive: { error: error51 }
             });
@@ -41362,7 +40184,7 @@ var import_uniqBy2, MAX_GITHUB_SEARCH_RESULTS, MAX_PULL_REQUEST_SEARCH_PAGE_SIZE
   "server/github/search.ts"() {
     init_gh_runner();
     init_gh_shared();
-    init_src2();
+    init_src3();
     import_uniqBy2 = __toESM(require_uniqBy(), 1);
     init_search_schema();
     init_service();
@@ -42502,7 +41324,7 @@ var require_encode_html = __commonJS({
 });
 
 // ../../codex/codex-apps/node_modules/.pnpm/entities@4.5.0/node_modules/entities/lib/escape.js
-var require_escape2 = __commonJS({
+var require_escape = __commonJS({
   "../../codex/codex-apps/node_modules/.pnpm/entities@4.5.0/node_modules/entities/lib/escape.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: !0 });
@@ -42564,7 +41386,7 @@ var require_encode = __commonJS({
     };
     Object.defineProperty(exports, "__esModule", { value: !0 });
     exports.encodeNonAsciiHTML = exports.encodeHTML = void 0;
-    var encode_html_js_1 = __importDefault(require_encode_html()), escape_js_1 = require_escape2(), htmlReplacer = /[\t\n!-,./:-@[-`\f{-}$\x80-\uFFFF]/g;
+    var encode_html_js_1 = __importDefault(require_encode_html()), escape_js_1 = require_escape(), htmlReplacer = /[\t\n!-,./:-@[-`\f{-}$\x80-\uFFFF]/g;
     function encodeHTML(data) {
       return encodeHTMLTrieRe(htmlReplacer, data);
     }
@@ -42606,7 +41428,7 @@ var require_lib5 = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: !0 });
     exports.decodeXMLStrict = exports.decodeHTML5Strict = exports.decodeHTML4Strict = exports.decodeHTML5 = exports.decodeHTML4 = exports.decodeHTMLAttribute = exports.decodeHTMLStrict = exports.decodeHTML = exports.decodeXML = exports.DecodingMode = exports.EntityDecoder = exports.encodeHTML5 = exports.encodeHTML4 = exports.encodeNonAsciiHTML = exports.encodeHTML = exports.escapeText = exports.escapeAttribute = exports.escapeUTF8 = exports.escape = exports.encodeXML = exports.encode = exports.decodeStrict = exports.decode = exports.EncodingMode = exports.EntityLevel = void 0;
-    var decode_js_1 = require_decode(), encode_js_1 = require_encode(), escape_js_1 = require_escape2(), EntityLevel;
+    var decode_js_1 = require_decode(), encode_js_1 = require_encode(), escape_js_1 = require_escape(), EntityLevel;
     (function(EntityLevel2) {
       EntityLevel2[EntityLevel2.XML = 0] = "XML", EntityLevel2[EntityLevel2.HTML = 1] = "HTML";
     })(EntityLevel = exports.EntityLevel || (exports.EntityLevel = {}));
@@ -42637,7 +41459,7 @@ var require_lib5 = __commonJS({
       return opts.mode === EncodingMode.UTF8 ? (0, escape_js_1.escapeUTF8)(data) : opts.mode === EncodingMode.Attribute ? (0, escape_js_1.escapeAttribute)(data) : opts.mode === EncodingMode.Text ? (0, escape_js_1.escapeText)(data) : opts.level === EntityLevel.HTML ? opts.mode === EncodingMode.ASCII ? (0, encode_js_1.encodeNonAsciiHTML)(data) : (0, encode_js_1.encodeHTML)(data) : (0, escape_js_1.encodeXML)(data);
     }
     exports.encode = encode3;
-    var escape_js_2 = require_escape2();
+    var escape_js_2 = require_escape();
     Object.defineProperty(exports, "encodeXML", { enumerable: !0, get: function() {
       return escape_js_2.encodeXML;
     } });
@@ -43483,7 +42305,7 @@ var require_types2 = __commonJS({
 });
 
 // ../../codex/codex-apps/node_modules/.pnpm/css-what@6.1.0/node_modules/css-what/lib/commonjs/parse.js
-var require_parse2 = __commonJS({
+var require_parse = __commonJS({
   "../../codex/codex-apps/node_modules/.pnpm/css-what@6.1.0/node_modules/css-what/lib/commonjs/parse.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: !0 });
@@ -43860,7 +42682,7 @@ var require_commonjs = __commonJS({
     Object.defineProperty(exports, "__esModule", { value: !0 });
     exports.stringify = exports.parse = exports.isTraversal = void 0;
     __exportStar(require_types2(), exports);
-    var parse_1 = require_parse2();
+    var parse_1 = require_parse();
     Object.defineProperty(exports, "isTraversal", { enumerable: !0, get: function() {
       return parse_1.isTraversal;
     } });
@@ -44070,7 +42892,7 @@ var require_attributes = __commonJS({
 });
 
 // ../../codex/codex-apps/node_modules/.pnpm/nth-check@2.1.1/node_modules/nth-check/lib/parse.js
-var require_parse3 = __commonJS({
+var require_parse2 = __commonJS({
   "../../codex/codex-apps/node_modules/.pnpm/nth-check@2.1.1/node_modules/nth-check/lib/parse.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: !0 });
@@ -44169,7 +42991,7 @@ var require_lib8 = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: !0 });
     exports.sequence = exports.generate = exports.compile = exports.parse = void 0;
-    var parse_js_1 = require_parse3();
+    var parse_js_1 = require_parse2();
     Object.defineProperty(exports, "parse", { enumerable: !0, get: function() {
       return parse_js_1.parse;
     } });
@@ -45794,7 +44616,7 @@ var require_html = __commonJS({
 });
 
 // ../../codex/codex-apps/node_modules/.pnpm/node-html-parser@7.1.0/node_modules/node-html-parser/dist/parse.js
-var require_parse4 = __commonJS({
+var require_parse3 = __commonJS({
   "../../codex/codex-apps/node_modules/.pnpm/node-html-parser@7.1.0/node_modules/node-html-parser/dist/parse.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: !0 });
@@ -45838,7 +44660,7 @@ var require_dist2 = __commonJS({
     exports.TextNode = text_1.default;
     var type_1 = __importDefault(require_type());
     exports.NodeType = type_1.default;
-    var parse_1 = __importDefault(require_parse4()), valid_1 = __importDefault(require_valid());
+    var parse_1 = __importDefault(require_parse3()), valid_1 = __importDefault(require_valid());
     exports.valid = valid_1.default;
     function parse4(data, options = {}) {
       return (0, parse_1.default)(data, options);
@@ -46041,7 +44863,7 @@ async function readJson(host3, path7) {
 var blobSchema, init_repository_image2 = __esm({
   "server/repository-image.ts"() {
     init_gh_runner();
-    init_src2();
+    init_src3();
     init_v4();
     init_media();
     blobSchema = external_exports.object({
@@ -46434,7 +45256,7 @@ function readDiffHunks(diff2) {
 var sha3, reviewEventSchema, DISABLED_FEATURES, init_runner = __esm({
   "server/private-review/runner.ts"() {
     init_binary_resolver();
-    init_src2();
+    init_src3();
     init_v4();
     init_private_review();
     init_service();
@@ -47850,7 +46672,7 @@ var development, appTitle, host2, configuredGitHubHosts, currentUserRequests, in
     init_server3();
     init_mcp();
     init_stdio2();
-    init_src3();
+    init_src();
     init_comment_on_pull_request_with_gh();
     init_get_github_cli_status();
     init_get_pull_request_body_with_gh();
@@ -48046,7 +46868,7 @@ var development, appTitle, host2, configuredGitHubHosts, currentUserRequests, in
       "pull_requests.authoredUpdates",
       {
         account: reviewAccountSchema.optional(),
-        cursor: activityCursorSchema2.nullable().optional()
+        cursor: activityCursorSchema.nullable().optional()
       },
       async ({ account, ...request }, signal) => {
         let client = githubProviderForRequest(account?.hostname ?? "github.com");
@@ -48057,7 +46879,7 @@ var development, appTitle, host2, configuredGitHubHosts, currentUserRequests, in
             "The GitHub account changed. Reopen Code Review.",
             "access"
           );
-        return activityScanSchema2.parse(
+        return activityScanSchema.parse(
           await client.request(
             "activity",
             { ...request, account: current.account },

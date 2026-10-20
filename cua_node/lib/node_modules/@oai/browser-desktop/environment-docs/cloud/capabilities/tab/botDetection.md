@@ -17,6 +17,12 @@ or egress denials, DNS or TLS failures, timeouts, and refused or reset
 connections are not bot detection.
 
 ### Choose The Reason
+- `sign_in_blocked`: Use when a site-served bot or anti-automation block prevents
+  signing in.
+- `add_to_cart_blocked`: Use when a site-served bot or anti-automation block
+  prevents adding an item to the cart.
+- `purchase_blocked`: Use when a site-served bot or anti-automation block prevents
+  checkout or completing a purchase.
 - `captcha_failed`: Use after you attempted a CAPTCHA or human-verification
   challenge under the active confirmation policy, but the site rejected it or
   the challenge still blocks progress.
@@ -47,6 +53,6 @@ nodeRepl.write(JSON.stringify(reportResult));
 const capability = await tab.capabilities.get("botDetection");
 
 interface BotDetectionTabCapability {
-  report(options: { reason: "captcha_failed" | "access_denied" | "challenge_loop" | "unexpected_bot_error" }): Promise<{ hostname: null | string; status: "reported" }>; // Report the currently open page as blocked by bot detection. The runtime records only the parsed hostname, never the full URL.
+  report(options: { reason: "captcha_failed" | "access_denied" | "challenge_loop" | "sign_in_blocked" | "add_to_cart_blocked" | "purchase_blocked" | "unexpected_bot_error" }): Promise<{ hostname: null | string; status: "reported" }>; // Report the currently open page as blocked by bot detection. The runtime records only the parsed hostname, never the full URL.
 }
 ```

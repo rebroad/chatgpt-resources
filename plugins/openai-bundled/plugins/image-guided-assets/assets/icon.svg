@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Faceted violet cube">
+  <defs>
+    <linearGradient id="top" x1="16" y1="37" x2="110" y2="51" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D6BCFA"/>
+      <stop offset="1" stop-color="#A16AF4"/>
+    </linearGradient>
+    <linearGradient id="left" x1="14" y1="40" x2="64" y2="116" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B45F8"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="right" x1="64" y1="64" x2="114" y2="91" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6320D6"/>
+      <stop offset="1" stop-color="#49179D"/>
+    </linearGradient>
+    <clipPath id="silhouette">
+      <path d="M60 11Q64 9 68 11L111 36Q114 38 114 42V86Q114 90 111 92L68 117Q64 119 60 117L17 92Q14 90 14 86V42Q14 38 17 36Z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#silhouette)">
+    <path d="M14 9H114V119H14Z" fill="url(#left)"/>
+    <path d="M64 9L114 38L64 65L14 38Z" fill="url(#top)"/>
+    <path d="M64 65L114 38V91L64 120Z" fill="url(#right)"/>
+    <path d="M64 9L76 44L14 38Z" fill="#E6D5FE" opacity=".35"/>
+    <path d="M14 38L114 38L64 65Z" fill="#A575F6" opacity=".35"/>
+    <path d="M14 38L64 65V107Z" fill="#9B52FC" opacity=".4"/>
+    <path d="M64 65L114 38L64 107Z" fill="#7429E8" opacity=".5"/>
+  </g>
+</svg>

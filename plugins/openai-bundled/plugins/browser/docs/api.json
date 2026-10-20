@@ -296,9 +296,6 @@
               "TabCapabilityCollection"
             ]
           }
-        ],
-        "unsupportedByDefaultIn": [
-          "mcpapps"
         ]
       },
       "clipboard": {
@@ -479,7 +476,22 @@
       "requestManualHandoff": {
         "declarations": [
           {
-            "text": "requestManualHandoff(): Promise<void>; // Request manual user control of this Cloud Browser tab and mark it for handoff.",
+            "text": "requestManualHandoff(): Promise<void>;",
+            "references": []
+          }
+        ],
+        "unsupportedByDefaultIn": [
+          "extension",
+          "iab",
+          "cdp",
+          "mcpapps"
+        ],
+        "documented": false
+      },
+      "requestUserTakeover": {
+        "declarations": [
+          {
+            "text": "requestUserTakeover(): Promise<void>; // Request manual user control of this Cloud Browser tab and mark it for handoff.",
             "references": []
           }
         ],

@@ -1,0 +1,32 @@
+{
+  "name": "image-guided-assets",
+  "version": "0.1.2",
+  "description": "Create SVG and 3D assets from visual references, then render, compare, and refine them.",
+  "author": {
+    "name": "OpenAI"
+  },
+  "license": "Proprietary",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Image-guided Assets",
+    "shortDescription": "Create SVG and 3D assets from visual references",
+    "longDescription": "Generate or reuse a visual reference, build an SVG or 3D asset, and refine the result through rendered comparisons. Includes checks for SVG contours and transparency and Blender geometry and materials.",
+    "developerName": "OpenAI",
+    "category": "Design",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://openai.com/",
+    "privacyPolicyURL": "https://openai.com/policies/row-privacy-policy/",
+    "termsOfServiceURL": "https://openai.com/policies/row-terms-of-use/",
+    "composerIcon": "./assets/icon.svg",
+    "logo": "./assets/icon.svg",
+    "brandColor": "#7C3AED",
+    "defaultPrompt": [
+      "Create an SVG of a pelican riding a bicycle, using a visual reference to guide the design.",
+      "Create a 3D folding field camera in Blender, using a reference to guide its proportions and materials."
+    ]
+  }
+}

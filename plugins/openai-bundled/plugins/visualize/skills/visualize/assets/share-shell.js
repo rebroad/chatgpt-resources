@@ -128,6 +128,7 @@
     );
     panel.id = "visualization-share-sources";
     panel.inert = true;
+    panel.hidden = true;
     panel.setAttribute("aria-hidden", "true");
     const sourceContent = element("div", "visualization-share-content");
     const header = element("div", "visualization-share-sources-header");
@@ -211,9 +212,17 @@
     showChart.setAttribute("aria-controls", chart.id);
     showChart.hidden = true;
     showChart.prepend(icon(icons.back));
+    const hideInactiveSources = () => {
+      if (!chart.inert && card.getAnimations().length === 0) {
+        panel.hidden = true;
+      }
+    };
     const flip = (show) => {
-      // Both faces stay laid out in the same grid cell. A synthetic resize would
-      // clear the live iframe's measured height and move the card mid-transition.
+      // Keep the iframe mounted and the outgoing sources at their full height
+      // until the flip finishes. Hidden sources must not size the chart.
+      if (show) {
+        panel.hidden = false;
+      }
       card.classList.toggle("visualization-share-flipped", show);
       showSources.hidden = show;
       showChart.hidden = !show;
@@ -223,7 +232,15 @@
       panel.setAttribute("aria-hidden", String(!show));
       showSources.setAttribute("aria-expanded", String(show));
       (show ? showChart : showSources).focus({ preventScroll: true });
+      hideInactiveSources();
     };
+    for (const eventType of ["transitionend", "transitioncancel"]) {
+      card.addEventListener(eventType, (event) => {
+        if (event.target === card) {
+          hideInactiveSources();
+        }
+      });
+    }
     showSources.addEventListener("click", () => flip(true));
     showChart.addEventListener("click", () => flip(false));
     document.addEventListener("keydown", (event) => {

@@ -48,9 +48,13 @@
   padding: 88px 24px;
 }
 .visualization-share-object {
+  visibility: hidden;
   inline-size: min(100%, 780px);
   min-inline-size: 0;
   perspective: 1600px;
+}
+.visualization-share-ready .visualization-share-object {
+  visibility: visible;
 }
 .visualization-share-card {
   position: relative;
@@ -79,6 +83,9 @@
     0 18px 60px -25px var(--share-shadow-far);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+}
+.visualization-share-sources[hidden] {
+  display: none;
 }
 .visualization-share-sources {
   transform: rotateY(180deg);
