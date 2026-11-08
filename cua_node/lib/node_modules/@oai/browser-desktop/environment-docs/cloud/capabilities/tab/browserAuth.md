@@ -8,21 +8,29 @@ provide credentials. It can offer the available sign-in methods and collect
 user-provided credentials directly in a secure ChatGPT form. Browser-client
 validates, fills, and submits those values without returning them to you.
 
+Users can select an available password manager such as 1Password in the secure
+form. Use the regular `browserAuth.request(...)` flow for these sign-ins.
+
 This guidance covers sign-in credentials only. Payment credentials do not apply.
 
 ### Non-Negotiable Rules
+- Check if a dedicated installable plugin has tools which can complete the
+  task before beginning browser auth. Prefer suggesting plugin installation
+  instead of browser auth.
 - Do not use `browserAuth` to create accounts. If the flow requires new account
   creation, offer manual handoff so the user can complete signup.
 - Never ask the user to paste passwords, one-time codes, auth codes, security
   answers, or other secret sign-in values into chat.
-- Never enter, read, inspect, log, print, or reconstruct sign-in credential values
-  with Playwright, vision, tool output, or any other model-visible surface.
+- Never enter or submit sign-in credential values through Playwright, vision,
+  or any other model-visible tool. Never read, inspect, log, print, or
+  reconstruct secret sign-in values on any model-visible surface.
 - Never emit a legacy `<browser_auth_request>` block or use a legacy form-fill
   path.
 - CAPTCHAs are outside `browserAuth`. Never use this capability for one; follow
   the CAPTCHA guidance in the main Browser skill.
 - Never include secrets, cookies, full URLs, query strings, JavaScript,
-  DOM snippets, or other page content in a browser-auth request. Browser-client
+  DOM snippets, or other page content in a browser-auth request, except the
+  selected account in `account_identifier`. Browser-client
   supplies the request message; do not provide one. Credential-field and
   sign-in option labels must describe only controls actually visible on the
   current page.
@@ -37,17 +45,6 @@ This guidance covers sign-in credentials only. Payment credentials do not apply.
   work already completed.
 
 ### Authentication Lifecycle
-If observation is blocked by native credential protection, this recovery path
-replaces the inspection and fresh-tab steps below. Use the existing tab handle
-to navigate explicitly to the target origin or canonical signed-in URL retained
-before authentication, for example `await tab.goto(targetOrigin)`. Inspect the
-new document only if navigation succeeds and the runtime permits observation.
-An automatic redirect or popup does not permit inspection. Do not create or
-enumerate tabs, reload, or go back to try to clear the protection. If the explicit
-navigation or subsequent observation fails, stop automated credential entry and
-follow the refusal guidance above. Never infer sign-in success from a submitted
-request or infer that no input occurred from a failed or interrupted request.
-
 1. Before the first authentication interaction, retain the target site's origin
    or a canonical signed-in URL for later verification, for example with
    `const targetOrigin = new URL(await tab.url()).origin`.
@@ -142,6 +139,11 @@ request or infer that no input occurred from a failed or interrupted request.
    Issue exactly one request at a time for the current sign-in page. For
    multi-step sign-in, inspect the new page and make a separate request after
    each navigation.
+   When requesting only a password for a chosen sign-in method, always set
+   `account_identifier` to the exact username or email already entered or
+   clearly shown as the selected account for this sign-in. This includes an
+   identifier filled on the current page or an earlier step. If no account
+   identifier is available, omit it and still request the password. Never guess.
 3. Start with `tab.playwright.domSnapshot()` to identify iframe hierarchy and
    owner attributes. `tab.getAXState()` omits frame ownership.
    If a field, option, or submit is inside an iframe, use its `frameLocator(...)`;
@@ -314,8 +316,7 @@ exactly one visible, enabled element.
   is stale or unsafe. If authentication still blocks the task, re-inspect the
   current page and issue a corrected fresh request.
 - `expired` means the request's authority window elapsed. Re-inspect before
-  issuing a fresh request, using the native credential recovery path above if
-  observation is blocked. Input may already have occurred.
+  issuing a fresh request. Input may already have occurred.
 - `declined` with `reason: "user_took_over"` means the user took manual control
   of the cloud browser; their actions and final authentication state are
   unknown. Inspect the final page state with fresh visible DOM, then continue the
@@ -355,6 +356,6 @@ type BrowserAuthOption = z.infer<typeof BrowserAuthOptionSchema>;
 type BrowserAuthSubmit = z.infer<typeof BrowserAuthSubmitSchema>;
 
 interface BrowserAuthTabCapability {
-  request(options: BrowserAuthRequestOptions): Promise<{ locator_error?: { field_id: string; reason: "not_user_visible" }; reason?: "user_took_over"; selected_option?: string; status: "origin_changed" | "submission_failed" | "submitted" | "unavailable" | "page_changed" | "locator_invalid" | "declined" | "cancelled" | "expired"; submission_diagnostics?: { attempt_events?: Array<{ field_index?: number; kind: "prompt_completed" | "field_fill_started" | "field_fill_completed" | "field_fill_uncertain" | "url_changed" | "document_changed" | "frame_changed" | "reinspection_started" | "reinspection_succeeded" | "reinspection_failed" | "site_request" | "site_navigation" | "site_submission_verified" | "submit_started" | "attempt_completed"; method?: "other" | "get" | "post"; origin_relation?: "other" | "same" | "cross"; outcome?: "origin_changed" | "submission_failed" | "submitted" | "unavailable" | "page_changed" | "locator_invalid" | "prompt_changed"; phase: "prompt" | "settled" | "filling" | "before_submit" | "submitting"; reinspection?: number; request_class?: "main_document" | "background"; sequence: number }>; dropped_attempt_events?: number; first_rejection?: { outcome: "origin_changed" | "submission_failed"; reason: "request_url_invalid" | "request_scheme" | "request_origin" | "paused_iframe" | "iframe_origin" | "child_frame_origin" | "other"; request_class: "other" | "main_document" | "background"; submission_phase: "pending" | "settled" | "not_applicable" }; request_id: string; schema_version: 1; submission_mode: "ordinary" | "private"; terminal_rejection?: { outcome: "origin_changed" | "submission_failed"; reason: "request_url_invalid" | "request_scheme" | "request_origin" | "paused_iframe" | "iframe_origin" | "child_frame_origin" | "other"; request_class: "other" | "main_document" | "background"; submission_phase: "pending" | "settled" | "not_applicable" } } }>; // Request credentials for a validated login form. When `submit` is omitted, a `submitted` result means the credential fields were filled successfully; inspect the resulting page to confirm that the form auto-submitted and sign-in advanced.
+  request(options: BrowserAuthRequestOptions): Promise<{ locator_error?: { field_id: string; reason: "not_user_visible" }; reason?: "user_took_over"; selected_option?: string; status: "unavailable" | "page_changed" | "origin_changed" | "submission_failed" | "submitted" | "locator_invalid" | "declined" | "cancelled" | "expired"; submission_diagnostics?: { attempt_events?: Array<{ field_index?: number; kind: "prompt_completed" | "field_fill_started" | "field_fill_completed" | "field_fill_uncertain" | "url_changed" | "document_changed" | "frame_changed" | "reinspection_started" | "reinspection_succeeded" | "reinspection_failed" | "site_request" | "site_navigation" | "site_submission_verified" | "submit_started" | "attempt_completed"; method?: "other" | "get" | "post"; origin_relation?: "other" | "same" | "cross"; outcome?: "unavailable" | "page_changed" | "origin_changed" | "submission_failed" | "submitted" | "locator_invalid" | "prompt_changed"; phase: "prompt" | "settled" | "filling" | "before_submit" | "submitting"; reinspection?: number; request_class?: "main_document" | "background"; sequence: number }>; dropped_attempt_events?: number; first_rejection?: { outcome: "origin_changed" | "submission_failed"; reason: "other" | "request_url_invalid" | "request_scheme" | "request_origin" | "paused_iframe" | "iframe_origin" | "child_frame_origin"; request_class: "other" | "main_document" | "background"; submission_phase: "pending" | "settled" | "not_applicable" }; request_id: string; schema_version: 1; submission_mode: "ordinary" | "private"; terminal_rejection?: { outcome: "origin_changed" | "submission_failed"; reason: "other" | "request_url_invalid" | "request_scheme" | "request_origin" | "paused_iframe" | "iframe_origin" | "child_frame_origin"; request_class: "other" | "main_document" | "background"; submission_phase: "pending" | "settled" | "not_applicable" } } }>; // Request credentials for a validated login form. When requesting only a password for a chosen sign-in method, always set account_identifier to the exact username or email already entered or clearly shown as the selected account for this sign-in, including on the current page. If none is available, omit it and still request the password. Never guess. When `submit` is omitted, a `submitted` result means the credential fields were filled successfully; inspect the resulting page to confirm that the form auto-submitted and sign-in advanced.
 }
 ```

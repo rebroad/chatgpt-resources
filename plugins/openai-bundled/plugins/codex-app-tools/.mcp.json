@@ -18,6 +18,9 @@
         "create_thread": {
           "approval_mode": "prompt"
         },
+        "delete_thread": {
+          "approval_mode": "prompt"
+        },
         "send_message_to_thread": {
           "approval_mode": "prompt"
         },

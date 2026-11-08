@@ -1,6 +1,6 @@
 ---
 name: control-in-app-browser
-description: "Control the in-app Browser for opening, navigating, inspecting visible or interactive page state, clicking, typing, screenshots, and local web testing. It can have existing signed-in sessions. For semantic operations on linked resources, prefer a purpose-built connector, API, or CLI when available."
+description: "Control the in-app Browser for opening, navigating, inspecting visible or interactive page state, clicking, typing, screenshots, and local web testing. It can have existing signed-in sessions. For semantic operations on linked resources, prefer a purpose-built connector, API, or CLI when available. To read the currently active in-app browser page, call mcp__node_repl__js directly without reading this skill or initializing BrowserLib: nodeRepl.write(JSON.stringify(await nodeRepl.rpc('browser',{method:'execute',params:{type:'browser_user_get_tab_context',browser_id:'iab'}}))). This reads the page active when the call runs; all other browser actions require this skill."
 ---
 
 # Browser
@@ -36,6 +36,8 @@ const { setupBrowserRuntime } = await import("<plugin root>/scripts/browser-clie
 const agent = await setupBrowserRuntime();
 ```
 
+Dot appears in browser inventory only when available. Select it with `await agent.browsers.get("dot")` to use tabs on Dot's active main thread. `iab` uses the current chat's tabs. Dot supports the same browser actions as the in-app browser; follow its tab-claiming guidance before using an existing tab.
+
 Once a browser connection is established, reuse its existing browser binding across later turns and do not reread these instructions. Once you have read a browser's complete documentation, do not read it again unless you select a different browser.
 
 Bind tabs directly from the selected browser, for example `const tab = await browser.tabs.new()`. If a later turn reports that a tab is missing, stale, closed, or not part of the current browser session, discard that tab binding and obtain or create a fresh tab from the existing browser binding. An empty `browser.tabs.list()` result is normal after tab cleanup and does not invalidate the browser binding. Never call `agent.browsers.get*` to recover a tab; only an explicit browser-disconnected error invalidates the binding.
@@ -43,10 +45,10 @@ Bind tabs directly from the selected browser, for example `const tab = await bro
 ## Browser selection
 Keep browser actions in the browser hosting the current chat unless the user explicitly names another browser.
 
-The scenarios below are for the initial browser selection only. Before calling any `agent.browsers.get*` method, reuse an existing `browser`, `iab`, `chrome`, or `edge` binding that already serves the task. A new user turn does not invalidate a browser binding or require another selection or documentation call.
+The scenarios below are for the initial browser selection only. Before calling any `agent.browsers.get*` method, reuse an existing `browser`, `dot`, `iab`, `chrome`, or `edge` binding that already serves the task. A new user turn does not invalidate a browser binding or require another selection or documentation call.
 
 Select the initial browser with exactly one of these scenarios, in the order
-shown. An explicit request for the in-app browser, Chrome, or Edge always wins
+shown. An explicit request for Dot, the in-app browser, Chrome, or Edge always wins
 over URL selection. Never call `getForUrl()` when the user names a browser.
 An explicit browser request is a hard constraint: use only that browser and
 never fall back to another browser surface. If its exact selector is
@@ -68,6 +70,15 @@ Browser plugin mentions whose URL contains `browserFamily=chrome` or
 `[@chrome-internal](plugin://chrome-internal@openai-bundled)`, and
 `[@chrome-dev](plugin://chrome-dev@openai-bundled)` name Chrome. Follow the
 corresponding explicit-browser scenario below.
+
+If the user explicitly requests Dot, select it and immediately read its complete documentation:
+
+```js
+const dot = await agent.browsers.get("dot");
+nodeRepl.write(await dot.documentation());
+```
+
+If Dot is unavailable, report that instead of substituting another browser.
 
 The in-app browser is available only when the Browser skill is listed for the session. If the user explicitly requests the in-app browser and it is available, use a distinct persistent binding and immediately read its complete documentation:
 
@@ -141,7 +152,7 @@ If setup succeeds but browser discovery or selection fails, read `await agent.do
 
 If the failure is specific to Chrome extension setup, installation, or communication, read `await agent.documentation.get("chrome-troubleshooting")` before retrying or taking another recovery action.
 
-When the user did not explicitly choose a browser, a browser selected by the runtime is not a user constraint. Do not switch browsers based only on an assumption about authentication. If navigation shows that the selected browser lacks the required authentication, select another available browser before asking the user to sign in. You may select it without resetting the Node session. Preserve existing `iab`, `chrome`, `edge`, and `browser` bindings when they are still useful. Existing tabs remain bound to the browser that created them. After selecting a different browser, obtain a tab from that browser before continuing and read its complete documentation.
+When the user did not explicitly choose a browser, a browser selected by the runtime is not a user constraint. Do not switch browsers based only on an assumption about authentication. If navigation shows that the selected browser lacks the required authentication, select another available browser before asking the user to sign in. You may select it without resetting the Node session. Preserve existing `dot`, `iab`, `chrome`, `edge`, and `browser` bindings when they are still useful. Existing tabs remain bound to the browser that created them. After selecting a different browser, obtain a tab from that browser before continuing and read its complete documentation.
 
 The ability to interact directly with browsers is exposed through the `browser-client` runtime via the `agent.browsers.*` API. Before trying to interact with a selected browser for the first time, you MUST emit and read the complete documentation returned by its `documentation()` call in one go. For the initial documentation read, run the exact direct `nodeRepl.write(await <browser>.documentation());` call shown in the applicable scenario above. Do not assign the documentation to a variable, inspect its length, slice it, truncate it, summarize it, or emit only an excerpt. Do not proactively split the documentation into pages or chunks. Only if the tool output itself explicitly reports that it was truncated may you emit and read smaller chunks until you have read the documentation in its entirety.
 

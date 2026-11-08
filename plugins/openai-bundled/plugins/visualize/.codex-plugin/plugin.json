@@ -1,6 +1,6 @@
 {
   "name": "visualize",
-  "version": "1.0.50",
+  "version": "1.0.84",
   "description": "Create interactive charts, maps, diagrams, simulations, 3D models, data explorers, and UI previews directly in Codex.",
   "author": {
     "name": "OpenAI"
@@ -27,7 +27,11 @@
     "longDescription": "Create interactive charts, maps, diagrams, simulations, 3D models, data explorers, and UI previews directly in your conversation. Filter data, select details, compare scenarios, and adjust inputs to see how the result changes.",
     "developerName": "OpenAI",
     "category": "Productivity",
-    "capabilities": ["Interactive", "Read", "Write"],
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
     "websiteURL": "https://openai.com/",
     "privacyPolicyURL": "https://openai.com/policies/row-privacy-policy/",
     "termsOfServiceURL": "https://openai.com/policies/row-terms-of-use/",

@@ -32,6 +32,15 @@
   },
   {
     "mode": "included",
+    "name": "siwc",
+    "when": {
+      "requiredTabCapabilities": [
+        "siwc"
+      ]
+    }
+  },
+  {
+    "mode": "included",
     "name": "session-naming",
     "when": {
       "browserTypes": [
@@ -50,6 +59,20 @@
         "extension"
       ],
       "requiredApiMembers": [
+        "BrowserUser.openTabs",
+        "BrowserUser.claimTab"
+      ]
+    }
+  },
+  {
+    "mode": "included",
+    "name": "tab-claiming-dot",
+    "when": {
+      "browserTypes": [
+        "iab"
+      ],
+      "requiredApiMembers": [
+        "Browser.user",
         "BrowserUser.openTabs",
         "BrowserUser.claimTab"
       ]
@@ -208,5 +231,12 @@
   {
     "mode": "model",
     "name": "capabilities/tab/webmcp"
+  },
+  {
+    "mode": "model",
+    "name": "capabilities/tab/siwc",
+    "requiredFor": [
+      "tab_siwc_authenticate"
+    ]
   }
 ]

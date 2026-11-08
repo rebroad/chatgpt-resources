@@ -5,6 +5,8 @@ description: "Create visualizations and interactive tools directly in conversati
 
 # Visualize
 
+`<skill-dir>` is this SKILL.md’s directory; resolve relative file paths from it.
+
 - A request for a new standalone file, website, app page, component, or other project change is not an in-conversation visualization request, even when the deliverable contains charts or interactive content.
 - A request to preview, explain, or explore a proposed interface in the conversation is an in-conversation visualization request.
 - Create a visual only when the user needs to see or explore it in the conversation and it materially improves the explanation. Do not create an inline visual merely because the request involves data, charts, or an interactive page.
@@ -35,7 +37,7 @@ Read this file in full before authoring. Reread truncated ranges in smaller call
 - Keep CSS and JavaScript in the fragment only when base classes are insufficient. Load static resources only from the CDN allowlist. Never use `fetch`, XHR, WebSocket, or other API calls.
 - Give the fragment root a unique ID and select it with `document.getElementById(...)`. Never derive the root from `document.currentScript`; scripts may sit outside the root.
 - Keep visualizations under 1 MB. Aggregate, bin, downsample, reduce precision, or drop unused fields from large inline datasets.
-- Check that JavaScript has no undefined identifiers, every queried element exists, and the primary interaction updates the visual. The bundled `python3 scripts/render.py <absolute-fragment-path> [<destination>.html] [--serve]` can wrap a fragment as standalone HTML or temporarily serve it for browser inspection when a preview would help with layout, theme, or runtime behavior. The rendered preview places the fragment inside a sandboxed iframe: scope Playwright locators to `page.frameLocator("iframe")` and evaluation to that frame.
+- Check that JavaScript has no undefined identifiers, every queried element exists, and the primary interaction updates the visual. The bundled `python3 <skill-dir>/scripts/render.py <absolute-fragment-path> [<destination>.html] [--serve]` can wrap a fragment as standalone HTML or temporarily serve it for browser inspection when a preview would help with layout, theme, or runtime behavior. The rendered preview places the fragment inside a sandboxed iframe: scope Playwright locators to `page.frameLocator("iframe")` and evaluation to that frame.
 
 ### Content and response
 
@@ -58,11 +60,11 @@ Read this file in full before authoring. Reread truncated ranges in smaller call
 
 ### External resources
 
-- The CSP allows only `cdnjs.cloudflare.com`, `esm.sh`, `cdn.jsdelivr.net`, `unpkg.com`, `fonts.googleapis.com`, `fonts.gstatic.com`, and `fonts.bunny.net`. Other origins are blocked and fail silently.
+- The CSP allows `cdnjs.cloudflare.com`, `esm.sh`, `cdn.jsdelivr.net`, `unpkg.com`, `fonts.googleapis.com`, `fonts.gstatic.com`, and `fonts.bunny.net`, plus version-pinned scripts under `https://persistent.oaistatic.com/plugins/visualize/`. Other origins and paths are blocked and fail silently.
 
 ## Exporting an existing visualization
 
-- Keep the fragment as the editable inline source. When the user explicitly asks to save, export, or publish a visualization that is already shown in the conversation, render it with `python3 scripts/render.py <absolute-fragment-path> <destination>.html`.
+- Keep the fragment as the editable inline source. When the user explicitly asks to save, export, or publish a visualization that is already shown in the conversation, render it with `python3 <skill-dir>/scripts/render.py <absolute-fragment-path> <destination>.html`.
 - Apply this export flow only when the user explicitly asks to turn the existing inline source or visualization into a website. For a general website request, build a new responsive site in the output directory or open project, using Sites when appropriate, without applying this skill's guidance.
 - Keep only `window.openai.widgetState` and `window.openai.setWidgetState` calls from window\.openai.\* when exporting: the standalone wrapper supplies fallback state storage. Replace other host-only interactions before using the standalone HTML outside Codex.
 - When the user asks to publish or host an existing visualization and the `sites` skill is available, use it to choose the project, write the rendered standalone document as `index.html`, and publish it.
@@ -92,8 +94,12 @@ Read this file in full before authoring. Reread truncated ranges in smaller call
 - `h1`, `h2`, and `h3` are available; use one concise visible heading for a self-contained chart or graph, with short panel headings only when needed. Do not restate the prompt or add a redundant title to other visualizations.
 - Use only weights `400` and `500`. Never set custom font sizes or line heights.
 - Use `.tabular-nums` on changing or aligned numbers. Avoid it for editorial or decorative numerals.
+- Headings and paragraphs have zero margins. Add root-scoped spacing with `calc(var(--font-size-base) * ...)`: 1× between content blocks or charts and before section headings, 0.5× after `h1` or from a heading to a visual, and 0.25× from `h2`/`h3` to supporting text.
+- Apply each gap once with layout `gap` or margins, keep title/subtitle groups together, and leave the outer edge unpadded.
 
 ## Composition
+
+Read the guides relevant to the visualization being created or updated. These guides govern presentation; they do not change when to create a visualization.
 
 Choose the smallest composition that fits.
 
@@ -109,51 +115,25 @@ Choose the smallest composition that fits.
 
 ### UI mockups
 
-- For alternative designs of the same component or screen, read [Variant carousel](tweak.md#variant-carousel), even when design controls are not requested. Use descriptive variant names without numeric or ordinal prefixes (for example, `Compact`, never `01 · Compact`); the carousel already displays the count.
-- Include a few thoughtfully chosen design alternatives whenever they would help the user explore a mockup, without waiting for the user to ask. Read [tweak.md](tweak.md) and bind useful options with the host-provided `Tweak` helper. Keep ordinary mockup interactions local; do not add design controls to charts, explainers, or simulations unless requested. Do not render a second controls panel or open annotation mode automatically.
-- "In the widget" means the in-conversation visualization, not a widget inside the depicted product.
-- Use product and platform context already available in the conversation; don't search the project to render a mockup. Match the product's chrome, navigation, typography, colors, and content. If its design is unavailable, infer one from the platform and request.
-- NEVER use visualization CSS variables or utility classes inside a mockup (for example, `--card`, `--font-size-base`, `.card`, or `.btn`). Define root-scoped, product-specific colors, typography, surfaces, and controls instead. This rule overrides all general visualization guidance.
-- Keep only the surrounding conversation surface transparent. Give product windows, cards, menus, and popovers opaque backgrounds, and stack overlays above the product content.
-- Follow the host's active appearance with product-specific `light-dark(<light>, <dark>)` colors unless a fixed theme is requested.
-- **Contained mockup:** Frame a component, dialog, small feature, or mobile screen as a compact product surface. Add `.viz-dotted-background` to the surrounding preview area or carousel root for a quiet, theme-aware dot grid. This preview-only class is an exception to the mockup utility rule; keep it outside the product UI and leave full-page mockups, charts, and explainers plain.
-- **Full-page mockup:** Render a desktop window, application shell, or page at full width without an additional visualization card.
-- Put app-wide navigation and pickers in the app chrome, and local controls in their component. Omit single-option pickers. Show realistic states, not invented dashboards, filler cards, or oversized icons.
+For requests to design, preview, or explore a product interface—including a standalone dialog, card, or control—read [mockups.md](mockups.md) for product styling, variant carousels, and design controls.
 
-### Calendar
+### Built-in widgets
 
-- Use the bundled compact `<viz-calendar>` for a day schedule. Read [Calendar](widgets/calendar.md) and start from the [example](examples/calendar.html). Supply verified dates and events; the component handles durations, overlap lanes, and responsive layout. Short blocks show the title; hover, focus, or tap reveals the full title, time, and detail. Do not stretch the schedule to fit secondary text or wrap the element in another card.
+Use these prebuilt widgets when they fit the data. Read the corresponding guide:
+
+- Calendar (`widgets/calendar.md`): day, week, and month schedules.
+- Waterfall (`widgets/waterfall.md`): timed request spans.
+- Flame chart (`widgets/flamechart.md`): sampled CPU stacks.
+- Stack trace (`widgets/stacktrace.md`): error call stacks.
 
 ### Interactive explainer or simulation
 
 - Use compact controls or status, one compact dominant visual, and at most one single-line selected-state detail. Default to no summary cards; allow up to three only when changing metrics are central.
 - Crop empty space and fit the available inline width. For step-throughs, add only requested step controls and update one current visual; never add parameter controls, formulas, metric cards, or side-by-side steps unless asked.
 
-### Graphs and plots
-
-- Use D3 for data-rich Cartesian or statistical plots and handwritten SVG for simple, directly labeled values. Keep diagrams, simulations, and maps under their existing guidance. Load the version-pinned approved-CDN script `https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js`.
-- Render the figure, legend, and subplots directly on the transparent host surface. Frame only the SVG plot area; never wrap charts in `.card`, rounded panels, filled backgrounds, or shadowed containers.
-- Give the figure a concise visible title. Render each Cartesian subplot in its own responsive SVG with a matching `viewBox`, a thin frame, and visible `text.axis-title[data-axis="x"]` and `text.axis-title[data-axis="y"]` showing quantities and units.
-- Set each SVG `viewBox` from its own container's measured width, redraw with `ResizeObserver`, and reserve at least 64px for the y axis. Never scale down a fixed-width `viewBox`.
-- Derive padded domains with `d3.extent(...)` over all observations, uncertainty, and references. Inset scale ranges for marker radii and keep every path inside `rect[data-chart-frame]`; never draw endpoint connectors outside the frame or guess or hard-code the domain.
-- After every draw, measure tick, axis, and value-label bounds together. Leave 4px between labels, anchor edge labels inward, and remove optional annotations first. At 360px, show at most four x ticks and stack panels.
-- Prefer `--viz-series-1` through `--viz-series-6` for chart series; use `--foreground` and `--border` for neutrals, cycle the six series tokens when more are needed, and never use literal or fallback colors. Give every SVG label `fill: var(--foreground)` and `font-size: 12px`; never shrink labels below 11 screen pixels. Stack subplots when their labels no longer fit.
-- Keep observations, trends, and important values visible. Use bands for dense uncertainty, whiskers for isolated estimates, and one compact, wrapping legend. Render one real `<button type="button" aria-pressed="true">` per series with a small swatch and neutral text; toggle its line, markers, and tooltip row together. Keep buttons transparent, borderless, and indistinguishable from inline text; never use `.btn`, pills, badges, rounded borders, or filled and selected backgrounds.
-- Share one root-relative, pointer-transparent `<div class="tooltip" role="tooltip">` using `--popover` and `--popover-foreground`. In each multi-series SVG, give the full-plot overlay both `data-chart-hit` and `data-chart-hover-overlay="cross-series"`. Keep the `data-chart-hover-guide` at the exact cursor x, interpolate every visible series there, and show one aligned `data-chart-hover-marker` and tooltip row per visible series; never snap the guide to a nearby sample. Let touch users pin the same cross-series details without requiring hover.
-- Find ordered observations with `d3.bisector(d => d.x).center(values, x)`; never pass an accessor to `d3.bisectCenter`.
-- Give isolated marks transparent `data-chart-hit` targets at least 32 screen pixels across on fine pointers and about 44px on coarse pointers; use one nearest-point overlay for dense scatter.
-- For named numeric data and one-off analyses, start with the plot. Put values and takeaways on its marks, axes, or annotations. Never add a KPI row, controls, cards, or panels unless those UI elements are explicitly requested.
-- For sequences or parallel work, use aligned lanes on one time axis. Encode phase and resource in the marks; annotate totals, waits, and bottlenecks on the axis or lanes, not above the plot.
-- For distributions or multi-metric comparisons, use shared-scale facets or small multiples. Render every requested dimension simultaneously; never hide one behind a toggle.
-
 ### Maps
 
-- Let the map dominate the composition. Use at most one compact selection/detail area and only requested controls.
-- Always project published GeoJSON/TopoJSON and sourced longitude/latitude with `d3-geo`; never hard-code or hand-draw geographic outlines. Use schematic maps only when asked.
-- For world countries, import `https://esm.sh/@d3-maps/atlas@1.0.0/world/countries/countries-110m` and convert it with `topojson-client@3.1.0` using `feature(world, world.objects.features).features`. Join input ISO3 directly to `feature.properties.id`, which is already ISO3; do not convert it to numbers.
-- For US states or counties, use `https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json/+esm`. For ZIP/ZCTA or city boundaries, download official Census or local open-data GeoJSON; do not guess sibling atlas paths or import raw JSON as JavaScript.
-- Keep maps geographically legible: for local points, fetch published neighborhood, street, or comparable geometry; a blank field or lone administrative outline is not a basemap. Show the full city or region behind points or partial choropleths, and frame the locations with modest padding.
-- Include the verified geometry in the final HTML. Open it before replying and fix blank basemaps, failed imports, missing labels, or unprojected points.
+For geographic maps, including maps within another visualization, read [maps.md](maps.md) for sourced geometry, projection, and map-specific validation.
 
 ### Dense categorical grid
 
@@ -162,6 +142,10 @@ Choose the smallest composition that fits.
 ### Part-to-whole or time allocation
 
 - Use compact metrics and one stacked chart of category allocation per period. Never substitute totals-only bars or duplicate it as a heatmap and totals chart.
+
+### Illustrated overviews
+
+- For a walkthrough of successive screens, draw one illustrated HTML/SVG overview. Show all the named screens together, connect their sketches in order, and mark the cue that identifies each step. For a question about how a visible field changes, use the illustrated HTML/SVG overview to show its before and after values on one recognizable screen or record. Use the same view to show how parts fit or to mark a matching or changed field on each record. Read `<skill-dir>/technical-illustrations.md` for the drawing style.
 
 ## Layout and accessibility
 
@@ -203,11 +187,31 @@ Choose the smallest composition that fits.
 
 ```html
 <div class="nav nav-pills" role="tablist" aria-label="Platform">
-  <button class="nav-link active" id="mac" role="tab" aria-controls="mac-panel" aria-selected="true" type="button">macOS</button>
-  <button class="nav-link" id="linux" role="tab" aria-controls="linux-panel" aria-selected="false" type="button">Linux</button>
+  <button
+    class="nav-link active"
+    id="mac"
+    role="tab"
+    aria-controls="mac-panel"
+    aria-selected="true"
+    type="button"
+  >
+    macOS
+  </button>
+  <button
+    class="nav-link"
+    id="linux"
+    role="tab"
+    aria-controls="linux-panel"
+    aria-selected="false"
+    type="button"
+  >
+    Linux
+  </button>
 </div>
 <div id="mac-panel" role="tabpanel" aria-labelledby="mac">macOS content</div>
-<div id="linux-panel" role="tabpanel" aria-labelledby="linux" hidden>Linux content</div>
+<div id="linux-panel" role="tabpanel" aria-labelledby="linux" hidden>
+  Linux content
+</div>
 ```
 
 ### Controls
@@ -219,7 +223,7 @@ Choose the smallest composition that fits.
 - `.btn-block`: Add to a `.btn` only when the action should intentionally fill the available inline space. Never use it for ordinary row actions.
 - `<a>`: Use for links. Add `.btn` to style a link as a button.
 - `[data-tooltip]`: Use for concise supplementary plain text on static or dynamic triggers; the sandbox handles hover, focus, and touch and creates `.tooltip` elements. Keep essential content visible and triggers labeled. Never use `title`, custom markup, or initialization. Example: `<button type="button" data-tooltip="Reset view">Reset</button>`.
-- When a visible label is truncated, put its full text in `data-tooltip` on the existing accessible trigger so hover, focus, and tap reveal it. The bundled calendar does this automatically.
+- When a visible label is truncated, put its full text in `data-tooltip` on the existing accessible trigger so hover, focus, and tap reveal it.
 - `[data-tooltip-placement]`: Optionally prefer `top` (default), `right`, `bottom`, or `left`; collision handling may flip it.
 - `.form-check`: Prefer a wrapping `<label class="form-check">` around the native `.form-check-input` and `.form-check-label` text so the whole row is tappable. An explicit label with matching `for` and input `id` also works.
 - `.form-switch`: Add to `.form-check` around a native checkbox.
@@ -245,15 +249,56 @@ Choose the smallest composition that fits.
 
 ## Charts
 
-- Prefer inline SVG for simple charts and version-pinned approved-CDN libraries when native interaction, scales, legends, or layout materially improve the result.
+**General Instructions:**
+
 - Resolve theme colors before passing them to canvas or chart APIs that cannot parse CSS variables or `light-dark(...)`; redraw when the theme changes.
-- Use a tooltip unless it would distract from a simple, directly labeled chart. Keep chart-library tooltips and grouped legend interactions native; never replace them with a custom one-point tooltip. For SVG, attach `data-tooltip` directly to the real pointer-accessible mark and include its label, value, and units; the sandbox handles themed positioning, keyboard focus, and touch.
+- Use a tooltip unless it would distract from a simple, directly labeled chart. Keep chart-library tooltips and grouped legend interactions native; never replace them with a custom one-point tooltip.
 - Animate transitions between chart states so lines and marks move to their new values, resampling paths when point counts differ. Do not animate initial appearance or use fade-only effects; never loop motion, and honor `prefers-reduced-motion`.
-- Scope SVG styles to the chart class. Never target every `svg` in a container that also contains Lucide icons.
 - Include labeled axes, units, and directly labeled important values. Give every chart, SVG, canvas, and widget a concise screen-reader summary using a role and accessible name or description, SVG `<title>`/`<desc>`, fallback text, or an `.sr-only` heading or description.
+- Format calendar-year ticks as whole years without digit grouping (e.g. `1920`). Keep the time scale proportional when observations are unevenly spaced.
 - Reserve space for the longest formatted label at every supported width. Axis ticks are secondary and may use `.text-small` when space is tight. Never overlap or clip text against marks, axes, legends, labels, or edges; move or reduce labels rather than squeeze them.
 - Add a legend only when multiple series cannot be labeled directly.
 - Pair color with shape or text so meaning never depends on color alone.
+
+### Standard Chart Families
+
+For standard chart components, the selected family and shared contract govern rendering, composition and validation, taking precedence over general guidance for this chart artifact only, including its surrounding text, tables and controls. A chart composition may include a short analytical summary and an exact-values table. The CSP additionally permits `https://persistent.oaistatic.com/plugins/visualize/charts/` for the pinned component runtime.
+
+These are built-in chart families that are higher quality and faster to render. If any are relevant to the user's request, read the relevant chart family file(s) and applicable shared chart guides to provide a complete visualization. Each family file contains its exact interface; the shared instructions contain the complete working HTML mounting example. Write or adapt freely; copying is optional.
+
+It's critical to read the needed files in a single complete batch—some batches approach 15,000 tokens—to ensure quality and reduce latency from repeat reads.
+
+- `charts/line.md`
+- `charts/area.md`
+- `charts/bar.md`
+- `charts/pie.md`
+- `charts/histogram.md`
+- `charts/waterfall.md`
+- `charts/heatmap.md`
+- `charts/scatter.md`
+- `charts/funnel.md`
+- `charts/box-plot.md`
+- `charts/sparkline.md`
+- `charts/ranking.md`
+- `charts/sankey.md`
+
+When using a standard chart family, always read `charts/instructions.md` and any other guides below that apply to the requested output.
+
+- `charts/instructions.md`: Whenever using a standard chart component, for shared configuration, mounting, updates and validation.
+- `charts/cartesian-inputs.md`: For line, area, bar or sparkline charts, including data bindings, ordering and missing values.
+- `charts/composition.md`: For charts with nearby analytical text, styled tables or collapsible sections.
+- `charts/controls.md`: For native inputs that filter or calculate data and update a chart.
+- `charts/coordinated.md`: For controls that synchronize charts and readouts, or for saved interaction state.
+- `charts/annotations.md`: For reference lines or bands, point labels and supplied uncertainty.
+
+### Fallback chart rendering
+
+- Prefer inline SVG for simple charts and version-pinned approved-CDN libraries when native interaction, scales, legends, or layout materially improve the result.
+- Prefer `<line>` for straight SVG axis, tick and connector segments. Explicitly set `fill="none"` on stroke-only `<path>` or `<polyline>` axes and leader lines: SVG fills open paths by implicitly closing them, so an L-shaped axis can otherwise become a filled triangle. Scope this to stroke-only geometry; preserve intentional fills on area bands, filled markers and other chart shapes.
+- For a custom chart, check its data, calculations and geometry offline. Use an available preview only to diagnose concrete rendering or interaction breakage, or for explicitly requested testing. If rendering was not inspected, do not claim it was verified.
+- For SVG, attach `data-tooltip` directly to the real pointer-accessible mark and include its label, value, and units; the sandbox handles themed positioning, keyboard focus, and touch.
+- Keep decorative SVG fills, bands and leader lines from intercepting interactive marks (`pointer-events: none`). When observations overlap, use a grouped tooltip or series selection/focus so every observation remains inspectable; do not rely on tiny exposed edges. When a preview is needed under the validation policy, inspect an overlapping observation in the primary interaction.
+- Scope SVG styles to the chart class. Never target every `svg` in a container that also contains Lucide icons.
 
 ## Icons and mockups
 

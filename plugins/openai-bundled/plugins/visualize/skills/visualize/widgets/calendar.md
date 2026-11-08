@@ -1,90 +1,81 @@
 # Calendar
 
-Use the bundled `<viz-calendar>` for a day schedule when this composition fits. Its Shadow DOM owns layout, colors and typography, including overlap lanes and event durations. The element applies the shared `.widget` class and a 12px content inset automatically; do not wrap it in another card or add another inset. Its flat surface uses the host card radius, corner shape and thin outline; event colors use the environment palette. Event labels stay 14px in both short and full-day views; longer ranges compact the spacing, not the type. Short blocks show only the title instead of stretching the whole schedule for secondary text. Hover, focus or tap an event to see its full title, time and detail in the shared tooltip. Use custom HTML for a different calendar view. [Complete static example](../examples/calendar.html).
+Use `<viz-calendar>` for dated events. Keep a single day at regular conversation width. Prefer wide mode for week and month views. The element supplies its own `.widget` surface and spacing.
 
-## JavaScript data
+## Day, week, and month
 
-Assign an array directly to `calendar.events`. Configure it before appending so the first render includes the events. The host registers the component synchronously before running the fragment; use the literal `viz-calendar` name in HTML or JavaScript so it can include the runtime. No import, initialization or custom CSS is needed.
+Include the module import before assigning events.
 
 ```html
-<div id="calendar-host"></div>
-<script>
-  {
-    const root = document.getElementById("calendar-host");
-    const calendar = document.createElement("viz-calendar");
-    calendar.setAttribute("date", "2026-09-08");
-    calendar.setAttribute("start", "11:00");
-    calendar.setAttribute("end", "14:00");
-    calendar.events = [
-      { title: "Standup", start: "12:00", end: "12:30" },
-      { title: "Email block", start: "12:00", end: "12:30", tone: "green" },
-      { title: "Design sync", start: "13:00", end: "14:00", video: true },
-    ];
-    root.append(calendar);
-  }
+<viz-calendar id="calendar-host" date="2026-09-08" start="11:00" end="14:00"></viz-calendar>
+<script type="module">
+  import "https://persistent.oaistatic.com/plugins/visualize/widgets/1.0.59/calendar.js";
+
+  const calendar = document.getElementById("calendar-host");
+  calendar.events = [
+    { title: "Standup", start: "11:00", end: "11:30" },
+    { title: "Focus time", start: "11:30", end: "13:00", tone: "green" },
+    { title: "Design sync", start: "13:00", end: "14:00", video: true },
+  ];
 </script>
 ```
 
-Keep the element reference for updates: `calendar.events = updatedEvents` redraws synchronously. Replace the array to update; changing an array or event in place does not trigger a render. Text is escaped by the renderer, so JavaScript values need no HTML-attribute escaping.
+Set `view="week"` to compare times across seven days or `view="month"` to see events by date. Add a `date` to each event in multi-day views. Previous and next navigation works without custom handlers.
 
-The property takes precedence over the `events` attribute until assigned `undefined`, which restores attribute input. Assign `[]` to clear the schedule. Property data is not reflected into HTML attributes; keep it separately when saving or restoring the fragment. Properties assigned before registration are picked up on upgrade.
+## Attributes
 
-## Event selection
+| Attribute | Meaning |
+| --- | --- |
+| `date` | Required anchor day as `YYYY-MM-DD`. Also supplies the date for undated events. |
+| `view` | `day` (default), `week`, or `month`. |
+| `start`, `end` | Visible hours in day and week views, as local `HH:MM`. Defaults to `09:00` and `17:00`. The end must be later than the start. |
+| `time-zone` | Optional displayed zone label. Convert source timestamps to this zone before supplying dates and times; the calendar does not convert them. |
+| `now` | Optional local `HH:MM` on the anchor day. Draws the current-time marker and dims past events. Supply only when the time is verified. |
+| `lang` | Optional locale for labels and the first day of the week. Defaults to the document's locale, then `en`. |
+| `interactive` | Boolean attribute enabling event selection by click or keyboard. Omit unless handling selection. |
+| `empty-label` | Optional text for an empty view. By default, an empty calendar shows its grid without a message. |
+| `events` | Alternative JSON event array. Prefer the JavaScript `.events` property for data from a source. |
 
-Add `interactive` when the fragment handles event selection. Each event becomes a native button, supporting click, Enter and Space. Listen on the calendar or an ancestor:
+## Event data
 
-```js
-const selection = document.createElement("output");
-selection.setAttribute("aria-live", "polite");
-calendar.after(selection);
-calendar.setAttribute("interactive", "");
-calendar.addEventListener("eventselect", ({ detail: { event } }) => {
-  // Update a local detail view using the selected source event.
-  selection.textContent = `${event.title} · ${event.start}-${event.end}`;
-});
-```
+Assign an array of up to 200 objects to `.events`. Replace the array to update the view.
 
-`eventselect` bubbles across Shadow DOM. Its `detail.event` is the original supplied object, including any caller-owned ID; `detail.index` is its position in the input array, before sorting or clipping. Without `interactive`, event buttons expose their details without emitting a selection. Selection does not change calendar data or contact a service. Interactive events use the host's cursor preference and a subtle hover tint.
+| Field | Meaning |
+| --- | --- |
+| `title` | Required event label. |
+| `start`, `end` | Required local `HH:MM` times. The end must be later than the start; `24:00` is allowed for the end. Split events crossing midnight into dated segments. |
+| `date` | Optional `YYYY-MM-DD`, defaulting to the calendar's anchor day. |
+| `id` | Optional caller-owned string or number, preserved in selection events. |
+| `tone` | Optional `blue` (default), `green`, `red`, `orange`, `purple`, or `yellow`. |
+| `detail` | Optional secondary text. |
+| `video` | Optional boolean showing a video-call icon. |
 
-## Switching days
+Event tooltips are supplied automatically, including the full title, time, and detail. Do not add duplicate tooltips.
 
-The component renders one day and has no built-in tabs. Add the shared [Tabs](../SKILL.md#tabs) outside it only when there are two or more supplied days to switch between; omit tabs for a single day. On selection, assign the chosen day's `date` and `events` to the same element. Do not invent more days to fill a tab bar.
+With `interactive` enabled, listen for `eventselect`: `event.detail.event` is the original input object and `event.detail.index` is its index in the input array.
 
-## Static HTML
+For a bulk update, `.config` accepts `date`, `view`, `start`, `end`, `now`, `timeZone`, `lang`, `emptyLabel`, `interactive`, and `events`; omitted options return to their defaults. Setting `.events = undefined` restores the JSON attribute as the data source. Rendering is synchronous; no readiness call is needed.
 
-For a fixed snapshot, the JSON attribute remains sufficient:
+## Offline day view
+
+The bundled `<viz-calendar>` renders a single day without a module import. Keep it at regular conversation width; it supplies its own `.widget` surface and spacing.
 
 ```html
-<viz-calendar
-  date="2026-09-08"
-  start="11:00"
-  end="14:00"
-  now="11:50"
-  events='[{"title":"Standup","start":"12:00","end":"12:30"},{"title":"Design sync","start":"13:00","end":"14:00","video":true}]'
->
-</viz-calendar>
+<viz-calendar id="calendar-day" date="2026-09-08" start="11:00" end="14:00"></viz-calendar>
+<script>
+  document.getElementById("calendar-day").events = [
+    { title: "Standup", start: "11:00", end: "11:30" },
+    { title: "Design sync", start: "13:00", end: "14:00", video: true },
+  ];
+</script>
 ```
 
-Escape HTML attribute content, including apostrophes as `&#39;` inside single-quoted JSON. Attribute changes redraw synchronously when no JavaScript property overrides the events.
+Set `date` to `YYYY-MM-DD` and `start`/`end` to local `HH:MM` times; the visible range defaults to `09:00`–`17:00`. Optional attributes are `now` for a verified current-time marker, `time-zone` for a display label, `lang` for locale, and `empty-label` for empty-state text. Convert source timestamps before supplying local dates and times.
 
-## Configuration
+Assign up to 200 events to `.events`, replacing the array to update. Each event needs `title`, `start`, and `end`, with the end later than the start. Optional fields are `id`, `detail`, `video` (boolean), and `tone` (`blue`, `green`, `red`, `orange`, `purple`, or `yellow`). Times use `HH:MM`; `24:00` is allowed for the end. An `events` JSON attribute is also supported. Tooltips are supplied automatically.
 
-| Attribute      | Meaning                                                           |
-| -------------- | ----------------------------------------------------------------- |
-| `date`         | Required calendar date, `YYYY-MM-DD`.                             |
-| `start`, `end` | Visible time window; defaults to `09:00`-`17:00`.                 |
-| `now`          | Optional current-time marker. Supply only when verified.          |
-| `time-zone`    | Optional short zone label; does not convert timestamps.           |
-| `lang`         | Date-formatting locale; defaults to the host language.            |
-| `empty-label`  | Empty-state text; defaults to "No events".                        |
-| `interactive`  | Boolean attribute; enables event buttons that emit `eventselect`. |
+Add `interactive` to handle selection, then listen for `eventselect`; `event.detail.event` is the original event and `event.detail.index` its array index.
 
-Use the three hours around the next event for a brief check-in or the requested range for a full-day view. Times are local wall-clock `HH:MM`, with `24:00` allowed as an end. Convert source timestamps to the requested date and zone before passing them in.
+## Migrating a saved day view
 
-Each event requires `title`, `start` and `end`. Optional fields are `tone` (`blue`, `green`, `red`, `orange`, `purple`, `yellow`), `detail` (short secondary text) and `video` (a boolean that shows a video-call icon). Tones use the environment's theme variables, such as `--green`; omitted tones default to blue. Keep a small, consistent palette for source calendars or categories. Supply at most 200 events; events outside the visible window are clipped or omitted. Invalid data produces an inline error that clears when valid data is supplied.
-
-## Rendering and updates
-
-The component builds its styled shadow tree synchronously on connection and updates it synchronously on assignment. An existing declarative shadow root is preserved during upgrade unless JavaScript event data was supplied, in which case that data is rendered.
-
-This is a supplied snapshot. It has no connector, booking, background clock or network access. Refresh data in the host and pass the resulting array to `events`; update `now` separately when needed. Keep extra facts in the surrounding response.
+To move a saved day view to the hosted version, add the `calendar.js` import shown above. The host then omits the bundled implementation. Keep the same tag, attributes, event data, and selection listeners.

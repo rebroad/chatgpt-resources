@@ -177,7 +177,7 @@
       "getTabContext": {
         "declarations": [
           {
-            "text": "getTabContext(tab: string | BrowserUserTabInfo): Promise<BrowserUserTabContext>; // Read bounded page context from an open user tab without claiming it.",
+            "text": "getTabContext(tab?: string | BrowserUserTabInfo): Promise<BrowserUserTabContext>; // Read page context from an open user tab without claiming it.",
             "references": [
               "BrowserUserTabInfo",
               "BrowserUserTabContext"
@@ -491,7 +491,7 @@
       "requestUserTakeover": {
         "declarations": [
           {
-            "text": "requestUserTakeover(): Promise<void>; // Request manual user control of this Cloud Browser tab and mark it for handoff.",
+            "text": "requestUserTakeover(reason?: \"authentication\" | \"captcha\" | \"user_requested\" | \"other\"): Promise<void>; // Request manual user control of this Cloud Browser tab.",
             "references": []
           }
         ],
@@ -786,7 +786,7 @@
       "keypress": {
         "declarations": [
           {
-            "text": "keypress(options: KeypressOptions): Promise<void>; // Press control characters at the current focused element (focus it first via click/dblclick).",
+            "text": "keypress(options: KeypressOptions): Promise<void>; // Press the keys together in the focused element.",
             "references": [
               "KeypressOptions"
             ]
@@ -1883,7 +1883,7 @@
       "references": []
     },
     "KeypressOptions": {
-      "text": "type KeypressOptions = {\n  keys: Array<string>; // Key combination to press.\n};",
+      "text": "type KeypressOptions = {\n  duration?: number; // Seconds to hold the keys before releasing them, from 0 through 30.\n  keys: Array<string>; // Key combination to press.\n};",
       "references": []
     },
     "MoveOptions": {

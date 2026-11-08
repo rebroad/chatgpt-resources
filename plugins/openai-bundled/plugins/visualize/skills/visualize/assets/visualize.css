@@ -565,6 +565,7 @@ small,
 
 .btn,
 .nav-link {
+  --btn-size: calc(12px + 2 * var(--control-spacing, 12px));
   appearance: button;
   display: inline-flex;
   inline-size: fit-content;
@@ -585,7 +586,7 @@ small,
   -webkit-font-smoothing: inherit;
   font-family: var(--font-sans);
   height: fit-content;
-  min-height: calc(12px + 2 * var(--control-spacing, 12px));
+  min-height: var(--btn-size);
   padding-inline: var(--control-spacing, 12px);
   border-color: transparent;
   border-radius: var(--radius-full);
@@ -601,6 +602,15 @@ small,
   border-color: var(--border);
   color: var(--secondary-foreground);
   background: var(--secondary);
+}
+
+/* Codex Button size="compact"; appearance stays with the button variant. */
+.btn-sm {
+  --btn-size: 24px;
+  padding-inline: 8px;
+  font-size: calc(var(--font-size-base) * 12 / 16);
+  font-size: round(nearest, calc(var(--font-size-base) * 12 / 16), 1px);
+  line-height: 16px;
 }
 
 .btn:is(.btn-block, .viz-tile) {
@@ -1035,9 +1045,13 @@ textarea.form-control {
   line-height: 18px;
 }
 
-.form-select option {
+.form-select :is(option, optgroup) {
   color: var(--popover-foreground);
   background-color: var(--popover);
+}
+
+.form-select :is(option, optgroup):disabled {
+  color: var(--muted-foreground);
 }
 
 .form-select:not(:disabled):hover {
@@ -1332,6 +1346,17 @@ textarea.form-control {
     );
   }
 
+  .btn-sm {
+    font-size: if(
+      style(--corner-shape: round): round(
+          nearest,
+          calc(var(--font-size-base) * 12 / 16),
+          1px
+        );
+        else: round(nearest, calc(var(--font-size-base) * 12 / 14), 1px)
+    );
+  }
+
   .btn,
   .nav-link,
   .form-select {
@@ -1366,6 +1391,7 @@ textarea.form-control {
   .viz-carousel-picker > summary,
   .form-control,
   .form-select {
+    --btn-size: 44px;
     min-width: 44px;
     min-height: 44px;
   }

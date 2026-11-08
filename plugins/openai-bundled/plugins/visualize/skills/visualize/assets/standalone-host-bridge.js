@@ -149,11 +149,42 @@
       postToHost("widget-state-write", { id, state: serializedState });
     });
   };
+  const mockElement = document.getElementById("codex-connector-mocks");
+  const connectorGlobals = {};
+  if (mockElement != null) {
+    const values = new Map(Object.entries(parse(mockElement.textContent)));
+    mockElement.remove();
+    connectorGlobals.visualizationData = {
+      updates: Array.from(values, ([name, value]) => ({
+        name,
+        revision: 1,
+        state: "ready",
+        value: { type: "json", value },
+      })),
+    };
+    connectorGlobals.visualization = {
+      /** @param {string} name @param {(value: unknown) => void} callback */
+      onData(name, callback) {
+        if (typeof callback !== "function") {
+          throw new TypeError("onData requires a callback");
+        }
+        try {
+          callback(values.get(name));
+        } catch (error) {
+          // oxlint-disable-next-line no-console -- Keep authored callback failures local.
+          console.error("Live visualization data callback failed", error);
+        }
+        // A static preview delivers the current fixture once per subscription.
+        return () => {};
+      },
+    };
+  }
   const syncTheme = () => {
     const theme = mediaQuery.matches ? "dark" : "light";
     root.dataset.theme = theme;
     globalThis.openai = {
       ...globalThis.openai,
+      ...connectorGlobals,
       openExternal,
       sendFollowUpMessage,
       setWidgetState,
