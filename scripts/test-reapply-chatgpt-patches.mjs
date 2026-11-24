@@ -12,7 +12,7 @@ const originalCheck =
   'return Cg.includes(e.protocol)?{allowed:!0,reason:"allowed"}:{allowed:!1,reason:"unsupported_protocol"}';
 const originalRuntime = `function validateUrl(e){${originalCheck}}`;
 const originalDocuments = `${JSON.stringify(
-  [{ description: "read when the user asks for screenshots", mode: "lookup", name: "screenshots" }],
+  [{ description: "read before returning a browser screenshot to the user", mode: "lookup", name: "screenshots" }],
   null,
   2,
 )}\n`;
@@ -38,9 +38,14 @@ try {
   const applied = patchRepository(root, { apply: true });
   assert.deepEqual(applied.map(({ status }) => status), ["would-apply", "would-apply"]);
   const runtime = fs.readFileSync(path.join(root, runtimePath), "utf8");
+  const patchedDocuments = JSON.parse(fs.readFileSync(path.join(root, documentsPath), "utf8"));
   assert.match(runtime, /hostname\.toLowerCase\(\)==="gpu"/);
   assert.match(runtime, /e\.pathname===""\|\|e\.pathname==="\/"/);
   assert.match(runtime, /e\.username===""&&e\.password===""/);
+  assert.deepEqual(
+    patchedDocuments.map(({ name }) => name),
+    ["chrome-gpu-tab-support", "screenshots"],
+  );
   assert.deepEqual(
     patchRepository(root).map(({ status }) => status),
     ["already-applied", "already-applied"],

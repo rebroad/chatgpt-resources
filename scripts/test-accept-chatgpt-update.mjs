@@ -12,7 +12,7 @@ const documentsPath = "plugins/openai-bundled/plugins/chrome/docs/documents.json
 const runtime =
   'function check(t){let e;try{e=new URL(t)}catch{return{allowed:!1,reason:"invalid_url"}}return Rg.includes(e.protocol)?{allowed:!0,reason:"allowed"}:{allowed:!1,reason:"unsupported_protocol"}}';
 const documents = `${JSON.stringify(
-  [{ description: "read when the user asks for screenshots", mode: "lookup", name: "screenshots" }],
+  [{ description: "read before returning a browser screenshot to the user", mode: "lookup", name: "screenshots" }],
   null,
   2,
 )}\n`;

@@ -19,12 +19,52 @@ const gpuDocument = {
   name: "chrome-gpu-tab-support",
   when: { browserTypes: ["extension"] },
 };
-const screenshotAnchor =
-  '  {\n    "description": "read when the user asks for screenshots",';
-const gpuDocumentText = `  ${JSON.stringify(gpuDocument, null, 2).replaceAll("\n", "\n  ")},\n`;
+function rootArrayObjectSpans(source) {
+  const stack = [];
+  const spans = [];
+  let inString = false;
+  let escaped = false;
+  let objectStart = -1;
 
-function count(text, needle) {
-  return text.split(needle).length - 1;
+  for (let index = 0; index < source.length; index += 1) {
+    const char = source[index];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === "\\") escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+    if (char === "{" || char === "[") {
+      if (char === "{" && stack.length === 1 && stack[0] === "[") {
+        objectStart = index;
+      }
+      stack.push(char);
+      continue;
+    }
+    if (char === "}" || char === "]") {
+      const opening = stack.pop();
+      if ((opening === "{" && char !== "}") || (opening === "[" && char !== "]")) {
+        throw new Error(`${documentsPath}: malformed JSON container structure.`);
+      }
+      if (opening === "{" && stack.length === 1 && stack[0] === "[") {
+        spans.push({ start: objectStart, end: index + 1 });
+        objectStart = -1;
+      }
+    }
+  }
+  if (inString || stack.length !== 0) {
+    throw new Error(`${documentsPath}: incomplete JSON container structure.`);
+  }
+  return spans;
+}
+
+function renderArrayEntry(entry, indent, newline) {
+  const formatted = JSON.stringify(entry, null, 2).replaceAll("\n", `${newline}${indent}`);
+  return `${formatted},${newline}${indent}`;
 }
 
 function planRuntime(root) {
@@ -81,16 +121,34 @@ function planDocuments(root) {
   if (matches.length !== 0) {
     throw new Error(`${documentsPath}: found duplicate GPU entries; review upstream changes.`);
   }
-  if (count(source, screenshotAnchor) !== 1) {
+  const screenshotIndexes = documents
+    .map((entry, index) => (entry?.name === "screenshots" ? index : -1))
+    .filter((index) => index !== -1);
+  if (screenshotIndexes.length !== 1) {
     throw new Error(
-      `${documentsPath}: expected one screenshot entry insertion point; review upstream changes.`,
+      `${documentsPath}: expected one entry named "screenshots"; review upstream changes.`,
     );
   }
+  const spans = rootArrayObjectSpans(source);
+  if (spans.length !== documents.length) {
+    throw new Error(
+      `${documentsPath}: could not safely map JSON entries to source text; review upstream changes.`,
+    );
+  }
+  const { start } = spans[screenshotIndexes[0]];
+  const lineStart = source.lastIndexOf("\n", start - 1) + 1;
+  const indent = source.slice(lineStart, start);
+  if (!/^\s*$/.test(indent)) {
+    throw new Error(`${documentsPath}: screenshot entry has unexpected indentation; review upstream changes.`);
+  }
+  const newline = source.includes("\r\n") ? "\r\n" : "\n";
   return {
     fullPath,
     relativePath: documentsPath,
     source,
-    next: source.replace(screenshotAnchor, `${gpuDocumentText}${screenshotAnchor}`),
+    next: `${source.slice(0, start)}${renderArrayEntry(gpuDocument, indent, newline)}${source.slice(
+      start,
+    )}`,
     status: "would-apply",
   };
 }
