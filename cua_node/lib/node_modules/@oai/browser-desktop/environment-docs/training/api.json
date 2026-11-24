@@ -473,21 +473,6 @@
           "mcpapps"
         ]
       },
-      "requestManualHandoff": {
-        "declarations": [
-          {
-            "text": "requestManualHandoff(): Promise<void>;",
-            "references": []
-          }
-        ],
-        "unsupportedByDefaultIn": [
-          "extension",
-          "iab",
-          "cdp",
-          "mcpapps"
-        ],
-        "documented": false
-      },
       "requestUserTakeover": {
         "declarations": [
           {
@@ -719,7 +704,7 @@
       "exportYouTubeTranscript": {
         "declarations": [
           {
-            "text": "exportYouTubeTranscript(): Promise<string>; // Export an HTTPS youtube.com or www.youtube.com /watch transcript to a UTF-8 .txt file.",
+            "text": "exportYouTubeTranscript(): Promise<string | { status: \"ad_playing\" }>; // Export an HTTPS youtube.com or www.youtube.com /watch transcript to a UTF-8 .txt file.",
             "references": []
           }
         ],
@@ -981,7 +966,7 @@
       "expectNavigation": {
         "declarations": [
           {
-            "text": "expectNavigation<T>(action: () => Promise<T>, options: { timeoutMs?: number; url?: string; waitUntil?: LoadState }): Promise<T>; // Expect a navigation triggered by an action.",
+            "text": "expectNavigation<T>(action: () => Promise<T>, options?: { timeout?: number; url?: string; waitUntil?: LoadState }): Promise<T>; // Expect a navigation triggered by an action.",
             "references": [
               "LoadState"
             ]
@@ -1089,7 +1074,7 @@
       "waitForLoadState": {
         "declarations": [
           {
-            "text": "waitForLoadState(options: PageWaitForLoadStateOptions): Promise<void>; // Wait for the page to reach a specific load state.",
+            "text": "waitForLoadState(options?: PageWaitForLoadStateOptions): Promise<void>; // Wait for the page to reach a specific load state.",
             "references": [
               "PageWaitForLoadStateOptions"
             ]
@@ -1113,7 +1098,7 @@
       "waitForURL": {
         "declarations": [
           {
-            "text": "waitForURL(url: string, options: PageWaitForURLOptions): Promise<void>; // Wait for the page URL to match the provided value.",
+            "text": "waitForURL(url: string, options?: PageWaitForURLOptions): Promise<void>; // Wait for the page URL to match the provided value.",
             "references": [
               "PageWaitForURLOptions"
             ]
@@ -1214,7 +1199,7 @@
       "allTextContents": {
         "declarations": [
           {
-            "text": "allTextContents(options: { timeoutMs?: number }): Promise<Array<string>>; // Return `textContent` for *all* elements matched by this locator.",
+            "text": "allTextContents(options?: { timeout?: number }): Promise<Array<string>>; // Return `textContent` for *all* elements matched by this locator.",
             "references": []
           }
         ]
@@ -1232,7 +1217,7 @@
       "check": {
         "declarations": [
           {
-            "text": "check(options: LocatorCheckOptions): Promise<void>; // Check a checkbox or switch-like control.",
+            "text": "check(options?: LocatorCheckOptions): Promise<void>; // Check a checkbox or switch-like control.",
             "references": [
               "LocatorCheckOptions"
             ]
@@ -1242,7 +1227,7 @@
       "click": {
         "declarations": [
           {
-            "text": "click(options: LocatorClickOptions): Promise<void>; // Click the element matched by this locator.",
+            "text": "click(options?: LocatorClickOptions): Promise<void>; // Click the element matched by this locator.",
             "references": [
               "LocatorClickOptions"
             ]
@@ -1260,7 +1245,7 @@
       "dblclick": {
         "declarations": [
           {
-            "text": "dblclick(options: LocatorClickOptions): Promise<void>; // Double-click the element matched by this locator.",
+            "text": "dblclick(options?: LocatorClickOptions): Promise<void>; // Double-click the element matched by this locator.",
             "references": [
               "LocatorClickOptions"
             ]
@@ -1273,7 +1258,7 @@
       "downloadMedia": {
         "declarations": [
           {
-            "text": "downloadMedia(options: LocatorDownloadMediaOptions): Promise<string>; // Download the matched media or file link and return its saved file path.",
+            "text": "downloadMedia(options?: LocatorDownloadMediaOptions): Promise<string>; // Download the matched media or file link and return its saved file path.",
             "references": [
               "LocatorDownloadMediaOptions"
             ]
@@ -1308,7 +1293,7 @@
       "fill": {
         "declarations": [
           {
-            "text": "fill(value: string, options: { timeoutMs?: number }): Promise<void>; // Replace the element's value with the provided text.",
+            "text": "fill(value: string, options?: { timeout?: number }): Promise<void>; // Replace the element's value with the provided text.",
             "references": []
           }
         ]
@@ -1337,7 +1322,7 @@
       "getAttribute": {
         "declarations": [
           {
-            "text": "getAttribute(name: string, options: { timeoutMs?: number }): Promise<null | string>; // Return an attribute value from the first matched element.",
+            "text": "getAttribute(name: string, options?: { timeout?: number }): Promise<null | string>; // Return an attribute value from the first matched element.",
             "references": []
           }
         ]
@@ -1399,7 +1384,7 @@
       "innerText": {
         "declarations": [
           {
-            "text": "innerText(options: { timeoutMs?: number }): Promise<string>; // Return the rendered (visible) text of the first matched element.",
+            "text": "innerText(options?: { timeout?: number }): Promise<string>; // Return the rendered (visible) text of the first matched element.",
             "references": []
           }
         ]
@@ -1464,7 +1449,7 @@
       "press": {
         "declarations": [
           {
-            "text": "press(value: string, options: { timeoutMs?: number }): Promise<void>; // Press a keyboard key while this locator is focused.",
+            "text": "press(value: string, options?: { timeout?: number }): Promise<void>; // Press a keyboard key while this locator is focused.",
             "references": []
           }
         ],
@@ -1475,7 +1460,7 @@
       "pressSequentially": {
         "declarations": [
           {
-            "text": "pressSequentially(value: string, options: LocatorPressSequentiallyOptions): Promise<void>; // Focus the element and press each character in the text sequentially without clearing its existing value.",
+            "text": "pressSequentially(value: string, options?: LocatorPressSequentiallyOptions): Promise<void>; // Focus the element and press each character in the text sequentially without clearing its existing value.",
             "references": [
               "LocatorPressSequentiallyOptions"
             ]
@@ -1488,7 +1473,7 @@
       "selectOption": {
         "declarations": [
           {
-            "text": "selectOption(value: SelectOptionInput | Array<SelectOptionInput>, options: { timeoutMs?: number }): Promise<void>; // Select one or more options on a native `<select>` element.",
+            "text": "selectOption(value: SelectOptionInput | Array<SelectOptionInput>, options?: { timeout?: number }): Promise<void>; // Select one or more options on a native `<select>` element.",
             "references": [
               "SelectOptionInput"
             ]
@@ -1498,7 +1483,7 @@
       "setChecked": {
         "declarations": [
           {
-            "text": "setChecked(checked: boolean, options: LocatorCheckOptions): Promise<void>; // Set a checkbox or switch-like control to a checked/unchecked state.",
+            "text": "setChecked(checked: boolean, options?: LocatorCheckOptions): Promise<void>; // Set a checkbox or switch-like control to a checked/unchecked state.",
             "references": [
               "LocatorCheckOptions"
             ]
@@ -1508,7 +1493,7 @@
       "textContent": {
         "declarations": [
           {
-            "text": "textContent(options: { timeoutMs?: number }): Promise<null | string>; // Return the raw textContent of the first matched element (or null if missing).",
+            "text": "textContent(options?: { timeout?: number }): Promise<null | string>; // Return the raw textContent of the first matched element (or null if missing).",
             "references": []
           }
         ]
@@ -1516,7 +1501,7 @@
       "type": {
         "declarations": [
           {
-            "text": "type(value: string, options: { timeoutMs?: number }): Promise<void>; // Type text into the element without clearing existing content.",
+            "text": "type(value: string, options?: { timeout?: number }): Promise<void>; // Type text into the element without clearing existing content.",
             "references": []
           }
         ]
@@ -1524,7 +1509,7 @@
       "uncheck": {
         "declarations": [
           {
-            "text": "uncheck(options: LocatorCheckOptions): Promise<void>; // Uncheck a checkbox or switch-like control.",
+            "text": "uncheck(options?: LocatorCheckOptions): Promise<void>; // Uncheck a checkbox or switch-like control.",
             "references": [
               "LocatorCheckOptions"
             ]
@@ -1534,7 +1519,7 @@
       "waitFor": {
         "declarations": [
           {
-            "text": "waitFor(options: LocatorWaitForOptions): Promise<void>; // Wait for the element to reach a specific state.",
+            "text": "waitFor(options?: LocatorWaitForOptions): Promise<void>; // Wait for the element to become visible or reach the specified state.",
             "references": [
               "LocatorWaitForOptions"
             ]
@@ -1546,7 +1531,7 @@
       "path": {
         "declarations": [
           {
-            "text": "path(options: { timeoutMs?: number }): Promise<null | string>; // Return the local path to the downloaded file, if available.",
+            "text": "path(options?: { timeout?: number }): Promise<null | string>; // Return the local path to the downloaded file, if available.",
             "references": []
           }
         ],
@@ -1570,7 +1555,7 @@
       "setFiles": {
         "declarations": [
           {
-            "text": "setFiles(files: FileChooserFiles, options: { timeoutMs?: number }): Promise<void>; // Set the files for this chooser using absolute paths visible to the browser.",
+            "text": "setFiles(files: FileChooserFiles, options?: { timeout?: number }): Promise<void>; // Set the files for this chooser using absolute paths visible to the browser.",
             "references": [
               "FileChooserFiles"
             ]
@@ -1691,6 +1676,84 @@
           }
         ],
         "unsupportedByDefaultIn": [
+          "mcpapps"
+        ]
+      }
+    },
+    "BrowserAuthTabCapability": {
+      "info": {
+        "declarations": [
+          {
+            "text": "info: CapabilityInfo;",
+            "references": [
+              "CapabilityInfo"
+            ]
+          }
+        ],
+        "unsupportedByDefaultIn": [
+          "mcpapps"
+        ]
+      },
+      "id": {
+        "declarations": [
+          {
+            "text": "id: string;",
+            "references": []
+          }
+        ],
+        "unsupportedByDefaultIn": [
+          "mcpapps"
+        ]
+      },
+      "documentation": {
+        "declarations": [
+          {
+            "text": "documentation(): Promise<string>; // Read usage documentation for this optional tab capability.",
+            "references": []
+          }
+        ],
+        "unsupportedByDefaultIn": [
+          "mcpapps"
+        ]
+      },
+      "fillCredentials": {
+        "declarations": [
+          {
+            "text": "fillCredentials(options: { fields: Array<{ element_index: number; label: \"other\" | \"password\" | \"email\" | \"phone\" | \"username\" | \"otp\" }>; handle: string; submit?: { element_index: number } }): Promise<{ credential_handle?: string; locator_error?: { field_id: string; reason: \"not_user_visible\" }; reason?: \"user_took_over\"; selected_option?: string; status: \"unknown\" | \"unavailable\" | \"page_changed\" | \"origin_changed\" | \"submission_failed\" | \"submitted\" | \"locator_invalid\" | \"declined\" | \"cancelled\" | \"expired\"; submission_diagnostics?: { attempt_events?: Array<{ field_index?: number; kind: \"prompt_completed\" | \"field_fill_started\" | \"field_fill_completed\" | \"field_fill_uncertain\" | \"url_changed\" | \"document_changed\" | \"frame_changed\" | \"reinspection_started\" | \"reinspection_succeeded\" | \"reinspection_failed\" | \"site_request\" | \"site_navigation\" | \"site_submission_verified\" | \"submit_started\" | \"attempt_completed\"; method?: \"other\" | \"get\" | \"post\"; origin_relation?: \"other\" | \"same\" | \"cross\"; outcome?: \"unavailable\" | \"page_changed\" | \"origin_changed\" | \"submission_failed\" | \"submitted\" | \"locator_invalid\" | \"prompt_changed\"; phase: \"prompt\" | \"settled\" | \"filling\" | \"before_submit\" | \"submitting\"; reinspection?: number; request_class?: \"main_document\" | \"background\"; sequence: number }>; dropped_attempt_events?: number; first_rejection?: { outcome: \"origin_changed\" | \"submission_failed\"; reason: \"other\" | \"request_url_invalid\" | \"request_scheme\" | \"request_origin\" | \"paused_iframe\" | \"iframe_origin\" | \"child_frame_origin\"; request_class: \"other\" | \"main_document\" | \"background\"; submission_phase: \"pending\" | \"settled\" | \"not_applicable\" }; request_id: string; schema_version: 1; submission_mode: \"ordinary\" | \"private\"; terminal_rejection?: { outcome: \"origin_changed\" | \"submission_failed\"; reason: \"other\" | \"request_url_invalid\" | \"request_scheme\" | \"request_origin\" | \"paused_iframe\" | \"iframe_origin\" | \"child_frame_origin\"; request_class: \"other\" | \"main_document\" | \"background\"; submission_phase: \"pending\" | \"settled\" | \"not_applicable\" } } }>; // Fill current AX elements from an opaque handle without requesting credentials again.",
+            "references": []
+          }
+        ],
+        "unsupportedByDefaultIn": [
+          "extension",
+          "iab",
+          "cdp",
+          "mcpapps"
+        ]
+      },
+      "request": {
+        "declarations": [
+          {
+            "text": "request(options: BrowserAuthRequestOptions): Promise<{ credential_handle?: string; locator_error?: { field_id: string; reason: \"not_user_visible\" }; reason?: \"user_took_over\"; selected_option?: string; status: \"unknown\" | \"unavailable\" | \"page_changed\" | \"origin_changed\" | \"submission_failed\" | \"submitted\" | \"locator_invalid\" | \"declined\" | \"cancelled\" | \"expired\"; submission_diagnostics?: { attempt_events?: Array<{ field_index?: number; kind: \"prompt_completed\" | \"field_fill_started\" | \"field_fill_completed\" | \"field_fill_uncertain\" | \"url_changed\" | \"document_changed\" | \"frame_changed\" | \"reinspection_started\" | \"reinspection_succeeded\" | \"reinspection_failed\" | \"site_request\" | \"site_navigation\" | \"site_submission_verified\" | \"submit_started\" | \"attempt_completed\"; method?: \"other\" | \"get\" | \"post\"; origin_relation?: \"other\" | \"same\" | \"cross\"; outcome?: \"unavailable\" | \"page_changed\" | \"origin_changed\" | \"submission_failed\" | \"submitted\" | \"locator_invalid\" | \"prompt_changed\"; phase: \"prompt\" | \"settled\" | \"filling\" | \"before_submit\" | \"submitting\"; reinspection?: number; request_class?: \"main_document\" | \"background\"; sequence: number }>; dropped_attempt_events?: number; first_rejection?: { outcome: \"origin_changed\" | \"submission_failed\"; reason: \"other\" | \"request_url_invalid\" | \"request_scheme\" | \"request_origin\" | \"paused_iframe\" | \"iframe_origin\" | \"child_frame_origin\"; request_class: \"other\" | \"main_document\" | \"background\"; submission_phase: \"pending\" | \"settled\" | \"not_applicable\" }; request_id: string; schema_version: 1; submission_mode: \"ordinary\" | \"private\"; terminal_rejection?: { outcome: \"origin_changed\" | \"submission_failed\"; reason: \"other\" | \"request_url_invalid\" | \"request_scheme\" | \"request_origin\" | \"paused_iframe\" | \"iframe_origin\" | \"child_frame_origin\"; request_class: \"other\" | \"main_document\" | \"background\"; submission_phase: \"pending\" | \"settled\" | \"not_applicable\" } } }>; // Request credentials for a validated login form.",
+            "references": [
+              "BrowserAuthRequestOptions"
+            ]
+          }
+        ],
+        "unsupportedByDefaultIn": [
+          "mcpapps"
+        ]
+      },
+      "requestCredentials": {
+        "declarations": [
+          {
+            "text": "requestCredentials(request: { type: \"username_password\"; usernameType: \"email\" | \"phone\" | \"username\" } | { otpHandle: string; type: \"otp\" }): Promise<{ handle: string; status: \"ready\" } | { status: \"unavailable\" | \"page_changed\" | \"origin_changed\" | \"declined\" | \"cancelled\" | \"expired\" }>; // Request credentials without filling.",
+            "references": []
+          }
+        ],
+        "unsupportedByDefaultIn": [
+          "extension",
+          "iab",
+          "cdp",
           "mcpapps"
         ]
       }
@@ -1938,7 +2001,7 @@
       "references": []
     },
     "PlaywrightEvaluateOptions": {
-      "text": "type PlaywrightEvaluateOptions = {\n  timeoutMs?: number; // Maximum time to spend setting up the read-only DOM scope and running the script.\n};",
+      "text": "type PlaywrightEvaluateOptions = {\n  timeout?: number; // Maximum time to spend setting up the read-only DOM scope and running the script.\n};",
       "references": []
     },
     "LoadState": {
@@ -1950,34 +2013,34 @@
       "references": []
     },
     "WaitForEventOptions": {
-      "text": "type WaitForEventOptions = {\n  timeoutMs?: number;\n};",
+      "text": "type WaitForEventOptions = {\n  timeout?: number;\n};",
       "references": []
     },
     "PageWaitForLoadStateOptions": {
-      "text": "type PageWaitForLoadStateOptions = {\n  state?: LoadState;\n  timeoutMs?: number;\n};",
+      "text": "type PageWaitForLoadStateOptions = {\n  state?: LoadState;\n  timeout?: number;\n};",
       "references": [
         "LoadState"
       ]
     },
     "PageWaitForURLOptions": {
-      "text": "type PageWaitForURLOptions = {\n  timeoutMs?: number;\n  waitUntil?: WaitUntil;\n};",
+      "text": "type PageWaitForURLOptions = {\n  timeout?: number;\n  waitUntil?: WaitUntil;\n};",
       "references": [
         "WaitUntil"
       ]
     },
     "LocatorCheckOptions": {
-      "text": "type LocatorCheckOptions = {\n  force?: boolean;\n  timeoutMs?: number;\n};",
+      "text": "type LocatorCheckOptions = {\n  force?: boolean;\n  timeout?: number;\n};",
       "references": []
     },
     "LocatorClickOptions": {
-      "text": "type LocatorClickOptions = {\n  button?: MouseButton;\n  force?: boolean;\n  modifiers?: Array<KeyboardModifier>;\n  timeoutMs?: number;\n};",
+      "text": "type LocatorClickOptions = {\n  button?: MouseButton;\n  force?: boolean;\n  modifiers?: Array<KeyboardModifier>;\n  timeout?: number;\n};",
       "references": [
         "MouseButton",
         "KeyboardModifier"
       ]
     },
     "LocatorDownloadMediaOptions": {
-      "text": "type LocatorDownloadMediaOptions = {\n  timeoutMs?: number; // Download timeout in milliseconds; defaults to 120000, excluding permission prompts.\n};",
+      "text": "type LocatorDownloadMediaOptions = {\n  timeout?: number; // Download timeout in milliseconds; defaults to 120000, excluding permission prompts.\n};",
       "references": []
     },
     "LocatorEvaluateFunction": {
@@ -2003,7 +2066,7 @@
       ]
     },
     "LocatorPressSequentiallyOptions": {
-      "text": "type LocatorPressSequentiallyOptions = {\n  timeoutMs?: number;\n};",
+      "text": "type LocatorPressSequentiallyOptions = {\n  timeout?: number;\n};",
       "references": []
     },
     "SelectOptionInput": {
@@ -2013,7 +2076,7 @@
       ]
     },
     "LocatorWaitForOptions": {
-      "text": "type LocatorWaitForOptions = {\n  state: WaitForState;\n  timeoutMs?: number;\n};",
+      "text": "type LocatorWaitForOptions = {\n  state?: WaitForState;\n  timeout?: number;\n};",
       "references": [
         "WaitForState"
       ]
@@ -2035,6 +2098,19 @@
     "TabDevLogEntry": {
       "text": "interface TabDevLogEntry {\n  level: \"debug\" | \"info\" | \"log\" | \"warn\" | \"error\"; // Console log level.\n  message: string; // Rendered log message text.\n  timestamp: string; // ISO 8601 timestamp for when the runtime captured the log.\n  url?: string; // Source URL reported by the browser runtime, when available.\n}",
       "references": []
+    },
+    "CapabilityInfo": {
+      "text": "interface CapabilityInfo {\n  description: string;\n  id: string;\n}",
+      "references": []
+    },
+    "BrowserAuthRequestOptions": {
+      "text": "type BrowserAuthRequestOptions = Omit<BrowserAuthHandoffOptions, \"fields\" | \"options\" | \"submit\"> & { fields: Array<BrowserAuthRequestField>; options?: Array<BrowserAuthRequestOption>; submit?: BrowserAuthRequestSubmit };",
+      "references": [
+        "BrowserAuthHandoffOptions",
+        "BrowserAuthRequestField",
+        "BrowserAuthRequestOption",
+        "BrowserAuthRequestSubmit"
+      ]
     },
     "TabsContentType": {
       "text": "type TabsContentType = \"html\" | \"text\" | \"domSnapshot\";",
@@ -2084,6 +2160,49 @@
     },
     "TabClipboardEntry": {
       "text": "type TabClipboardEntry = {\n  base64?: string;\n  mimeType: string;\n  text?: string;\n};",
+      "references": []
+    },
+    "BrowserAuthHandoffOptions": {
+      "text": "type BrowserAuthHandoffOptions = z.infer<typeof BrowserAuthHandoffOptionsSchema>;",
+      "references": []
+    },
+    "BrowserAuthRequestField": {
+      "text": "type BrowserAuthRequestField = Omit<BrowserAuthField, \"selector\"> & { selector: BrowserAuthSelector };",
+      "references": [
+        "BrowserAuthField",
+        "BrowserAuthSelector"
+      ]
+    },
+    "BrowserAuthRequestOption": {
+      "text": "type BrowserAuthRequestOption = Omit<BrowserAuthOption, \"selector\"> & { selector?: BrowserAuthSelector };",
+      "references": [
+        "BrowserAuthOption",
+        "BrowserAuthSelector"
+      ]
+    },
+    "BrowserAuthRequestSubmit": {
+      "text": "type BrowserAuthRequestSubmit = Omit<BrowserAuthSubmit, \"selector\"> & { selector: BrowserAuthSelector };",
+      "references": [
+        "BrowserAuthSubmit",
+        "BrowserAuthSelector"
+      ]
+    },
+    "BrowserAuthField": {
+      "text": "type BrowserAuthField = z.infer<typeof BrowserAuthFieldSchema>;",
+      "references": []
+    },
+    "BrowserAuthSelector": {
+      "text": "type BrowserAuthSelector = string | PlaywrightLocator;",
+      "references": [
+        "PlaywrightLocator"
+      ]
+    },
+    "BrowserAuthOption": {
+      "text": "type BrowserAuthOption = z.infer<typeof BrowserAuthOptionSchema>;",
+      "references": []
+    },
+    "BrowserAuthSubmit": {
+      "text": "type BrowserAuthSubmit = z.infer<typeof BrowserAuthSubmitSchema>;",
       "references": []
     }
   }

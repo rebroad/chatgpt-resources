@@ -1,6 +1,12 @@
 # Request waterfall
 
-Use `<viz-waterfall>` for timed spans from one request. Prefer wide mode.
+Use `<viz-waterfall>` for timed spans from one request.
+
+Request wide mode even when this widget is the only visual. Set the host width in the final response reference alongside the file path, for example:
+
+```text
+visualize{"path":"<absolute-path>/waterfall.html","mode":"wide"}
+```
 
 ```html
 <viz-waterfall id="request" title="GET /api/orders/42"></viz-waterfall>

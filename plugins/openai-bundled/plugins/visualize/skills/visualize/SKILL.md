@@ -48,7 +48,7 @@ Read this file in full before authoring. Reread truncated ranges in smaller call
 visualize{"path":"<absolute-path>/<title>.html"}
 ```
 
-- Add `"mode":"wide"` for a full-screen desktop app mockup, including its application shell. For other visuals, add it only when several compact chart panels must remain side by side for direct comparison and would be unreadable at the normal width. Never widen a single plot, map, grid, diagram, or timeline merely because it is dense. Keep contained mockups, dialogs, and mobile screens at normal width; stack separate self-contained views vertically. Wide visualizations render in an expandable inline surface up to 1,024px:
+- Use wide mode for request waterfalls, error stack traces, flame charts, and week or month calendars, even when shown alone. Keep a day calendar at regular width. Also use wide mode for a full-screen desktop app mockup with its application shell, or when several compact chart panels must stay side by side for a readable comparison. Keep other single plots, maps, grids, diagrams, timelines, contained mockups, dialogs, and mobile screens at regular width. Stack independent views vertically. To request the expandable inline surface (up to 1,024px), add `"mode":"wide"` alongside `"path"` in the final response reference:
 
 ```text
 visualize{"path":"<absolute-path>/<title>.html","mode":"wide"}
@@ -260,6 +260,7 @@ For geographic maps, including maps within another visualization, read [maps.md]
 - Add a legend only when multiple series cannot be labeled directly.
 - Pair color with shape or text so meaning never depends on color alone.
 
+<!-- BEGIN CODEX-ONLY CHARTS -->
 ### Standard Chart Families
 
 For standard chart components, the selected family and shared contract govern rendering, composition and validation, taking precedence over general guidance for this chart artifact only, including its surrounding text, tables and controls. A chart composition may include a short analytical summary and an exact-values table. The CSP additionally permits `https://persistent.oaistatic.com/plugins/visualize/charts/` for the pinned component runtime.
@@ -289,7 +290,7 @@ When using a standard chart family, always read `charts/instructions.md` and any
 - `charts/composition.md`: For charts with nearby analytical text, styled tables or collapsible sections.
 - `charts/controls.md`: For native inputs that filter or calculate data and update a chart.
 - `charts/coordinated.md`: For controls that synchronize charts and readouts, or for saved interaction state.
-- `charts/annotations.md`: For reference lines or bands, point labels and supplied uncertainty.
+- `charts/annotations.md`: For reference lines, reference bands, point labels, or uncertainty marks called for by the shared chart rule.
 
 ### Fallback chart rendering
 
@@ -300,6 +301,7 @@ When using a standard chart family, always read `charts/instructions.md` and any
 - Keep decorative SVG fills, bands and leader lines from intercepting interactive marks (`pointer-events: none`). When observations overlap, use a grouped tooltip or series selection/focus so every observation remains inspectable; do not rely on tiny exposed edges. When a preview is needed under the validation policy, inspect an overlapping observation in the primary interaction.
 - Scope SVG styles to the chart class. Never target every `svg` in a container that also contains Lucide icons.
 
+<!-- END CODEX-ONLY CHARTS -->
 ## Icons and mockups
 
 - Use the sandbox-provided global `lucide`. Add an icon name with `data-lucide`:

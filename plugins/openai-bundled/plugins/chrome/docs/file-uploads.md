@@ -2,7 +2,7 @@
 Handle file inputs and uploads through the file chooser flow:
 
 ```js
-const chooserPromise = tab.playwright.waitForEvent("filechooser", { timeoutMs: 10000 });
+const chooserPromise = tab.playwright.waitForEvent("filechooser", { timeout: 10000 });
 await tab.playwright.locator('input[type="file"]').click();
 const chooser = await chooserPromise;
 await chooser.setFiles(["/absolute/path/to/file.txt"]);

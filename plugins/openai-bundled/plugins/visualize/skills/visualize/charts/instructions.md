@@ -5,7 +5,7 @@ Read this, the selected family and applicable guides in one batch, skipping alre
 ## Runtime
 
 ```yaml
-chart_base_url: "https://persistent.oaistatic.com/plugins/visualize/charts/1.1.6"
+chart_base_url: "https://persistent.oaistatic.com/plugins/visualize/charts/1.2.3"
 ```
 
 Import `mountChart` from `{{CHART_BASE_URL}}/element.js`; keep this pin. Use a section with data-viz-composition, an owned div with data-viz-container, and a script type="application/json" with data-viz-chart holding strict JSON. A module script imports mountChart, parses that JSON and passes the container and full config; it synchronously returns an element, rendering async. Update complete `chart.config`; nested mutation does not render. No `ready/update/dispose` handle. Keep controls outside, IDs unique and lookups consistent. Initialize defaults, mount once, update data/readouts; disable controls until ready or retain pending selections. Reveal hidden panels before mounting. Runtime owns geometry/theme/legend/tooltips/loading/errors and cleanup; clean up only your own listeners/timers. Keep the native legend and default palette unless the user requests customization. For custom legends, share explicit colors with spec.colors; --chart-\* variables are chart-scoped. Literal labels support `<`, `&` and quotes; escape `<` in script JSON as `\u003c`. Never change network policy/pin.
@@ -44,6 +44,7 @@ For controls, assign a complete configuration to `chart.config`; keep controls o
 ## Constraints not expressed by types
 
 - Preserve data, precision, units, grain, populations and denominators. Numbers stay numbers; null is unknown where permitted, zero observed. No invented/dropped/rounded values or mixed detail/totals; label assumptions and material caveats visibly. Bind exact case-sensitive field names, not expressions. Tuple widths match columns; column names are nonempty/unique, excluding `__proto__`, `constructor`, `prototype`.
+- Plot point estimates by default, even when bounds are supplied or can be calculated. Show counts or a brief caveat when sample size matters. Add statistical intervals only when the user explicitly requests intervals or explicitly asks about statistical uncertainty, such as how precise an estimate is or whether an observed difference could be due to chance.
 - Limits: 2,000 rows/chart, 2MB UTF-8 JSON before/after tuple expansion, 1MB HTML or tighter host limit. Request reviewed reduction if exceeded. IDs/titles nonempty ≤1,000 characters; description/summary ≤10,000; height 120–800px, default 280. Comparisons have 2–3 distinct IDs, only charts on wrapper. Empty rows valid.
 - `valueFormat`: percent uses fractions, currency requires code without conversion; digit bounds integers 0–15, min≤max. Both fixed=2 pads, max alone rounds, min alone allows max15; omit for distinction-preserving defaults. Full display only, not data/geometry. Reject conflicting legacy settings. Supported by line/area/sparkline/bar except normalized, scatter Y, pie/heatmap/ranking/funnel/waterfall; not histogram/box plot/Sankey. Numeric X/categories/pie center/funnel percentages remain separate.
 - `colors`: ≤40 nonblank keys of ≤160 characters, mapped by measure/series (single bar/pie also category). Opaque #RGB/#RRGGBB or var(--chart-1)…var(--chart-8), var(--positive), var(--negative), var(--secondary), var(--text). Line/area/bar/scatter/pie only. Absent identities ignored; others default. Keep mappings/scales stable across filters, match external swatches, support both themes and retain text labels.
@@ -156,6 +157,6 @@ export declare function mountChart(
 
 ## Additional workflows
 
-Read controls.md for inputs/calculations, composition.md for analysis/requested tables, coordinated.md for linked views/persistence, annotations.md for references/uncertainty. Read cartesian-inputs.md for line/area/bar/sparkline. Tables only when requested; never omit required visual layers.
+Read controls.md for inputs/calculations, composition.md for analysis/requested tables, coordinated.md for linked views/persistence, annotations.md for reference lines, reference bands, point labels, or uncertainty marks called for by the shared chart rule. Read cartesian-inputs.md for line/area/bar/sparkline. Tables only when requested; never omit required visual layers.
 
 After a successful write, run `python3 <skill-dir>/scripts/render.py /absolute/chart.html --check` once in the same tool execution when supported. Read the chart payload count. If a standard chart is built in JavaScript, validate the complete config passed to mountChart and representative configs assigned to chart.config using the control-state check in controls.md. Fix validation failures before delivery. Verify calculations and state transitions separately. Browser inspection is for concrete defects or explicit requests.

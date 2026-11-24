@@ -149,20 +149,66 @@
       postToHost("widget-state-write", { id, state: serializedState });
     });
   };
+  const bindingElement = document.getElementById("codex-visualization-bindings");
   const mockElement = document.getElementById("codex-connector-mocks");
+  const fileElement = document.getElementById("codex-preview-files");
   const connectorGlobals = {};
-  if (mockElement != null) {
-    const values = new Map(Object.entries(parse(mockElement.textContent)));
-    mockElement.remove();
-    connectorGlobals.visualizationData = {
-      updates: Array.from(values, ([name, value]) => ({
-        name,
-        revision: 1,
-        state: "ready",
-        value: { type: "json", value },
-      })),
-    };
+  if (bindingElement != null || mockElement != null || fileElement != null) {
+    const bindings = parse(bindingElement?.textContent ?? "{}");
+    bindingElement?.remove();
+    const values = new Map();
+    for (const [name, binding] of Object.entries(bindings)) {
+      if (binding.type === "json") values.set(name, structuredClone(binding.value));
+    }
+    const pending = [bindings];
+    while (pending.length) {
+      const object = pending.pop();
+      Object.freeze(object);
+      for (const child of Object.values(object)) {
+        if (child !== null && typeof child === "object") pending.push(child);
+      }
+    }
+    const updates = [];
+    if (mockElement != null) {
+      const mocks = Object.entries(parse(mockElement.textContent));
+      mockElement.remove();
+      for (const [name, value] of mocks) {
+        values.set(name, value);
+        updates.push({ name, revision: 1, state: "ready", value: { type: "json", value } });
+      }
+    }
+    if (fileElement != null) {
+      const files = parse(fileElement.textContent);
+      fileElement.remove();
+      const blobs = new Map();
+      const urls = [];
+      for (const [name, binding] of Object.entries(bindings)) {
+        if (binding.type !== "file" || !hasOwn(files, binding.path)) continue;
+        const file = files[binding.path];
+        let blob = blobs.get(binding.path);
+        if (blob == null) {
+          const bytes = Uint8Array.fromBase64?.(file.base64) ??
+            Uint8Array.from(atob(file.base64), (char) => char.charCodeAt(0));
+          blob = new Blob([bytes], { type: file.mimeType });
+          blobs.set(binding.path, blob);
+        }
+        const url = URL.createObjectURL(blob);
+        urls.push(url);
+        values.set(name, { name: file.name, blob, url });
+        updates.push({ name, revision: 1, state: "ready", value: { type: "file", ...file } });
+      }
+      globalThis.addEventListener("pagehide", (event) => {
+        // A persisted pagehide can restore this same document and its subscriptions.
+        if (event.persisted) return;
+        for (const url of urls) URL.revokeObjectURL(url);
+        urls.length = 0;
+      });
+    }
+    if (mockElement != null || fileElement != null) connectorGlobals.visualizationData = { updates };
     connectorGlobals.visualization = {
+      get bindings() {
+        return bindings;
+      },
       /** @param {string} name @param {(value: unknown) => void} callback */
       onData(name, callback) {
         if (typeof callback !== "function") {
@@ -174,7 +220,7 @@
           // oxlint-disable-next-line no-console -- Keep authored callback failures local.
           console.error("Live visualization data callback failed", error);
         }
-        // A static preview delivers the current fixture once per subscription.
+        // A static preview delivers the current value once per subscription.
         return () => {};
       },
     };

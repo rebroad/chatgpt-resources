@@ -2,10 +2,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import secrets
 import shutil
+import stat
 import subprocess
 import sys
+from collections.abc import Generator
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from html import escape
 from html.parser import HTMLParser
@@ -70,10 +75,6 @@ _REGEXP_LITERAL = re.compile(r"/(?:\\[^\r\n]|\[(?:\\.|[^\]\\\r\n])*\]|[^/\[\\\r\
 _REGEXP_PREFIXES = frozenset("( [ { = , : ; ! ~ ? & | + - * > return throw case yield".split())
 
 
-def _calendar_entry(url: str) -> bool:
-    return _CALENDAR_ENTRY.fullmatch(url) is not None
-
-
 def _js_tokens(source: str) -> list[str]:
     tokens: list[str] = []
     position = 0
@@ -90,12 +91,12 @@ def _js_tokens(source: str) -> list[str]:
     return tokens
 
 
-def _imports_calendar(source: str, *, module: bool) -> bool:
+def _imports_widget_entry(source: str, *, module: bool, entry: re.Pattern[str]) -> bool:
     # Only an import specifier reserves the element name. Links, comments and
     # ordinary string literals containing an example import must stay inert.
     tokens = _js_tokens(source)
     for i, token in enumerate(tokens):
-        if token[0] not in ("'", '"', "`") or not _calendar_entry(token[1:-1]):
+        if token[0] not in ("'", '"', "`") or not entry.fullmatch(token[1:-1]):
             continue
         if token[0] == "`" and "${" in token:
             continue
@@ -112,9 +113,10 @@ def _imports_calendar(source: str, *, module: bool) -> bool:
     return False
 
 
-class _CalendarImportParser(HTMLParser):
-    def __init__(self) -> None:
+class _WidgetImportParser(HTMLParser):
+    def __init__(self, entry: re.Pattern[str]) -> None:
         super().__init__()
+        self._entry = entry
         self.found = False
         self._inert = 0
         self._inline_module: bool | None = None
@@ -132,13 +134,13 @@ class _CalendarImportParser(HTMLParser):
         ):
             return
         if "src" in attributes:
-            self.found = module and _calendar_entry((attributes["src"] or "").strip())
+            self.found = module and bool(self._entry.fullmatch((attributes["src"] or "").strip()))
         else:
             self._inline_module = module
 
     def handle_data(self, data: str) -> None:
         if not self.found and self._inline_module is not None:
-            self.found = _imports_calendar(data, module=self._inline_module)
+            self.found = _imports_widget_entry(data, module=self._inline_module, entry=self._entry)
 
     def handle_endtag(self, tag: str) -> None:
         if tag == "script":
@@ -147,15 +149,19 @@ class _CalendarImportParser(HTMLParser):
             self._inert -= 1
 
 
+def _has_widget_import(fragment: str, entry: re.Pattern[str]) -> bool:
+    if "/plugins/visualize/widgets/" not in fragment:
+        return False
+    scripts = _WidgetImportParser(entry)
+    scripts.feed(fragment)
+    scripts.close()
+    return scripts.found
+
+
 def uses_bundled_calendar(fragment: str) -> bool:
     if not re.search(r"\bviz-calendar(?![-\w])", fragment, re.IGNORECASE):
         return False
-    if "/plugins/visualize/widgets/" not in fragment:
-        return True
-    scripts = _CalendarImportParser()
-    scripts.feed(fragment)
-    scripts.close()
-    return not scripts.found
+    return not _has_widget_import(fragment, _CALENDAR_ENTRY)
 
 
 # END SHARED CALENDAR DETECTION
@@ -212,7 +218,10 @@ def _read_fragment(source: Path) -> str:
         raise ValueError(f"source must be a regular file: {source}")
     if source.stat().st_size > _MAX_FRAGMENT_BYTES:
         raise ValueError("source fragment exceeds the 1 MB size limit")
-    fragment = source.read_text(encoding="utf-8")
+    return _validate_fragment(source.read_text(encoding="utf-8"))
+
+
+def _validate_fragment(fragment: str) -> str:
     parser = _FragmentValidator()
     parser.feed(fragment)
     parser.close()
@@ -229,6 +238,37 @@ def calendar_script(fragment: str) -> str:
     if not uses_bundled_calendar(fragment):
         return ""
     source = (_SKILL_DIRECTORY / "assets" / "calendar.js").read_text(encoding="utf-8")
+    return "<script>" + source.replace("</script", "<\\/script") + "</script>"
+
+
+_DASHBOARD_SOURCES_ENTRY = re.compile(
+    r"https://(?:persistent\.oaistatic\.com|staging1pstatic\.blob\.core\.windows\.net/persistent)"
+    r"/plugins/visualize/widgets/[^/?#]+/(?:sources|element)\.js(?:[?#].*)?"
+)
+
+
+class _DashboardSourcesParser(_FragmentHTMLParser):
+    found = False
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        super().handle_starttag(tag, attrs)
+        if tag == "dash-sources":
+            self.found = True
+
+
+def dashboard_sources_script(fragment: str) -> str:
+    """Register the bundled inspector for an authored Dashboard Sources element."""
+    if "<dash-sources" not in fragment.lower():
+        return ""
+    parser = _DashboardSourcesParser()
+    parser.feed(fragment)
+    parser.close()
+    if not parser.found:
+        return ""
+    source = (_SKILL_DIRECTORY / "assets" / "dashboard-sources.js").read_text(encoding="utf-8")
+    if _has_widget_import(fragment, _DASHBOARD_SOURCES_ENTRY):
+        # Let the author's pinned Widgets module register its version first.
+        source = f"document.addEventListener('DOMContentLoaded', () => {{\n{source}\n}}, {{once: true}});"
     return "<script>" + source.replace("</script", "<\\/script") + "</script>"
 
 
@@ -468,18 +508,49 @@ def _share_assets(metadata: _ShareMetadata | None, stylesheet: str) -> tuple[str
     )
 
 
-def _mock_data(fragment: str, fixture: Path | None) -> str:
-    if fixture is None:
+def _binding_data(fragment: str, fixture: Path | None, *, dashboard: bool = False) -> str:
+    if fixture is None and not fragment.startswith("<!-- vis-bindings"):
         return ""
     helper = Path(__file__).with_name("connector_mocks.py")
-    return run_path(str(helper))["preview_connector_data"](fragment, fixture)
+    return run_path(str(helper))["preview_binding_data"](fragment, fixture, dashboard=dashboard)
+
+
+def _pin_preview_root(source: Path, enabled: bool) -> object | None:
+    if not enabled:
+        return None
+    helper = run_path(str(Path(__file__).with_name("connector_mocks.py")))
+    return helper["pin_preview_root"](source)
+
+
+def _load_inputs(
+    source: Path,
+    fixture: Path | None,
+    preview_root: object | None,
+    destination: Path | None = None,
+    *,
+    dashboard: bool,
+    destination_identity: os.stat_result | None = None,
+) -> tuple[str, str]:
+    if preview_root is None:
+        fragment = _read_fragment(source)
+        return fragment, _binding_data(fragment, fixture, dashboard=dashboard)
+    helper = run_path(str(Path(__file__).with_name("connector_mocks.py")))
+    fragment, binding_data = helper["read_local_preview"](
+        preview_root,
+        fixture,
+        _MAX_FRAGMENT_BYTES,
+        dashboard=dashboard,
+        destination=destination,
+        destination_identity=destination_identity,
+    )
+    return _validate_fragment(fragment), binding_data
 
 
 def _render_document(
     fragment: str,
     title: str,
-    metadata: _ShareMetadata | None = None,
-    connector_mocks: Path | None = None,
+    metadata: _ShareMetadata | None,
+    binding_data: str,
 ) -> str:
     stylesheet = (_SKILL_DIRECTORY / "assets" / "visualize.css").read_text(
         encoding="utf-8",
@@ -501,9 +572,11 @@ def _render_document(
         )
         .replace("</script", r"<\/script")
     )
-    inner_html = inner_kit.replace(_FRAGMENT_PLACEHOLDER, calendar_script(fragment) + fragment)
+    inner_html = inner_kit.replace(
+        _FRAGMENT_PLACEHOLDER,
+        calendar_script(fragment) + dashboard_sources_script(fragment) + fragment,
+    )
     share_styles, share_runtime = _share_assets(metadata, stylesheet)
-    mock_data = _mock_data(fragment, connector_mocks)
     document_title = escape(title)
     frame_html = f"""<!doctype html>
 <html lang="en" data-visualize-standalone>
@@ -518,7 +591,7 @@ html>body{{padding:0}}</style>
 </head>
 <body>
 <script type="application/json" id="codex-visualization-widget-state">__CODEX_VISUALIZATION_WIDGET_STATE__</script>
-{mock_data}<script>{host_bridge}</script>
+{binding_data}<script>{host_bridge}</script>
 {inner_html}
 </body>
 </html>
@@ -543,6 +616,43 @@ html>body{{padding:0}}</style>
 """
 
 
+def _render_source(
+    source: Path,
+    title: str | None,
+    *,
+    share: bool,
+    metadata_path: Path | None,
+    connector_mocks: Path | None,
+    dashboard: bool,
+    preview_root: object | None,
+    destination: Path | None = None,
+    destination_identity: os.stat_result | None = None,
+) -> tuple[str, str]:
+    if share and preview_root is not None:
+        raise ValueError("--preview-files cannot be combined with --share")
+    fragment, binding_data = _load_inputs(
+        source,
+        connector_mocks,
+        preview_root,
+        destination,
+        dashboard=dashboard,
+        destination_identity=destination_identity,
+    )
+    metadata = _read_share_metadata(fragment, metadata_path) if share else None
+    if (
+        share
+        and destination is not None
+        and metadata_path is not None
+        and (
+            metadata_path.resolve() == destination.resolve()
+            or (destination.exists() and metadata_path.samefile(destination))
+        )
+    ):
+        raise ValueError("share metadata and destination must be different files")
+    document = _render_document(fragment, title or _default_title(source), metadata, binding_data)
+    return document, fragment
+
+
 def render(
     fragment_path: Path,
     title: str | None = None,
@@ -550,12 +660,126 @@ def render(
     share: bool = False,
     metadata_path: Path | None = None,
     connector_mocks: Path | None = None,
+    dashboard: bool = False,
+    preview_files: bool = False,
 ) -> str:
-    fragment = _read_fragment(fragment_path)
-    metadata = _read_share_metadata(fragment, metadata_path) if share else None
-    return _render_document(
-        fragment, title or _default_title(fragment_path), metadata, connector_mocks
+    document, _ = _render_source(
+        fragment_path,
+        title,
+        share=share,
+        metadata_path=metadata_path,
+        connector_mocks=connector_mocks,
+        dashboard=dashboard,
+        preview_root=_pin_preview_root(fragment_path, preview_files),
     )
+    return document
+
+
+def _output_stat(path: Path, directory_fd: int) -> os.stat_result | None:
+    try:
+        return os.stat(
+            path.name,
+            dir_fd=directory_fd,
+            follow_symlinks=False,
+        )
+    except FileNotFoundError:
+        return None
+
+
+@dataclass(frozen=True)
+class _PreviewOutput:
+    path: Path
+    supplied_parent: Path
+    parent_identity: os.stat_result
+    directory_fd: int
+    original: os.stat_result | None
+
+    def check(self, *, leaf: bool = True) -> None:
+        if self.supplied_parent.resolve(strict=True) != self.path.parent or not os.path.samestat(
+            self.parent_identity, self.path.parent.stat()
+        ):
+            raise ValueError("preview output directory changed while rendering")
+        if leaf:
+            current = _output_stat(self.path, self.directory_fd)
+            unchanged = current is self.original
+            if current is not None and self.original is not None:
+                unchanged = (
+                    os.path.samestat(self.original, current)
+                    and self.original.st_ctime_ns == current.st_ctime_ns
+                )
+            if not unchanged:
+                raise ValueError("preview destination changed while rendering")
+
+    def write(self, document: str, *, force: bool) -> None:
+        self.check()
+        replace = force and self.original is not None
+        path = (
+            self.path.with_name(f".visualize-{secrets.token_hex(16)}.tmp") if replace else self.path
+        )
+        entry = path.name
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0)
+        descriptor = os.open(entry, flags, 0o600, dir_fd=self.directory_fd)
+        identity = os.fstat(descriptor)
+        installed = False
+        try:
+            with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as output:
+                self.check(leaf=replace)
+                current = _output_stat(path, self.directory_fd)
+                if current is None or not os.path.samestat(identity, current):
+                    raise ValueError("preview output changed before writing")
+                output.write(document)
+            self.check(leaf=replace)
+            current = _output_stat(path, self.directory_fd)
+            if current is None or not os.path.samestat(identity, current):
+                raise ValueError("preview output changed before installation")
+            if replace:
+                os.replace(
+                    path.name,
+                    self.path.name,
+                    src_dir_fd=self.directory_fd,
+                    dst_dir_fd=self.directory_fd,
+                )
+            installed = True
+        finally:
+            if not installed:
+                current = _output_stat(path, self.directory_fd)
+                if current is not None and os.path.samestat(identity, current):
+                    os.unlink(entry, dir_fd=self.directory_fd)
+
+
+@contextmanager
+def _pinned_preview_output(
+    destination: Path, enabled: bool
+) -> Generator[_PreviewOutput | None, None, None]:
+    if not enabled:
+        yield None
+        return
+    if not all(
+        operation in os.supports_dir_fd for operation in (os.open, os.rename, os.stat, os.unlink)
+    ):
+        raise ValueError("--preview-files is unavailable without directory-relative output access")
+    supplied_parent = destination.absolute().parent
+    supplied_parent.mkdir(parents=True, exist_ok=True)
+    parent = supplied_parent.resolve(strict=True)
+    identity = parent.stat()
+    if not identity.st_ino:
+        raise ValueError("preview output directory has no verifiable identity")
+    directory_fd = os.open(parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        if not os.path.samestat(identity, os.fstat(directory_fd)):
+            raise ValueError("preview output directory changed before validation")
+        path = parent / destination.name
+        original = _output_stat(path, directory_fd)
+        if original is not None and (
+            not stat.S_ISREG(original.st_mode)
+            or getattr(original, "st_file_attributes", 0) & stat.FILE_ATTRIBUTE_REPARSE_POINT
+        ):
+            raise ValueError("preview destination must be a regular file")
+        output = _PreviewOutput(path, supplied_parent, identity, directory_fd, original)
+        output.check()
+        yield output
+    finally:
+        os.close(directory_fd)
 
 
 def export_html(
@@ -567,38 +791,51 @@ def export_html(
     share: bool = False,
     metadata_path: Path | None = None,
     connector_mocks: Path | None = None,
+    dashboard: bool = False,
+    preview_files: bool = False,
 ) -> bool:
-    if destination.is_symlink():
-        raise ValueError(f"destination cannot be a symbolic link: {destination}")
-    if source.resolve() == destination.resolve() or (
-        destination.exists() and source.samefile(destination)
-    ):
-        raise ValueError("source and destination must be different files")
+    if preview_files and share:
+        raise ValueError("--preview-files cannot be combined with --share")
+    preview_root = _pin_preview_root(source, preview_files)
+    with _pinned_preview_output(destination, preview_files) as preview_output:
+        if preview_output is not None:
+            destination = preview_output.path
+        if destination.is_symlink():
+            raise ValueError(f"destination cannot be a symbolic link: {destination}")
+        if source.resolve() == destination.resolve() or (
+            destination.exists() and source.samefile(destination)
+        ):
+            raise ValueError("source and destination must be different files")
 
-    if connector_mocks is not None and (
-        connector_mocks.resolve() == destination.resolve()
-        or (destination.exists() and connector_mocks.samefile(destination))
-    ):
-        raise ValueError("connector mock file and destination must be different files")
+        if connector_mocks is not None and (
+            connector_mocks.resolve() == destination.resolve()
+            or (destination.exists() and connector_mocks.samefile(destination))
+            or (
+                preview_output is not None
+                and preview_output.original is not None
+                and os.path.samestat(preview_output.original, connector_mocks.stat())
+            )
+        ):
+            raise ValueError("connector mock file and destination must be different files")
 
-    fragment = _read_fragment(source)
-    metadata = _read_share_metadata(fragment, metadata_path) if share else None
-    if (
-        share
-        and metadata_path is not None
-        and (
-            metadata_path.resolve() == destination.resolve()
-            or (destination.exists() and metadata_path.samefile(destination))
+        document, fragment = _render_source(
+            source,
+            title,
+            share=share,
+            metadata_path=metadata_path,
+            connector_mocks=connector_mocks,
+            dashboard=dashboard,
+            preview_root=preview_root,
+            destination=destination,
+            destination_identity=preview_output.original if preview_output is not None else None,
         )
-    ):
-        raise ValueError("share metadata and destination must be different files")
-    document = _render_document(
-        fragment, title or _default_title(source), metadata, connector_mocks
-    )
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    with destination.open("w" if force else "x", encoding="utf-8", newline="\n") as output:
-        output.write(document)
-    return _HOST_API_REFERENCE.search(fragment) is not None
+        if preview_output is not None:
+            preview_output.write(document, force=force)
+        else:
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            with destination.open("w" if force else "x", encoding="utf-8", newline="\n") as output:
+                output.write(document)
+        return _HOST_API_REFERENCE.search(fragment) is not None
 
 
 def serve(
@@ -609,9 +846,25 @@ def serve(
     share: bool,
     metadata_path: Path | None,
     connector_mocks: Path | None = None,
+    dashboard: bool = False,
+    preview_files: bool = False,
 ) -> None:
+    preview_root = _pin_preview_root(source, preview_files)
+
+    def current_document() -> str:
+        document, _ = _render_source(
+            source,
+            title,
+            share=share,
+            metadata_path=metadata_path,
+            connector_mocks=connector_mocks,
+            dashboard=dashboard,
+            preview_root=preview_root,
+        )
+        return document
+
     # Fail before opening a server for an invalid initial fragment.
-    render(source, title, share=share, metadata_path=metadata_path, connector_mocks=connector_mocks)
+    current_document()
 
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self) -> None:
@@ -619,13 +872,7 @@ def serve(
                 self.send_error(404)
                 return
             try:
-                encoded_document = render(
-                    source,
-                    title,
-                    share=share,
-                    metadata_path=metadata_path,
-                    connector_mocks=connector_mocks,
-                ).encode("utf-8")
+                encoded_document = current_document().encode("utf-8")
             except (OSError, UnicodeError, ValueError) as exc:
                 self.send_error(500, "Cannot render current fragment", explain=str(exc))
                 return
@@ -707,15 +954,31 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         help="preview declared tool bindings with local JSON fixtures keyed by binding name",
     )
+    parser.add_argument(
+        "--dashboard",
+        action="store_true",
+        help="use Dashboard Page bindings, which allow tool declarations without a refresh interval",
+    )
+    parser.add_argument(
+        "--preview-files",
+        action="store_true",
+        help="preview declared Dashboard Page files as Blobs from the fragment directory",
+    )
     args = parser.parse_args(argv)
+    if args.preview_files and args.share:
+        parser.error("--preview-files cannot be combined with --share")
     if args.chart_state and not args.check:
         parser.error("--chart-state requires --check")
     if args.check:
         if args.serve or args.share or args.metadata is not None or args.destination is not None:
             parser.error("--check cannot be combined with export options")
         try:
-            fragment = _read_fragment(args.fragment)
-            _mock_data(fragment, args.connector_mocks)
+            fragment, _ = _load_inputs(
+                args.fragment,
+                args.connector_mocks,
+                _pin_preview_root(args.fragment, args.preview_files),
+                dashboard=args.dashboard,
+            )
             node = shutil.which("node")
             if not node:
                 raise ValueError("Offline chart validation requires the host's Node runtime")
@@ -754,6 +1017,8 @@ def main(argv: list[str] | None = None) -> int:
                 title=args.title,
                 force=args.force,
                 connector_mocks=args.connector_mocks,
+                dashboard=args.dashboard,
+                preview_files=args.preview_files,
                 share=args.share,
                 metadata_path=args.metadata,
             )
@@ -772,6 +1037,8 @@ def main(argv: list[str] | None = None) -> int:
                 share=args.share,
                 metadata_path=args.metadata,
                 connector_mocks=args.connector_mocks,
+                dashboard=args.dashboard,
+                preview_files=args.preview_files,
             )
         else:
             document = render(
@@ -780,6 +1047,8 @@ def main(argv: list[str] | None = None) -> int:
                 share=args.share,
                 metadata_path=args.metadata,
                 connector_mocks=args.connector_mocks,
+                dashboard=args.dashboard,
+                preview_files=args.preview_files,
             )
             sys.stdout.write(document)
     except (OSError, UnicodeError, ValueError) as exc:

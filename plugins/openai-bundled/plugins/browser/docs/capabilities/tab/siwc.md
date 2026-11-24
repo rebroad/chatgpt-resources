@@ -20,6 +20,16 @@ count too: open the relevant UI before authenticating. Refresh the observation
 or detection after navigation, replacement, or a stale target. Never force
 clicks or change CSS to reveal a control.
 
+A previous generic sign-in failure alone does not permanently prohibit
+SIWC. Stop automatic retries after a failure.
+If the user explicitly asks to retry, inspect the current page and make
+at most one fresh `siwc.authenticate()` attempt per site origin during this task,
+subject to the safeguards below. If that retry fails, stop and report the failure;
+another user request does not reset this limit.
+Retain native approval and automated safety review. If the site explicitly
+blocks sign-in or the required review rejects the retry, stop and report it.
+Never bypass those controls or switch sign-in methods without the user's choice.
+
 `no_deterministic_matches` does not prove SIWC is absent. Inspect AX, DOM, or
 a screenshot. A manually recognized button or link may be addressed with the
 observation's snapshot ID and its AX index or DOM ref. Use the browser's
@@ -29,12 +39,18 @@ Credentials and grants are private to the browser. Never inspect, log, copy,
 or paste them into a website or chat. If this capability is unavailable, follow
 the browser's documented fallback for sign-in.
 
+If authentication returns `reauthentication_required`, relay its message to the
+user and wait for them to complete the authentication steps it specifies. Do not
+retry automatically or substitute a different sign-in method or location. After
+the user confirms reauthentication, refresh the page observation before trying
+again.
+
 ## API Reference
 ```ts
 const capability = await tab.capabilities.get("siwc");
 
 interface SiwcTabCapability {
-  authenticate(options: { target?: { elementIndex: number; kind: "ax"; snapshotId: string } | { kind: "dom"; ref: string; snapshotId: string } }): Promise<{ status: "page_changed" | "initiated" | "unsupported" | "no_actionable_button" | "target_unavailable" | "account_unavailable" | "account_changed" | "approval_declined" | "approval_cancelled" | "approval_failed" | "grant_failed" | "cookie_failed" | "click_failed" } | { candidates: [{ evidence: "siwc_marker_detected" | "chatgpt_button_detected"; label?: string; target: { elementIndex: number; kind: "ax"; snapshotId: string } | { kind: "dom"; ref: string; snapshotId: string }; visibility: "rendered" | "hidden" }, { evidence: "siwc_marker_detected" | "chatgpt_button_detected"; label?: string; target: { elementIndex: number; kind: "ax"; snapshotId: string } | { kind: "dom"; ref: string; snapshotId: string }; visibility: "rendered" | "hidden" }, unknown]; status: "multiple_actionable_buttons" }>; // Read documentation first. Uses native approval and clicks the selected control once.
+  authenticate(options: { target?: { elementIndex: number; kind: "ax"; snapshotId: string } | { kind: "dom"; ref: string; snapshotId: string } }): Promise<{ message: string; status: "reauthentication_required" } | { status: "page_changed" | "initiated" | "unsupported" | "no_actionable_button" | "target_unavailable" | "account_unavailable" | "account_changed" | "approval_declined" | "approval_cancelled" | "approval_failed" | "grant_failed" | "cookie_failed" | "click_failed" } | { candidates: [{ evidence: "siwc_marker_detected" | "chatgpt_button_detected"; label?: string; target: { elementIndex: number; kind: "ax"; snapshotId: string } | { kind: "dom"; ref: string; snapshotId: string }; visibility: "rendered" | "hidden" }, { evidence: "siwc_marker_detected" | "chatgpt_button_detected"; label?: string; target: { elementIndex: number; kind: "ax"; snapshotId: string } | { kind: "dom"; ref: string; snapshotId: string }; visibility: "rendered" | "hidden" }, unknown]; status: "multiple_actionable_buttons" }>; // Read documentation first. Uses native approval and clicks the selected control once.
   detect(): Promise<{ candidates: [{ evidence: "siwc_marker_detected" | "chatgpt_button_detected"; label?: string; target: { elementIndex: number; kind: "ax"; snapshotId: string } | { kind: "dom"; ref: string; snapshotId: string }; visibility: "rendered" | "hidden" }, unknown]; status: "possible_matches" } | { candidates: []; status: "no_deterministic_matches" } | { reason: "page_changed" | "observation_unavailable"; status: "unavailable" }>; // Detect candidate controls without requesting approval or signing in.
 }
 ```

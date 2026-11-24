@@ -36,7 +36,7 @@ const { setupBrowserRuntime } = await import("<plugin root>/scripts/browser-clie
 const agent = await setupBrowserRuntime();
 ```
 
-Dot appears in browser inventory only when available. Select it with `await agent.browsers.get("dot")` to use tabs on Dot's active main thread. `iab` uses the current chat's tabs. Dot supports the same browser actions as the in-app browser; follow its tab-claiming guidance before using an existing tab.
+Dot appears in browser inventory only when available. Select it with `await agent.browsers.get("dot")` to use tabs on Dot's active main thread. `iab` uses the current chat's tabs. Both use `browser.tabs.list()` and `browser.tabs.get(id)` for existing tabs.
 
 Once a browser connection is established, reuse its existing browser binding across later turns and do not reread these instructions. Once you have read a browser's complete documentation, do not read it again unless you select a different browser.
 

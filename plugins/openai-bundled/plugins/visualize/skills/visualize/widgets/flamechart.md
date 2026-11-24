@@ -1,6 +1,12 @@
 # Sampled CPU flame chart
 
-Use `<viz-flame-chart>` for chronological stack samples from one thread. Prefer wide mode.
+Use `<viz-flame-chart>` for chronological stack samples from one thread.
+
+Request wide mode even when this widget is the only visual. Set the host width in the final response reference alongside the file path, for example:
+
+```text
+visualize{"path":"<absolute-path>/flamechart.html","mode":"wide"}
+```
 
 ```html
 <viz-flame-chart id="profile" title="Render order details" thread-name="Main thread" description="CPU samples every 1 ms"></viz-flame-chart>

@@ -1,13 +1,40 @@
 <!--__INLINE_VISUALIZATION_FRAGMENT__-->
-<script src="https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js"></script>
-<script src="https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js"></script>
 <script>
 (() => {
-  if (window.FloatingUIDOM == null) {
-    return;
-  }
-  const { autoUpdate, computePosition, flip, offset, shift, size } =
-    window.FloatingUIDOM;
+  let positioningReady = window.FloatingUIDOM
+    ? Promise.resolve(window.FloatingUIDOM)
+    : null;
+  const loadScript = (src) => new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = resolve;
+    script.onerror = () => {
+      script.remove();
+      reject(new Error("Could not load tooltip positioning"));
+    };
+    document.head.appendChild(script);
+  });
+  const loadPositioning = async () => {
+    const domUrl = "https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js";
+    const preload = document.createElement("link");
+    preload.rel = "preload";
+    preload.as = "script";
+    preload.href = domUrl;
+    document.head.appendChild(preload);
+    try {
+      if (window.FloatingUICore == null) {
+        await loadScript("https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js");
+      }
+      await loadScript(domUrl);
+      return window.FloatingUIDOM;
+    } finally {
+      preload.remove();
+    }
+  };
+  const getPositioning = () => positioningReady ??= loadPositioning().catch((error) => {
+    positioningReady = null;
+    throw error;
+  });
   const tooltipPlacements = new Set(["top", "right", "bottom", "left"]);
   const tooltipId = `codex-visualization-tooltip-${
     window.crypto?.randomUUID?.() ?? Date.now().toString(36)
@@ -91,7 +118,7 @@
       skipDelayUntil = Date.now() + skipDelay;
     }
   };
-  const updatePosition = (trigger, floating) => {
+  const updatePosition = (trigger, floating, { computePosition, flip, offset, shift, size }) => {
     const request = ++positionRequest;
     void computePosition(trigger, floating, {
       middleware: [
@@ -146,8 +173,14 @@
     document.body.appendChild(floating);
     activeTrigger = trigger;
     setDescribedBy(trigger, true);
-    autoUpdateCleanup = autoUpdate(trigger, floating, () => {
-      updatePosition(trigger, floating);
+    const request = positionRequest;
+    void getPositioning().then((positioning) => {
+      if (request !== positionRequest || !trigger.isConnected) return;
+      autoUpdateCleanup = positioning.autoUpdate(trigger, floating, () => {
+        updatePosition(trigger, floating, positioning);
+      });
+    }).catch(() => {
+      if (request === positionRequest) closeTooltip(false);
     });
   };
   const requestOpen = (trigger, immediate = false) => {

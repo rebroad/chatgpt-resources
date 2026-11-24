@@ -66,20 +66,6 @@
   },
   {
     "mode": "included",
-    "name": "tab-claiming-dot",
-    "when": {
-      "browserTypes": [
-        "iab"
-      ],
-      "requiredApiMembers": [
-        "Browser.user",
-        "BrowserUser.openTabs",
-        "BrowserUser.claimTab"
-      ]
-    }
-  },
-  {
-    "mode": "included",
     "name": "mcp-apps",
     "when": {
       "browserTypes": [
@@ -189,7 +175,7 @@
     }
   },
   {
-    "description": "read when the user asks for screenshots",
+    "description": "read before returning a browser screenshot to the user",
     "mode": "lookup",
     "name": "screenshots"
   },
@@ -221,7 +207,9 @@
     "mode": "model",
     "name": "capabilities/tab/browserAuth",
     "requiredFor": [
-      "tab_browser_auth_handoff"
+      "tab_browser_auth_handoff",
+      "tab_browser_auth_apply_credential",
+      "tab_browser_auth_request_credentials"
     ]
   },
   {

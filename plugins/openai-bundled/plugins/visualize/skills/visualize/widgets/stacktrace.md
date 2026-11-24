@@ -2,6 +2,12 @@
 
 Use `<viz-stack-trace>` to show an error reported by an application. Supply the report as data; the error does not need to occur in the visualization's JavaScript.
 
+Request wide mode even when this widget is the only visual. Set the host width in the final response reference alongside the file path, for example:
+
+```text
+visualize{"path":"<absolute-path>/stacktrace.html","mode":"wide"}
+```
+
 ```html
 <viz-stack-trace id="failure"></viz-stack-trace>
 <script type="module">

@@ -1,6 +1,12 @@
 # Calendar
 
-Use `<viz-calendar>` for dated events. Keep a single day at regular conversation width. Prefer wide mode for week and month views. The element supplies its own `.widget` surface and spacing.
+Use `<viz-calendar>` for dated events. The element supplies its own `.widget` surface and spacing.
+
+For `view="week"` or `view="month"`, request wide mode so all seven columns have room. For day view (the default), omit `mode`. Set the host width in the final response reference alongside the file path, for example:
+
+```text
+visualize{"path":"<absolute-path>/calendar.html","mode":"wide"}
+```
 
 ## Day, week, and month
 
